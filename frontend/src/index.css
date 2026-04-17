@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+/* Cấu hình màu và font cho Tailwind v4 */
+@theme {
+  --color-surface: #f8f9fa;
+  --color-surface-variant: #e1e3e4;
+  --color-surface-container-low: #f3f4f5;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-high: #e7e8e9;
+  
+  --color-on-surface: #191c1d;
+  --color-on-surface-variant: #454652;
+  
+  --color-primary: #000666;
+  --color-primary-container: #1a237e;
+  --color-on-primary-container: #8690ee;
+  
+  --color-secondary: #0061a4;
+  --color-secondary-container: #33a0fd;
+  
+  --color-outline: #767683;
+  --color-error: #ba1a1a;
+
+  --font-headline: "Manrope", sans-serif;
+  --font-body: "Inter", sans-serif;
+}
+
+/* Các custom CSS */
+@layer base {
+  body {
+    font-family: var(--font-body);
+    background-color: var(--color-surface);
+    color: var(--color-on-surface);
+  }
+  
+  .font-headline { font-family: var(--font-headline); }
+  
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+  }
+}
+
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: #e1e3e4; border-radius: 10px; }
+}
