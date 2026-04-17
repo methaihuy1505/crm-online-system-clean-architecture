@@ -5,7 +5,7 @@ spring:
   application:
     name: crm
   datasource:
-    url: jdbc:mysql://localhost:3306/crm_system?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Ho_Chi_Minh
+    url: jdbc:mysql://localhost:3306/ddd-ca?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Ho_Chi_Minh
     username: root
     password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
