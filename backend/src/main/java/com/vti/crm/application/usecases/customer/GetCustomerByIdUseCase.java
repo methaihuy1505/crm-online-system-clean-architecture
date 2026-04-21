@@ -1,23 +1,17 @@
 package com.vti.crm.application.usecases.customer;
 
-
 import com.vti.crm.domain.model.Customer;
 import com.vti.crm.domain.repository.ICustomerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 public class GetCustomerUseCase {
-    private final ICustomerRepository repository;
+    private final ICustomerRepository customerRepository;
 
-    public List<Customer> executeGetAll() {
-        return repository.findAll();
-    }
-
-    public Customer executeGetById(Long id) {
-        return repository.findById(id);
+    public Customer execute(Integer id) {
+        return customerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy Khách hàng với ID: " + id));
     }
 }

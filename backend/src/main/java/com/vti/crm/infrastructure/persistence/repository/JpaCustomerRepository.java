@@ -1,7 +1,12 @@
-package com.vti.crm.infrastructure.persistence.repository;
+package com.vti.crm.repository;
 
-import com.vti.crm.infrastructure.persistence.entity.CustomerDbEntity;
+import com.vti.crm.entity.Customer;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface JpaCustomerRepository extends JpaRepository<CustomerDbEntity, Long> {
+import java.util.List;
+
+@Repository
+public interface CustomerRepository extends JpaRepository<Customer, Integer> {
+    List<Customer> findByCampaignId(Integer campaignId);
 }

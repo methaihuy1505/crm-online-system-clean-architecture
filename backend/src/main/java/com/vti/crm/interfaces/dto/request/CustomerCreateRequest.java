@@ -1,20 +1,55 @@
-package com.vti.crm.interfaces.dto.request;
+package com.vti.crm.dto.request;
 
-
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
+import jakarta.validation.constraints.Pattern;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+import java.time.LocalDate;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class CustomerCreateRequest {
 
-    @NotBlank(message = "Tên không được để trống")
-    private String fullName;
+    @NotBlank(message = "Tên khách hàng không được để trống")
+    private String name;
 
-    @NotBlank(message = "Email không được để trống")
-    @Email(message = "Email không đúng định dạng")
-    private String email;
+    private String shortName;
+    private Boolean isOrganization = true;
 
-    // Số điện thoại có thể không bắt buộc lúc mới tạo
-    private String phone;
+    @Pattern(regexp = "^$|^(\\d{10}|\\d{12}|\\d{13})$", message = "Mã số thuế chỉ được chứa số và có độ dài 10, 12 hoặc 13 ký tự")
+    private String taxCode;
+
+    @Pattern(regexp = "^$|^\\d{12}$", message = "CCCD/CMND phải bao gồm đúng 12 chữ số")
+    private String citizenId;
+
+    private LocalDate foundedDate;
+
+    @Pattern(regexp = "^$|^\\d{10,11}$", message = "Số điện thoại chính phải từ 10-11 chữ số")
+    private String mainPhone;
+
+    @Pattern(regexp = "^$|^\\S+@\\S+\\.\\S+$", message = "Email không đúng định dạng")
+    private String emailOfficial;
+
+    @Pattern(regexp = "^$|^\\d{10,15}$", message = "Số Fax phải là số và từ 10-15 ký tự")
+    private String fax;
+
+    private String website;
+    private String addressCompany;
+    private String addressBilling;
+    private String description;
+
+    private Integer sourceId;
+    private Integer campaignId;
+    private Integer statusId;
+    private Integer rankId;
+    private Integer primaryContactId;
+    private Integer branchId;
+    private Integer provinceId;
+    private Integer assignedUserId;
+
 }
