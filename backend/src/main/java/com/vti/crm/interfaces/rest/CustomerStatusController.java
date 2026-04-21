@@ -1,10 +1,13 @@
-package com.vti.crm.controller;
+package com.vti.crm.interfaces.rest;
 
-import com.vti.crm.entity.CustomerStatus;
-import com.vti.crm.repository.CustomerStatusRepository;
+import com.vti.crm.application.usecases.customerstatus.GetAllCustomerStatusesUseCase;
+import com.vti.crm.interfaces.dto.response.CustomerStatusResponse;
+import com.vti.crm.interfaces.mapper.CustomerStatusWebMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -13,10 +16,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CustomerStatusController {
 
-    private final CustomerStatusRepository customerStatusRepository;
+    private final GetAllCustomerStatusesUseCase useCase;
+    private final CustomerStatusWebMapper webMapper;
 
     @GetMapping
-    public ResponseEntity<List<CustomerStatus>> getAllStatuses() {
-        return ResponseEntity.ok(customerStatusRepository.findAll());
+    public ResponseEntity<List<CustomerStatusResponse>> getAllStatuses() {
+        List<CustomerStatusResponse> responses = useCase.execute().stream()
+                .map(webMapper::toResponse)
+                .toList();
+        return ResponseEntity.ok(responses);
     }
 }

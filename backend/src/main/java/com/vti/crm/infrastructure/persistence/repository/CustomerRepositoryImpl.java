@@ -1,6 +1,5 @@
 package com.vti.crm.infrastructure.persistence.repository;
 
-
 import com.vti.crm.domain.model.Customer;
 import com.vti.crm.domain.repository.ICustomerRepository;
 import com.vti.crm.infrastructure.persistence.entity.CustomerDbEntity;
@@ -9,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -19,27 +18,23 @@ public class CustomerRepositoryImpl implements ICustomerRepository {
     private final CustomerInfraMapper mapper;
 
     @Override
-    public void save(Customer customer) {
-        CustomerDbEntity dbEntity = mapper.toDbEntity(customer);
-        jpaRepository.save(dbEntity);
+    public Customer save(Customer customer) {
+        CustomerDbEntity entity = mapper.toEntity(customer);
+        return mapper.toDomain(jpaRepository.save(entity));
     }
 
     @Override
-    public Customer findById(Long id) {
-        CustomerDbEntity dbEntity = jpaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng"));
-        return mapper.toDomainEntity(dbEntity);
+    public Optional<Customer> findById(Integer id) {
+        return jpaRepository.findById(id).map(mapper::toDomain);
     }
 
     @Override
     public List<Customer> findAll() {
-        return jpaRepository.findAll().stream()
-                .map(mapper::toDomainEntity)
-                .collect(Collectors.toList());
+        return jpaRepository.findAll().stream().map(mapper::toDomain).toList();
     }
 
     @Override
-    public void deleteById(Long id) {
-        jpaRepository.deleteById(id);
+    public List<Customer> findByCampaignId(Integer campaignId) {
+        return jpaRepository.findByCampaignId(campaignId).stream().map(mapper::toDomain).toList();
     }
 }

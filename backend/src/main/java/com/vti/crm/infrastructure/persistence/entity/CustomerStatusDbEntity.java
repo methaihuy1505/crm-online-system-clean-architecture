@@ -9,7 +9,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "customer_status")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-public class CustomerStatus {
+public class CustomerStatusDbEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

@@ -1,4 +1,8 @@
 package com.vti.crm.domain.repository;
 
-public class ICustomerStatusRepository {
+import com.vti.crm.domain.model.CustomerStatus;
+import java.util.List;
+
+public interface ICustomerStatusRepository {
+    List<CustomerStatus> findAll();
 }

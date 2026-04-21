@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import Button from "../../components/ui/Button";
 
 const LeadFormModal = ({ isOpen, onClose, onSave, currentLead }) => {
-  // 1. State chứa FULL các trường (Giữ nguyên cấu trúc của bạn)
   const [formData, setFormData] = useState({
     fullName: "",
     companyName: "",
@@ -25,22 +25,22 @@ const LeadFormModal = ({ isOpen, onClose, onSave, currentLead }) => {
 
   const [sources, setSources] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
+  const [statuses, setStatuses] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
-
-  // === BỔ SUNG STATE QUẢN LÝ LỖI ===
   const [errors, setErrors] = useState({});
 
-  // 2. Load danh mục (Giữ nguyên cấu trúc của bạn)
   useEffect(() => {
     if (isOpen) {
       const loadCategories = async () => {
         try {
-          const [srcRes, camRes] = await Promise.all([
+          const [srcRes, camRes, statusesRes] = await Promise.all([
             axios.get("http://localhost:8080/api/v1/sources"),
             axios.get("http://localhost:8080/api/v1/campaigns"),
+            axios.get("http://localhost:8080/api/v1/lead-statuses"),
           ]);
           setSources(srcRes.data);
           setCampaigns(camRes.data);
+          setStatuses(statusesRes.data);
         } catch (error) {
           console.error("Lỗi khi tải danh mục:", error);
         }
@@ -49,29 +49,10 @@ const LeadFormModal = ({ isOpen, onClose, onSave, currentLead }) => {
     }
   }, [isOpen]);
 
-  // 3. Load dữ liệu khi Sửa/Thêm (Giữ nguyên cấu trúc của bạn)
   useEffect(() => {
-    setErrors({}); // Reset lỗi mỗi khi đóng/mở modal
+    setErrors({});
     if (currentLead) {
-      setFormData({
-        fullName: currentLead.fullName || "",
-        companyName: currentLead.companyName || "",
-        phone: currentLead.phone || "",
-        email: currentLead.email || "",
-        website: currentLead.website || "",
-        taxCode: currentLead.taxCode || "",
-        citizenId: currentLead.citizenId || "",
-        address: currentLead.address || "",
-        expectedRevenue: currentLead.expectedRevenue || "",
-        description: currentLead.description || "",
-        provinceId: currentLead.provinceId || "",
-        branchId: currentLead.branchId || "",
-        sourceId: currentLead.sourceId || "",
-        campaignId: currentLead.campaignId || "",
-        statusId: currentLead.statusId || 1,
-        assignedTo: currentLead.assignedTo || "",
-        productInterestIds: currentLead.productInterestIds || [],
-      });
+      setFormData({ ...currentLead });
     } else {
       setFormData({
         fullName: "",
@@ -95,48 +76,45 @@ const LeadFormModal = ({ isOpen, onClose, onSave, currentLead }) => {
     }
   }, [currentLead, isOpen]);
 
-  // === HÀM KIỂM TRA VALIDATION ===
   const validateForm = () => {
     let newErrors = {};
 
-    // Bắt buộc nhập Họ tên
     if (!formData.fullName || formData.fullName.trim() === "") {
       newErrors.fullName = "Họ và tên không được để trống";
     }
 
-    // Kiểm tra định dạng Phone (nếu có nhập)
-    if (formData.phone && !/^\d{10,11}$/.test(formData.phone)) {
-      newErrors.phone = "Số điện thoại phải có từ 10-11 chữ số";
+    if (formData.phone && !/^\d{10}$/.test(formData.phone)) {
+      newErrors.phone = "Số điện thoại phải đúng 10 chữ số";
     }
 
-    // Kiểm tra định dạng Email (nếu có nhập)
     if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email không đúng định dạng (VD: example@mail.com)";
+      newErrors.email = "Email không đúng định dạng";
     }
 
-    // Bắt buộc có trạng thái
-    if (!formData.statusId) {
-      newErrors.statusId = "Vui lòng chọn trạng thái";
+    if (
+      formData.taxCode &&
+      !/^(\d{10}|\d{12}|\d{13})$/.test(formData.taxCode)
+    ) {
+      newErrors.taxCode =
+        "Mã số thuế chỉ được chứa số và có độ dài 10, 12 hoặc 13 ký tự";
+    }
+
+    if (formData.citizenId && !/^\d{12}$/.test(formData.citizenId)) {
+      newErrors.citizenId = "CCCD phải bao gồm đúng 12 chữ số";
     }
 
     setErrors(newErrors);
-    // Nếu object newErrors không có key nào => Valid
     return Object.keys(newErrors).length === 0;
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Xóa thông báo lỗi của trường đang nhập
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: null }));
-    }
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: null }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Gọi hàm validate trước khi xử lý
     if (!validateForm()) return;
 
     setIsSaving(true);
@@ -164,10 +142,7 @@ const LeadFormModal = ({ isOpen, onClose, onSave, currentLead }) => {
       onSave();
       onClose();
     } catch (error) {
-      console.error("Lỗi khi lưu Lead:", error);
-      alert(
-        "Có lỗi xảy ra: " + (error.response?.data?.message || error.message),
-      );
+      alert("Lỗi: " + (error.response?.data?.message || error.message));
     } finally {
       setIsSaving(false);
     }
@@ -185,12 +160,12 @@ const LeadFormModal = ({ isOpen, onClose, onSave, currentLead }) => {
             </span>
             {currentLead ? "Cập nhật Khách hàng" : "Thêm Khách hàng mới"}
           </h3>
-          <button
+          <Button
+            variant="iconOnly"
+            icon="close"
             onClick={onClose}
-            className="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors"
-          >
-            <span className="material-symbols-outlined">close</span>
-          </button>
+            className="text-on-surface-variant"
+          />
         </div>
 
         <form
@@ -213,7 +188,6 @@ const LeadFormModal = ({ isOpen, onClose, onSave, currentLead }) => {
                   value={formData.fullName}
                   onChange={handleChange}
                   className={`w-full px-4 py-2 bg-surface-container-lowest border rounded-lg focus:ring-2 focus:ring-primary outline-none ${errors.fullName ? "border-error" : "border-outline-variant"}`}
-                  placeholder="Ví dụ: Nguyễn Văn A"
                 />
                 {errors.fullName && (
                   <p className="text-error text-[10px] italic">
@@ -221,42 +195,68 @@ const LeadFormModal = ({ isOpen, onClose, onSave, currentLead }) => {
                   </p>
                 )}
               </div>
-
               <div className="space-y-1.5">
                 <label className="block text-[11px] font-bold text-on-surface-variant uppercase">
-                  Tên công ty / Tổ chức
+                  Tên công ty
                 </label>
                 <input
                   type="text"
                   name="companyName"
                   value={formData.companyName}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                  placeholder="Để trống nếu là khách cá nhân"
+                  className="w-full px-4 py-2 border rounded-lg outline-none"
                 />
               </div>
-
               <div className="space-y-1.5">
                 <label className="block text-[11px] font-bold text-on-surface-variant uppercase">
-                  Trạng thái Lead <span className="text-error">*</span>
+                  Mã số thuế
+                </label>
+                <input
+                  type="text"
+                  name="taxCode"
+                  value={formData.taxCode}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-2 border rounded-lg outline-none ${errors.taxCode ? "border-error" : ""}`}
+                />
+                {errors.taxCode && (
+                  <p className="text-error text-[10px] italic">
+                    {errors.taxCode}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-bold text-on-surface-variant uppercase">
+                  CMND / CCCD
+                </label>
+                <input
+                  type="text"
+                  name="citizenId"
+                  value={formData.citizenId}
+                  onChange={handleChange}
+                  className={`w-full px-4 py-2 border rounded-lg outline-none ${errors.citizenId ? "border-error" : ""}`}
+                />
+                {errors.citizenId && (
+                  <p className="text-error text-[10px] italic">
+                    {errors.citizenId}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-bold text-on-surface-variant uppercase">
+                  Trạng thái <span className="text-error">*</span>
                 </label>
                 <select
                   name="statusId"
                   value={formData.statusId}
                   onChange={handleChange}
-                  className={`w-full px-4 py-2 bg-surface-container-lowest border rounded-lg focus:ring-2 focus:ring-primary outline-none ${errors.statusId ? "border-error" : "border-outline-variant"}`}
+                  className="w-full px-4 py-2 border rounded-lg outline-none"
                 >
-                  <option value={1}>Mới</option>
-                  <option value={2}>Đang liên hệ</option>
-                  <option value={3}>Tiềm năng</option>
-                  <option value={4}>Đã chuyển đổi</option>
-                  <option value={5}>Mất/Hủy</option>
+                  {statuses.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
                 </select>
-                {errors.statusId && (
-                  <p className="text-error text-[10px] italic">
-                    {errors.statusId}
-                  </p>
-                )}
               </div>
             </div>
           </div>
@@ -275,7 +275,7 @@ const LeadFormModal = ({ isOpen, onClose, onSave, currentLead }) => {
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  className={`w-full px-4 py-2 bg-surface-container-lowest border rounded-lg outline-none ${errors.phone ? "border-error" : "border-outline-variant"}`}
+                  className={`w-full px-4 py-2 border rounded-lg outline-none ${errors.phone ? "border-error" : ""}`}
                 />
                 {errors.phone && (
                   <p className="text-error text-[10px] italic">
@@ -292,7 +292,7 @@ const LeadFormModal = ({ isOpen, onClose, onSave, currentLead }) => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`w-full px-4 py-2 bg-surface-container-lowest border rounded-lg outline-none ${errors.email ? "border-error" : "border-outline-variant"}`}
+                  className={`w-full px-4 py-2 border rounded-lg outline-none ${errors.email ? "border-error" : ""}`}
                 />
                 {errors.email && (
                   <p className="text-error text-[10px] italic">
@@ -302,15 +302,28 @@ const LeadFormModal = ({ isOpen, onClose, onSave, currentLead }) => {
               </div>
               <div className="space-y-1.5 md:col-span-2">
                 <label className="block text-[11px] font-bold text-on-surface-variant uppercase">
-                  Địa chỉ
+                  Website
                 </label>
                 <input
                   type="text"
+                  name="website"
+                  value={formData.website}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border rounded-lg outline-none"
+                  placeholder="https://"
+                />
+              </div>
+              <div className="space-y-1.5 md:col-span-2">
+                <label className="block text-[11px] font-bold text-on-surface-variant uppercase">
+                  Địa chỉ
+                </label>
+                <textarea
                   name="address"
+                  rows="2"
                   value={formData.address}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                />
+                  className="w-full px-4 py-2 border rounded-lg outline-none"
+                ></textarea>
               </div>
             </div>
           </div>
@@ -328,7 +341,7 @@ const LeadFormModal = ({ isOpen, onClose, onSave, currentLead }) => {
                   name="sourceId"
                   value={formData.sourceId}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                  className="w-full px-4 py-2 border rounded-lg outline-none"
                 >
                   <option value="">-- Chọn nguồn --</option>
                   {sources.map((s) => (
@@ -346,7 +359,7 @@ const LeadFormModal = ({ isOpen, onClose, onSave, currentLead }) => {
                   name="campaignId"
                   value={formData.campaignId}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                  className="w-full px-4 py-2 border rounded-lg outline-none"
                 >
                   <option value="">-- Chọn chiến dịch --</option>
                   {campaigns.map((c) => (
@@ -365,50 +378,39 @@ const LeadFormModal = ({ isOpen, onClose, onSave, currentLead }) => {
                   name="expectedRevenue"
                   value={formData.expectedRevenue}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                  className="w-full px-4 py-2 border rounded-lg outline-none"
                   placeholder="VNĐ"
                 />
+              </div>
+              <div className="space-y-1.5 md:col-span-3">
+                <label className="block text-[11px] font-bold text-on-surface-variant uppercase">
+                  Ghi chú / Mô tả
+                </label>
+                <textarea
+                  name="description"
+                  rows="3"
+                  value={formData.description}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border rounded-lg outline-none"
+                  placeholder="Nhập ghi chú..."
+                ></textarea>
               </div>
             </div>
           </div>
         </form>
 
         <div className="px-6 py-4 border-t border-surface-variant bg-surface-container-lowest flex justify-end gap-3 sticky bottom-0 z-10">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-6 py-2.5 rounded-lg font-bold text-on-surface-variant hover:bg-surface-container-high transition-colors"
-          >
+          <Button type="button" variant="cancel" onClick={onClose}>
             Hủy bỏ
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
             form="leadForm"
             disabled={isSaving}
-            className="px-8 py-2.5 rounded-lg font-bold text-white bg-primary hover:bg-[#1A237E] shadow-lg transition-all active:scale-95 disabled:opacity-50 flex items-center gap-2"
+            variant="primary"
           >
-            {isSaving ? (
-              <>
-                <span
-                  className="material-symbols-outlined animate-spin"
-                  style={{ fontSize: "18px" }}
-                >
-                  progress_activity
-                </span>{" "}
-                Đang lưu...
-              </>
-            ) : (
-              <>
-                <span
-                  className="material-symbols-outlined"
-                  style={{ fontSize: "18px" }}
-                >
-                  save
-                </span>{" "}
-                Lưu Khách Hàng
-              </>
-            )}
-          </button>
+            {isSaving ? "Đang lưu..." : "Lưu Khách Hàng"}
+          </Button>
         </div>
       </div>
     </div>

@@ -1,10 +1,7 @@
 package com.vti.crm.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -12,9 +9,10 @@ import java.time.LocalDateTime;
 
 @org.hibernate.annotations.SQLRestriction("deleted_at IS NULL")
 @Entity
+@Builder
 @Table(name = "contacts")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-public class Contact {
+public class ContactDbEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,7 +20,7 @@ public class Contact {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id")
-    private Customer customer;
+    private CustomerDbEntity customer;
 
     @Column(name = "first_name", length = 50)
     private String firstName;
@@ -42,6 +40,7 @@ public class Contact {
     @Column(name = "personal_phone", length = 20)
     private String personalPhone;
 
+    @Builder.Default
     @Column(name = "is_primary")
     private Boolean isPrimary = false;
 

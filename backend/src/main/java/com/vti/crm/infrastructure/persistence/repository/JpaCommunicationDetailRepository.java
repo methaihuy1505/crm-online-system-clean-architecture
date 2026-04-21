@@ -1,6 +1,6 @@
-package com.vti.crm.repository;
+package com.vti.crm.infrastructure.persistence.repository;
 
-import com.vti.crm.entity.CommunicationDetail;
+import com.vti.crm.infrastructure.persistence.entity.CommunicationDetailDbEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -8,15 +8,15 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface CommunicationDetailRepository extends JpaRepository<CommunicationDetail, Integer> {
+public interface JpaCommunicationDetailRepository extends JpaRepository<CommunicationDetailDbEntity, Integer> {
 
     // Tìm danh sách liên lạc dựa theo Loại đối tượng (Lead/Customer) và ID
-    List<CommunicationDetail> findByParentTypeAndParentId(CommunicationDetail.ParentType parentType, Integer parentId);
+    List<CommunicationDetailDbEntity> findByParentTypeAndParentId(CommunicationDetailDbEntity.ParentType parentType, Integer parentId);
 
     // Tìm liên lạc đang là "Chính" (Primary) của một đối tượng theo loại (Phone/Email) để phục vụ Update
-    Optional<CommunicationDetail> findByParentIdAndParentTypeAndCommTypeAndIsPrimaryTrue(
+    Optional<CommunicationDetailDbEntity> findByParentIdAndParentTypeAndCommTypeAndIsPrimaryTrue(
             Integer parentId,
-            CommunicationDetail.ParentType parentType,
-            CommunicationDetail.CommType commType
+            CommunicationDetailDbEntity.ParentType parentType,
+            CommunicationDetailDbEntity.CommType commType
     );
 }

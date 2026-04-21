@@ -1,4 +1,9 @@
 package com.vti.crm.domain.repository;
 
-public class ISourceRepository {
+import com.vti.crm.domain.model.Source;
+
+import java.util.List;
+
+public interface ISourceRepository {
+     List<Source> findActiveSources();
 }

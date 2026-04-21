@@ -1,9 +1,9 @@
-package com.vti.crm.controller;
+package com.vti.crm.interfaces.rest;
 
-import com.vti.crm.entity.LeadStatus;
-import com.vti.crm.repository.LeadStatusRepository;
+import com.vti.crm.application.usecases.leadstatus.GetAllActiveStatusesUseCase;
+import com.vti.crm.interfaces.dto.response.LeadStatusResponse;
+import com.vti.crm.interfaces.mapper.LeadStatusWebMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,11 +15,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LeadStatusController {
 
-    private final LeadStatusRepository leadStatusRepository;
+    private final GetAllActiveStatusesUseCase getAllActiveStatusesUseCase;
+    private final LeadStatusWebMapper webMapper;
 
     @GetMapping
-    public List<LeadStatus> getAllStatuses() {
-        // Chỉ lấy các trạng thái đang Active
-        return leadStatusRepository.findByIsActiveTrue();
+    public List<LeadStatusResponse> getAllStatuses() {
+        return getAllActiveStatusesUseCase.execute().stream()
+                .map(webMapper::toResponse)
+                .toList();
     }
 }

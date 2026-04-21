@@ -1,4 +1,4 @@
-package com.vti.crm.dto.request;
+package com.vti.crm.interfaces.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

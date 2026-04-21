@@ -1,15 +1,13 @@
 package com.vti.crm.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+@Builder
 @Entity
 @Table(name = "lead_status")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-public class LeadStatus {
+public class LeadStatusDbEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -17,6 +15,7 @@ public class LeadStatus {
     @Column(nullable = false, length = 50)
     private String name;
 
+    @Builder.Default
     @Column(name = "is_active")
     private Boolean isActive = true;
 }

@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "leads")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-public class Lead {
+public class LeadDbEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,15 +52,15 @@ public class Lead {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "source_id")
-    private Source source;
+    private SourceDbEntity source;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "campaign_id")
-    private Campaign campaign;
+    private CampaignDbEntity campaign;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "status_id")
-    private LeadStatus status;
+    private LeadStatusDbEntity status;
 
     @Column(name = "expected_revenue", precision = 18, scale = 2)
     private BigDecimal expectedRevenue;

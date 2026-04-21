@@ -1,12 +1,12 @@
-package com.vti.crm.repository;
+package com.vti.crm.infrastructure.persistence.repository;
 
-import com.vti.crm.entity.LeadStatus;
+import com.vti.crm.infrastructure.persistence.entity.LeadStatusDbEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface LeadStatusRepository extends JpaRepository<LeadStatus, Integer> {
-    List<LeadStatus> findByIsActiveTrue();
+public interface JpaLeadStatusRepository extends JpaRepository<LeadStatusDbEntity, Integer> {
+    List<LeadStatusDbEntity> findByIsActiveTrue();
 }

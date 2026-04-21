@@ -10,7 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Source {
+public class SourceDbEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,6 +19,7 @@ public class Source {
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
+    @Builder.Default
     @Column(name = "is_active")
     private Boolean isActive = true;
 }

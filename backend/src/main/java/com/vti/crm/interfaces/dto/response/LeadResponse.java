@@ -1,4 +1,4 @@
-package com.vti.crm.dto.response;
+package com.vti.crm.interfaces.dto.response;
 
 import lombok.*;
 import java.math.BigDecimal;

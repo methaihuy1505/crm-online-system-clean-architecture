@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class GetCustomerUseCase {
+public class GetCustomerByIdUseCase {
     private final ICustomerRepository customerRepository;
 
     public Customer execute(Integer id) {

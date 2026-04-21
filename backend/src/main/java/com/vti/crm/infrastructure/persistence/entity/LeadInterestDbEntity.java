@@ -9,7 +9,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "lead_interests")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-public class LeadInterest {
+public class LeadInterestDbEntity {
 
     // Bảng này là khóa chính kép (lead_id, product_id) trong DB,
     @Id
@@ -19,7 +19,7 @@ public class LeadInterest {
     // Trỏ thẳng về Lead
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lead_id", nullable = false)
-    private Lead lead;
+    private LeadDbEntity lead;
 
     @Column(name = "product_id", nullable = false)
     private Integer productId;

@@ -1,4 +1,8 @@
 package com.vti.crm.domain.repository;
 
-public class ICustomerRankRepository {
+import com.vti.crm.domain.model.CustomerRank;
+import java.util.List;
+
+public interface ICustomerRankRepository {
+    List<CustomerRank> findAll();
 }

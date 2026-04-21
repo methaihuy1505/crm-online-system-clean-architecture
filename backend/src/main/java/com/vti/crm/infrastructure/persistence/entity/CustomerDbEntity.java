@@ -1,19 +1,17 @@
 package com.vti.crm.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @org.hibernate.annotations.SQLRestriction("deleted_at IS NULL")
 @Entity
+@Builder
 @Table(name = "customers")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-public class Customer {
+public class CustomerDbEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,6 +26,7 @@ public class Customer {
     @Column(name = "short_name", length = 100)
     private String shortName;
 
+    @Builder.Default
     @Column(name = "is_organization")
     private Boolean isOrganization = true;
 
@@ -70,11 +69,11 @@ public class Customer {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "status_id")
-    private CustomerStatus status;
+    private CustomerStatusDbEntity status;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rank_id")
-    private CustomerRank rank;
+    private CustomerRankDbEntity rank;
 
     @Column(name = "primary_contact_id")
     private Integer primaryContactId;

@@ -1,9 +1,9 @@
-package com.vti.crm.repository;
+package com.vti.crm.infrastructure.persistence.repository;
 
-import com.vti.crm.entity.Campaign;
+import com.vti.crm.infrastructure.persistence.entity.CampaignDbEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface CampaignRepository extends JpaRepository<Campaign, Integer> {
+public interface JpaCampaignRepository extends JpaRepository<CampaignDbEntity, Integer> {
 }

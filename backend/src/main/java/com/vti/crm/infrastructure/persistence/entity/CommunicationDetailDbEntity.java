@@ -1,15 +1,13 @@
 package com.vti.crm.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+@Builder
 @Entity
 @Table(name = "communication_details")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
-public class CommunicationDetail {
+public class CommunicationDetailDbEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,6 +32,7 @@ public class CommunicationDetail {
     @Column(length = 100)
     private String label;
 
+    @Builder.Default
     @Column(name = "is_primary")
     private Boolean isPrimary = false;
 
