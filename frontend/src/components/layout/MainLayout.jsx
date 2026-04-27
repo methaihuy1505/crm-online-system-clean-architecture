@@ -8,7 +8,7 @@ const MainLayout = () => {
     <div className="min-h-screen bg-surface overflow-x-hidden">
       <Sidebar />
       <main className="ml-64 min-h-screen flex flex-col">
-        <Topbar />
+        {/* <Topbar /> */}
         <div className="p-8 flex-1">
           <Outlet />
         </div>
