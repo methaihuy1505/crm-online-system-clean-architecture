@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import AddProductModal from "./ProductInput";
+import EditProductModal from "./ProductEdit";
+import FilterSidebar from "./ProductFilter";
 
 const api = axios.create({
   baseURL: "http://localhost:8080/api/v1",
@@ -10,36 +12,14 @@ const iconStyle = {
   fontVariationSettings: "'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24",
 };
 
-function TopBar({ search, onSearch }) {
-  return (
-    <header className="flex justify-between items-center px-8 py-4 w-full bg-[#f8f9fa] shrink-0 border-b border-slate-200/50">
-      <div className="flex items-center gap-6">
-        <h1
-          className="text-2xl font-extrabold tracking-tight text-[#1A237E]"
-          style={{ fontFamily: "Manrope, sans-serif" }}
-        >
-          Inventory
-        </h1>
-        <div className="hidden lg:flex items-center bg-[#f3f4f5] px-4 py-2 rounded-full w-96 focus-within:bg-white border border-transparent focus-within:border-slate-200 transition-all">
-          <span
-            className="material-symbols-outlined text-slate-400 text-xl"
-            style={iconStyle}
-          >
-            search
-          </span>
-          <input
-            className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400 text-[#191c1d] ml-2 outline-none"
-            placeholder="Tìm kiếm theo mã hoặc tên sản phẩm..."
-            value={search}
-            onChange={(e) => onSearch(e.target.value)}
-          />
-        </div>
-      </div>
-    </header>
-  );
-}
-
 function InspectionPanel({ selectedProduct }) {
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(amount || 0);
+  };
+
   return (
     <div className="space-y-6">
       <h3 className="text-sm font-black uppercase tracking-widest text-[#1A237E]">
@@ -47,7 +27,7 @@ function InspectionPanel({ selectedProduct }) {
       </h3>
       {selectedProduct ? (
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/50">
-          <div className="w-full h-40 bg-[#edeeef] rounded-xl mb-4 overflow-hidden">
+          <div className="w-full h-40 bg-[#edeeef] rounded-xl mb-4 overflow-hidden border border-slate-100">
             <img
               src={
                 selectedProduct.imageUrl || "https://via.placeholder.com/150"
@@ -56,25 +36,60 @@ function InspectionPanel({ selectedProduct }) {
               alt="preview"
             />
           </div>
-          <h4 className="text-sm font-bold text-[#191c1d] mb-2">
-            {selectedProduct.name}
-          </h4>
-          <p className="text-xs text-slate-500 mb-4">
-            {selectedProduct.description || "Không có mô tả cho sản phẩm này."}
-          </p>
-          <div className="pt-4 border-t border-slate-100">
-            <div className="flex justify-between text-[0.7rem] mb-2">
+
+          <div className="mb-4">
+            <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-50 text-blue-600 rounded uppercase">
+              {selectedProduct.productType || "Hàng hóa"}
+            </span>
+            <h4
+              className="text-sm font-bold text-[#191c1d] mt-1 leading-tight truncate"
+              title={selectedProduct.name}
+            >
+              {selectedProduct.name}
+            </h4>
+            <p className="text-xs text-slate-500 mt-2 line-clamp-3">
+              {selectedProduct.description ||
+                "Không có mô tả cho sản phẩm này."}
+            </p>
+          </div>
+
+          <div className="space-y-2 pt-4 border-t border-slate-100">
+            <div className="flex justify-between text-[0.7rem]">
               <span className="text-slate-500 uppercase">Mã hệ thống</span>
-              <span className="font-bold">{selectedProduct.productCode}</span>
+              <span className="font-mono font-bold text-[#191c1d]">
+                {selectedProduct.productCode}
+              </span>
             </div>
             <div className="flex justify-between text-[0.7rem]">
-              <span className="text-slate-500 uppercase">Loại</span>
-              <span className="font-bold">{selectedProduct.productType}</span>
+              <span className="text-slate-500 uppercase">Đơn vị tính</span>
+              <span className="font-bold text-[#191c1d]">
+                {selectedProduct.uomName || "Cái"}
+              </span>
             </div>
+            <div className="flex justify-between text-[0.7rem]">
+              <span className="text-slate-500 uppercase">Giá cơ bản</span>
+              <span className="font-bold text-[#1a237e]">
+                {formatCurrency(selectedProduct.basePrice)}
+              </span>
+            </div>
+            <div className="flex justify-between text-[0.7rem]">
+              <span className="text-slate-500 uppercase">Thuế VAT</span>
+              <span className="font-bold text-[#191c1d]">
+                {selectedProduct.vatRate}%
+              </span>
+            </div>
+            {selectedProduct.depositOverride > 0 && (
+              <div className="flex justify-between text-[0.7rem]">
+                <span className="text-slate-500 uppercase">Đặt cọc</span>
+                <span className="font-bold text-orange-600">
+                  {formatCurrency(selectedProduct.depositOverride)}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       ) : (
-        <div className="p-8 text-center border border-dashed border-slate-300 rounded-2xl">
+        <div className="p-8 text-center border border-dashed border-slate-300 rounded-2xl bg-slate-50/50">
           <p className="text-xs text-slate-400">
             Chọn một sản phẩm để xem thông tin nhanh.
           </p>
@@ -84,72 +99,89 @@ function InspectionPanel({ selectedProduct }) {
   );
 }
 
-function ProductRow({ product, onSelect, onDelete }) {
-  const navigate = useNavigate();
-
+function ProductRow({ product, onSelect, onDelete, onEdit }) {
   return (
     <tr
-      className="group hover:bg-[#f3f4f5] transition-colors duration-200 cursor-pointer"
+      className="group hover:bg-[#f3f4f5] border-b border-slate-50 transition-colors duration-150 cursor-pointer"
       onClick={() => onSelect(product)}
     >
-      <td className="pl-2 ">
-        <p className="text-sm font-medium text-[#191c1d]">{product.name}</p>
+      <td className="pl-8  py-0.5 overflow-hidden">
+        <p
+          className="text-sm font-semibold text-[#191c1d] truncate block"
+          title={product.name}
+        >
+          {product.name}
+        </p>
       </td>
-      <td className="pl-2 text-sm font-mono text-slate-500">
-        {product.productCode}
+      <td className="pl-2  py-0.5 overflow-hidden">
+        <p className="text-[13px] font-mono text-slate-500 truncate block">
+          {product.productCode}
+        </p>
       </td>
-      <td className="pl-2 ">
-        <span className="px-2  text-[0.65rem] font-bold rounded-full border bg-blue-50 text-blue-700 border-blue-100">
-          {product.categoryName || "Chưa phân loại"}
-        </span>
+      <td className="pl-2  py-0.5 overflow-hidden">
+        <div className="flex">
+          <span className="px-2 py-0.5 text-[10px] font-bold rounded-md border bg-blue-50 text-blue-700 border-blue-100 uppercase truncate">
+            {product.categoryName || "N/A"}
+          </span>
+        </div>
       </td>
-      <td className="pl-2  text-sm text-slate-500">
-        {product.uomName || "Cái"}
+      <td className="pl-2  py-0.5 overflow-hidden">
+        <p className="text-[13px] text-slate-500 truncate block">
+          {product.uomName || "Cái"}
+        </p>
       </td>
-      <td className="pl-2 text-sm font-bold text-[#191c1d]">
-        {new Intl.NumberFormat("vi-VN", {
-          style: "currency",
-          currency: "VND",
-        }).format(product.basePrice || 0)}
+      <td className="pl-2  py-0.5 text-sm font-bold text-[#191c1d] overflow-hidden">
+        <p className="truncate block">
+          {new Intl.NumberFormat("vi-VN", {
+            style: "currency",
+            currency: "VND",
+          }).format(product.basePrice || 0)}
+        </p>
       </td>
-      <td className="pl-2 ">
-        <div className="flex items-center gap-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-blue-600"></div>
-          <span className="text-xs font-bold text-[#191c1d]">
+      <td className="pl-2  py-0.5 overflow-hidden">
+        <div className="flex items-center gap-1.5">
+          <div className="w-1 h-1 rounded-full bg-blue-600"></div>
+          <span className="text-[12px] font-bold text-[#191c1d]">
             {product.vatRate}%
           </span>
         </div>
       </td>
-      <td className="flex items-center text-right">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(product.id);
-          }}
-          className="p-2 text-slate-300 hover:text-red-600 transition-colors"
-        >
-          <span className="material-symbols-outlined text-lg">delete</span>
-        </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            navigate(`/productedit/${product.id}`);
-          }}
-          className="p-2 text-slate-300 hover:text-blue-900 transition-colors"
-        >
-          <span className="material-symbols-outlined text-lg">edit_square</span>
-        </button>
+      <td className="pr-4  py-0.5 text-right opacity-0 group-hover:opacity-100 transition-all">
+        <div className="flex justify-end gap-1">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(product.id);
+            }}
+            className="px-1.5 py-0.5 text-slate-400 hover:text-blue-900 transition-colors"
+          >
+            <span className="material-symbols-outlined text-[18px]">
+              edit_square
+            </span>
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(product.id);
+            }}
+            className="p-1.5 text-slate-400 hover:text-red-600 transition-colors"
+          >
+            <span className="material-symbols-outlined text-[18px]">
+              delete
+            </span>
+          </button>
+        </div>
       </td>
     </tr>
   );
 }
-
 function Pagination({
   current,
   total,
   pageSize,
   onPageChange,
   onPageSizeChange,
+  selectRef,
 }) {
   const totalPages = Math.ceil(total / pageSize) || 1;
 
@@ -178,11 +210,12 @@ function Pagination({
         </p>
         <select
           value={pageSize}
+          ref={selectRef}
           onChange={(e) => {
             onPageSizeChange(Number(e.target.value));
             onPageChange(1);
           }}
-          className="text-xs font-bold border border-slate-200 rounded-lg px-2 py-1 bg-white text-[#191c1d] outline-none cursor-pointer hover:border-slate-300 transition-colors"
+          className="text-xs font-bold border border-slate-200 rounded-lg px-2  py-0.5 bg-white text-[#191c1d] outline-none cursor-pointer hover:border-slate-300 transition-colors"
         >
           {[10, 25, 50].map((s) => (
             <option key={s} value={s}>
@@ -232,9 +265,7 @@ function Pagination({
     </div>
   );
 }
-
 export default function ProductInventory() {
-  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -242,32 +273,53 @@ export default function ProductInventory() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editProductId, setEditProductId] = useState(null); // null = đóng, number = mở
+  const searchInputRef = useRef(null);
+  const pageSizeRef = useRef(null);
+  const [showFilter, setShowFilter] = useState(false);
+  const [filters, setFilters] = useState({
+    sort: "",
+    productType: "",
+    categoryIds: [],
+    uomIds: [],
+  });
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const fetchProducts = async () => {
+  const fetchProducts = async (activeFilters = filters) => {
     try {
       setLoading(true);
-      const [productsRes, categoriesRes] = await Promise.all([
-        api.get("/products"),
+      const params = {};
+      if (activeFilters.sort) params.sort = activeFilters.sort;
+      if (activeFilters.productType)
+        params.productType = activeFilters.productType;
+      if (activeFilters.categoryIds.length)
+        params.categoryId = activeFilters.categoryIds.join(",");
+      if (activeFilters.uomIds.length)
+        params.uomId = activeFilters.uomIds.join(",");
+
+      const [productsRes, categoriesRes, uomsRes] = await Promise.all([
+        api.get("/products", { params }),
         api.get("/product-categories"),
+        api.get("/uoms"),
       ]);
 
       const categoryMap = Object.fromEntries(
         categoriesRes.data.map((c) => [c.id, c.name]),
       );
+      const uomMap = Object.fromEntries(
+        uomsRes.data.map((u) => [u.id, u.name]),
+      );
+
       const merged = productsRes.data.map((p) => ({
         ...p,
         categoryName: categoryMap[p.categoryId] ?? "Chưa phân loại",
+        uomName: uomMap[p.uomId] ?? "Cái",
       }));
 
       setProducts(merged);
       setError(null);
     } catch (err) {
-      console.error("Chi tiết lỗi:", err);
-      setError("Không thể tải danh sách sản phẩm.");
+      setError("Không thể tải danh sách sản phẩm." + err);
     } finally {
       setLoading(false);
     }
@@ -296,13 +348,22 @@ export default function ProductInventory() {
       p.name?.toLowerCase().includes(search.toLowerCase()) ||
       p.productCode?.toLowerCase().includes(search.toLowerCase()),
   );
-
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+    setPage(1);
+    fetchProducts(newFilters);
+  };
+  const activeFilterCount = [
+    filters.sort !== "",
+    filters.productType !== "",
+    filters.categoryIds.length > 0,
+    filters.uomIds.length > 0,
+  ].filter(Boolean).length;
   const totalFiltered = filtered.length;
   const startIdx = (page - 1) * pageSize;
   const paginated = filtered.slice(startIdx, startIdx + pageSize);
 
-  // Widths cố định để thead và tbody columns thẳng hàng
-  const colWidths = ["20%", "15%", "14%", "10%", "15%", "10%", "10%"];
+  const colWidths = ["25%", "15%", "15%", "10%", "15%", "8%", "12%"];
   const COLS = [
     "Sản phẩm",
     "Mã SKU",
@@ -313,6 +374,56 @@ export default function ProductInventory() {
     "",
   ];
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Cho phép phím Esc hoạt động mọi lúc để đóng modal/sidebar
+      if (e.key === "Escape") {
+        setShowAddModal(false);
+        setEditProductId(null);
+        setShowFilter(false);
+        return;
+      }
+
+      // Nếu đang mở Modal, không nhận phím tắt điều hướng khác
+      if (showAddModal || editProductId !== null || showFilter) return;
+
+      // Phím tắt Alt + ...
+      if (e.altKey) {
+        switch (e.key.toLowerCase()) {
+          case "n":
+            e.preventDefault();
+            setShowAddModal(true);
+            break;
+          case "s":
+            e.preventDefault();
+            searchInputRef.current?.focus();
+            break;
+          case "p":
+            e.preventDefault();
+            pageSizeRef.current?.focus();
+            break;
+          case ",":
+          case "<":
+            e.preventDefault();
+            setPage(1);
+            break;
+          case ".":
+          case ">":
+            e.preventDefault();
+            setPage(Math.ceil(totalFiltered / pageSize) || 1);
+            break;
+        }
+      }
+
+      // Phím mũi tên điều hướng (không cần Alt)
+      if (e.key === "ArrowLeft" && page > 1) setPage(page - 1);
+      if (e.key === "ArrowRight" && page < Math.ceil(totalFiltered / pageSize))
+        setPage(page + 1);
+    };
+    fetchProducts();
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [page, pageSize, totalFiltered, showAddModal, editProductId, showFilter]);
   return (
     <>
       <link
@@ -324,20 +435,10 @@ export default function ProductInventory() {
         rel="stylesheet"
       />
 
-      {/*
-        Kỹ thuật "chỉ tbody scroll":
-        - Tách thead và tbody thành 2 <table> riêng biệt
-        - thead table: shrink-0, không scroll
-        - tbody wrapper: flex-1 overflow-y-auto → chỉ rows cuộn
-        - Dùng colgroup với width % giống nhau ở cả 2 table để columns thẳng hàng
-      */}
       <div className="bg-[#f8f9fa] text-[#191c1d] h-screen flex flex-col font-sans">
-        <TopBar search={search} onSearch={handleSearch} />
-
         <div className="flex flex-1 overflow-hidden">
           <main className="flex-1 flex flex-col overflow-hidden p-8 gap-8">
-            {/* Title + actions */}
-            <div className="flex justify-between items-end shrink-0">
+            <div className="flex justify-between items-end shrink-0 gap-4">
               <div>
                 <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">
                   Catalog Manager
@@ -346,26 +447,54 @@ export default function ProductInventory() {
                   Danh mục sản phẩm
                 </h2>
               </div>
+
+              {/* Search Bar - Đã điều chỉnh size và padding */}
+              <div className="hidden lg:flex items-center bg-[#e6e6e7] px-4 py-2.5 rounded-full w-80 lg:w-96 focus-within:bg-white border border-transparent focus-within:border-slate-200 transition-all">
+                <span
+                  className="material-symbols-outlined text-slate-400 text-xl"
+                  style={iconStyle}
+                >
+                  search
+                </span>
+                <input
+                  className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400 text-[#191c1d] ml-2 outline-none"
+                  placeholder="Tìm kiếm..."
+                  ref={searchInputRef}
+                  value={search}
+                  onChange={(e) => handleSearch(e.target.value)}
+                />
+              </div>
+
               <div className="flex gap-3">
+                <button
+                  onClick={() => setShowFilter(true)}
+                  className="relative bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-slate-50 transition-all"
+                >
+                  <span className="material-symbols-outlined text-lg">
+                    tune
+                  </span>
+                  Lọc
+                  {activeFilterCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 bg-[#1a237e] text-white text-[0.6rem] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </button>
                 <button className="bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-slate-50 transition-all">
                   <span className="material-symbols-outlined text-lg">
                     file_download
                   </span>
-                  Xuất Excel
                 </button>
                 <button
-                  onClick={() => navigate("/productimport")}
+                  onClick={() => setShowAddModal(true)}
                   className="bg-[#1a237e] text-white px-6 py-2 rounded-xl text-sm font-bold shadow-lg shadow-blue-900/20 hover:bg-blue-800 transition-all flex items-center gap-2"
                 >
                   <span className="material-symbols-outlined text-lg">add</span>
-                  Thêm mới
                 </button>
               </div>
             </div>
 
-            {/* Card: flex-col flex-1 để chiếm hết chiều cao còn lại */}
             <section className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col flex-1 overflow-hidden min-h-0">
-              {/* THEAD cố định */}
               <div className="shrink-0 border-b border-slate-100">
                 <table className="w-full text-left border-collapse table-fixed">
                   <colgroup>
@@ -388,7 +517,6 @@ export default function ProductInventory() {
                 </table>
               </div>
 
-              {/* TBODY scroll — chỉ phần này cuộn */}
               <div
                 className="flex-1 overflow-y-auto min-h-0"
                 style={{ scrollbarWidth: "none" }}
@@ -425,6 +553,7 @@ export default function ProductInventory() {
                           product={p}
                           onSelect={setSelectedProduct}
                           onDelete={handleDelete}
+                          onEdit={setEditProductId}
                         />
                       ))
                     ) : (
@@ -441,13 +570,13 @@ export default function ProductInventory() {
                 </table>
               </div>
 
-              {/* PAGINATION cố định dưới cùng */}
               <Pagination
                 current={page}
                 total={totalFiltered}
                 pageSize={pageSize}
                 onPageChange={setPage}
                 onPageSizeChange={setPageSize}
+                selectRef={pageSizeRef}
               />
             </section>
           </main>
@@ -457,6 +586,27 @@ export default function ProductInventory() {
           </aside>
         </div>
       </div>
+
+      {/* Add modal */}
+      <AddProductModal
+        open={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSaved={fetchProducts}
+      />
+
+      {/* Edit modal */}
+      <EditProductModal
+        open={editProductId !== null}
+        productId={editProductId}
+        onClose={() => setEditProductId(null)}
+        onSaved={fetchProducts}
+      />
+      <FilterSidebar
+        open={showFilter}
+        onClose={() => setShowFilter(false)}
+        filters={filters}
+        onChange={handleFilterChange}
+      />
     </>
   );
 }

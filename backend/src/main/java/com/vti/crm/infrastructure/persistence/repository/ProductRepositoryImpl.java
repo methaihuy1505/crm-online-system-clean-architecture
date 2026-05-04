@@ -1,10 +1,12 @@
 package com.vti.crm.infrastructure.persistence.repository;
 
 import com.vti.crm.domain.model.Product;
+import com.vti.crm.domain.model.ProductFilter;
 import com.vti.crm.domain.repository.IProductRepository;
 import com.vti.crm.domain.service.ProductDomainService;
 import com.vti.crm.infrastructure.persistence.entity.ProductDbEntity;
 import com.vti.crm.infrastructure.persistence.mapper.ProductInfraMapper;
+import com.vti.crm.infrastructure.persistence.specification.ProductSpecification;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,5 +58,12 @@ public class ProductRepositoryImpl implements IProductRepository {
     @Override
     public void save(Product product, boolean update) {
 
+    }
+    @Override
+    public List<Product> findAllWithFilter(ProductFilter filter) {
+        return jpaRepository.findAll(ProductSpecification.withFilter(filter))
+                .stream()
+                .map(mapper::toDomainEntity)
+                .toList();
     }
 }

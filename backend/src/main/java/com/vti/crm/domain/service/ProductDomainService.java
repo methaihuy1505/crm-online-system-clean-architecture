@@ -77,7 +77,6 @@ public class ProductDomainService {
 
         validateCategoryExists(categoryID);
         validateUomExists(uomID);
-        validateDuplicateCodeForUpdate(id, productCode);
 
         Product product = findById(id);
 
@@ -102,11 +101,7 @@ public class ProductDomainService {
         }
     }
 
-    private void validateDuplicateCodeForUpdate(Integer id, String productCode) {
-        if (productRepository.existsByProductCodeExcludingId(id, productCode)) {
-            throw new IllegalArgumentException("Mã sản phẩm đã tồn tại");
-        }
-    }
+
 
     private void validateCategoryExists(Integer categoryID) {
         if (categoryID == null) return;

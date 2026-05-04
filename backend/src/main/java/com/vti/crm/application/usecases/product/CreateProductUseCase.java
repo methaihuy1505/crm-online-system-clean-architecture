@@ -47,9 +47,7 @@ public class CreateProductUseCase {
         // 1. Tạo product
         Product product = productDomainService.create(
                 productCode, name, categoryID, uomID, productType,
-                basePrice, vatRate, depositOverride, null, description);
-        System.out.println("DEBUG: Đang chuẩn bị lưu ảnh cho ProductID: " + product.getId() + " với URL: " + product.getImageUrl());
-        // imageId truyền null
+                basePrice, vatRate, depositOverride, null, description);// imageId truyền null
 
 
         // 2. Xử lý ảnh: Upload và lưu vào DB

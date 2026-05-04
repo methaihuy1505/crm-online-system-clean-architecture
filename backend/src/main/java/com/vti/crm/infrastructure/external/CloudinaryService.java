@@ -50,4 +50,24 @@ public class CloudinaryService {
             throw new RuntimeException("Only image files are allowed");
         }
     }
+    public void delete(String imageUrl) {
+        try {
+            if (imageUrl == null || imageUrl.isBlank()) return;
+
+            // Extract public_id từ URL
+            // URL dạng: https://res.cloudinary.com/.../crm/products/abc123
+            // public_id = "crm/products/abc123"
+            String publicId = extractPublicId(imageUrl);
+            cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to delete image from Cloudinary", e);
+        }
+    }
+
+    private String extractPublicId(String imageUrl) {
+        // Cắt từ "crm/products/..." đến trước phần extension
+        int uploadIndex = imageUrl.indexOf("/crm/products/");
+        String withExtension = imageUrl.substring(uploadIndex + 1);
+        return withExtension.substring(0, withExtension.lastIndexOf("."));
+    }
 }

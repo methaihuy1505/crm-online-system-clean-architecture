@@ -1,6 +1,7 @@
 package com.vti.crm.interfaces.rest;
 
 import com.vti.crm.application.usecases.product.*;
+import com.vti.crm.domain.model.ProductFilter;
 import com.vti.crm.infrastructure.external.CloudinaryService;
 import com.vti.crm.interfaces.dto.request.ProductRequest;
 import com.vti.crm.interfaces.dto.response.ProductResponse;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -26,6 +28,7 @@ public class ProductController {
     private final UpdateProductUseCase updateUseCase;
     private final DeleteProductUseCase deleteUseCase;
     private final CloudinaryService cloudinaryService;
+    private final GetProductsWithFilterUseCase getProductsWithFilterUseCase;
     private final ProductWebMapper webMapper;
 
     @PostMapping(consumes = {"multipart/form-data"})
@@ -56,10 +59,30 @@ public class ProductController {
     }
 
     @GetMapping
-    public List<ProductResponse> getAll() {
-        return getAllUseCase.execute()
+    public List<ProductResponse> getAll(
+            @RequestParam(required = false) String categoryId,
+            @RequestParam(required = false) String uomId,
+            @RequestParam(required = false) String productType,
+            @RequestParam(required = false) String sort) {
+
+        // Parse categoryId="1,2,6" → List<Integer>
+        List<Integer> categoryIds = parseIds(categoryId);
+        List<Integer> uomIds      = parseIds(uomId);
+
+        ProductFilter filter = new ProductFilter(categoryIds, uomIds, productType, sort);
+
+        return getProductsWithFilterUseCase.execute(filter)
                 .stream()
                 .map(webMapper::toResponse)
+                .toList();
+    }
+
+    private List<Integer> parseIds(String param) {
+        if (param == null || param.isBlank()) return List.of();
+        return Arrays.stream(param.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(Integer::parseInt)
                 .toList();
     }
 
@@ -67,14 +90,7 @@ public class ProductController {
     public ProductResponse update(
             @PathVariable Integer id,
             @Valid @RequestPart("product") ProductRequest request,
-            @RequestPart(value = "images", required = false) List<MultipartFile> images) {
-
-        // 1. Upload ảnh ở controller (kỹ thuật)
-        String imageUrl = request.getImageUrl() != null ? null : null;
-        if (images != null && !images.isEmpty()) {
-            // TODO: Replace ảnh qua ReplaceImagesUseCase rồi lấy id ảnh đầu tiên
-            // imageId = replaceImagesAndGetFirstId(id, images);
-        }
+            @RequestPart(value = "image", required = false) MultipartFile image) {
 
         return webMapper.toResponse(
                 updateUseCase.execute(
@@ -87,7 +103,7 @@ public class ProductController {
                         request.getBasePrice(),
                         request.getVatRate(),
                         request.getDepositOverride(),
-                        imageUrl,
+                        image, // SỬA: truyền file thay vì imageUrl
                         request.getDescription()
                 )
         );
