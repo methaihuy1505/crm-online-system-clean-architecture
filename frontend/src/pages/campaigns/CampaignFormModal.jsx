@@ -8,7 +8,6 @@ const CampaignFormModal = ({ isOpen, onClose, onSave, currentCampaign }) => {
     startDate: "",
     endDate: "",
   });
-
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -21,28 +20,33 @@ const CampaignFormModal = ({ isOpen, onClose, onSave, currentCampaign }) => {
         endDate: currentCampaign.endDate || "",
       });
     } else {
-      setFormData({
-        name: "",
-        startDate: "",
-        endDate: "",
-      });
+      setFormData({ name: "", startDate: "", endDate: "" });
     }
   }, [currentCampaign, isOpen]);
 
+  const handleEnterToNext = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const form = e.target.form;
+      const elements = Array.from(form.elements).filter((el) =>
+        ["INPUT", "SELECT"].includes(el.tagName),
+      );
+      const index = elements.indexOf(e.target);
+      if (index > -1 && index < elements.length - 1)
+        elements[index + 1].focus();
+    }
+  };
+
   const validateForm = () => {
     let newErrors = {};
-    if (!formData.name || formData.name.trim() === "") {
-      newErrors.name = "Tên chiến dịch không được để trống";
-    } else if (formData.name.length > 255) {
-      newErrors.name = "Tên chiến dịch không được vượt quá 255 ký tự";
+    if (!formData.name.trim()) newErrors.name = "Bắt buộc nhập";
+    if (
+      formData.startDate &&
+      formData.endDate &&
+      new Date(formData.startDate) > new Date(formData.endDate)
+    ) {
+      newErrors.date = "Ngày kết thúc phải sau ngày bắt đầu";
     }
-
-    if (formData.startDate && formData.endDate) {
-      if (new Date(formData.startDate) > new Date(formData.endDate)) {
-        newErrors.date = "Ngày kết thúc phải sau hoặc bằng ngày bắt đầu";
-      }
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -50,35 +54,30 @@ const CampaignFormModal = ({ isOpen, onClose, onSave, currentCampaign }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name] || errors.date) {
+    if (errors[name] || errors.date)
       setErrors((prev) => ({ ...prev, [name]: null, date: null }));
-    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-
     setIsSaving(true);
     try {
       const payload = {
-        name: formData.name,
+        ...formData,
         startDate: formData.startDate || null,
         endDate: formData.endDate || null,
       };
-
-      if (currentCampaign && currentCampaign.id) {
+      if (currentCampaign?.id)
         await axios.put(
           `http://localhost:8080/api/v1/campaigns/${currentCampaign.id}`,
           payload,
         );
-      } else {
-        await axios.post("http://localhost:8080/api/v1/campaigns", payload);
-      }
+      else await axios.post("http://localhost:8080/api/v1/campaigns", payload);
       onSave();
       onClose();
     } catch (error) {
-      alert("Lỗi: " + (error.response?.data?.message || error.message));
+      console.error("Lỗi lưu dữ liệu!",error);
     } finally {
       setIsSaving(false);
     }
@@ -87,81 +86,90 @@ const CampaignFormModal = ({ isOpen, onClose, onSave, currentCampaign }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center bg-on-surface/40 backdrop-blur-sm p-4">
-      <div className="bg-surface w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col">
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-surface-variant flex justify-between items-center bg-surface-container-lowest">
-          <h3 className="text-xl font-headline font-bold text-primary flex items-center gap-2">
-            <span className="material-symbols-outlined">
-              {currentCampaign ? "edit_square" : "campaign"}
-            </span>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div
+        className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
+        onClick={onClose}
+      ></div>
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl flex flex-col overflow-hidden animate-fade-in-up">
+        <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+          <h3 className="text-lg font-bold text-slate-800">
             {currentCampaign ? "Cập nhật Chiến dịch" : "Thêm Chiến dịch mới"}
           </h3>
           <Button
             variant="iconOnly"
             icon="close"
             onClick={onClose}
-            className="text-on-surface-variant"
+            className="text-slate-400 hover:text-red-500"
           />
         </div>
 
-        {/* Form Body */}
         <form
           id="campaignForm"
           onSubmit={handleSubmit}
-          className="p-6 space-y-4"
+          className="p-6 grid grid-cols-4 gap-4"
         >
-          <div className="space-y-1.5">
-            <label className="block text-[11px] font-bold text-on-surface-variant uppercase">
-              Tên chiến dịch <span className="text-error">*</span>
+          <div className="col-span-2 relative">
+            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+              Tên chiến dịch <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               name="name"
               value={formData.name}
               onChange={handleChange}
-              placeholder="Nhập tên chiến dịch..."
-              className={`w-full px-4 py-2 bg-surface-container-lowest border rounded-lg focus:ring-2 focus:ring-primary outline-none ${errors.name ? "border-error" : "border-outline-variant"}`}
+              onKeyDown={handleEnterToNext}
+              placeholder="Ví dụ: Khuyến mãi mùa Hè 2026"
+              className={`w-full px-4 py-2 bg-white border ${errors.name ? "border-red-500" : "border-slate-200"} rounded-lg focus:ring-2 outline-none`}
             />
             {errors.name && (
-              <p className="text-error text-[10px] italic">{errors.name}</p>
+              <p className="text-red-500 text-[10px] absolute mt-0.5">
+                {errors.name}
+              </p>
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="block text-[11px] font-bold text-on-surface-variant uppercase">
-                Ngày bắt đầu
-              </label>
-              <input
-                type="date"
-                name="startDate"
-                value={formData.startDate}
-                onChange={handleChange}
-                className="w-full px-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg outline-none"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block text-[11px] font-bold text-on-surface-variant uppercase">
-                Ngày kết thúc
-              </label>
-              <input
-                type="date"
-                name="endDate"
-                value={formData.endDate}
-                onChange={handleChange}
-                className="w-full px-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg outline-none"
-              />
-            </div>
+          <div className="col-span-1 relative">
+            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+              Ngày bắt đầu
+            </label>
+            <input
+              type="date"
+              name="startDate"
+              value={formData.startDate}
+              onChange={handleChange}
+              onKeyDown={handleEnterToNext}
+              className={`w-full px-4 py-2 bg-slate-50 border ${errors.date ? "border-red-500" : "border-slate-200"} rounded-lg outline-none`}
+            />
           </div>
-          {errors.date && (
-            <p className="text-error text-[10px] italic">{errors.date}</p>
-          )}
+
+          <div className="col-span-1 relative">
+            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
+              Ngày kết thúc
+            </label>
+            <input
+              type="date"
+              name="endDate"
+              value={formData.endDate}
+              onChange={handleChange}
+              onKeyDown={handleEnterToNext}
+              className={`w-full px-4 py-2 bg-slate-50 border ${errors.date ? "border-red-500" : "border-slate-200"} rounded-lg outline-none`}
+            />
+            {errors.date && (
+              <p className="text-red-500 text-[10px] absolute mt-0.5 whitespace-nowrap -left-full">
+                {errors.date}
+              </p>
+            )}
+          </div>
         </form>
 
-        {/* Footer */}
-        <div className="px-6 py-4 border-t border-surface-variant bg-surface-container-lowest flex justify-end gap-3">
-          <Button type="button" variant="cancel" onClick={onClose}>
+        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 bg-white">
+          <Button
+            type="button"
+            variant="cancel"
+            onClick={onClose}
+            className="bg-slate-50 border"
+          >
             Hủy bỏ
           </Button>
           <Button

@@ -2,9 +2,10 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import MainLayout from "./components/layout/MainLayout";
 import LeadPage from "./pages/leads/LeadPage";
 import LeadDetailPage from "./pages/leads/LeadDetailPage";
+import CustomerDetailPage from "./pages/customers/CustomerDetailPage";
+
 import CampaignPage from "./pages/campaigns/CampaignPage";
 import CustomerPage from "./pages/customers/CustomerPage";
-import ContactPage from "./pages/contacts/ContactPage";
 
 function App() {
   return (
@@ -13,9 +14,9 @@ function App() {
         <Route element={<MainLayout />}>
           <Route path="/" element={<Navigate to="/leads" replace />} />
           <Route path="/customers" element={<CustomerPage />} />
-          <Route path="/contacts" element={<ContactPage />} />
           <Route path="/leads" element={<LeadPage />} />
           <Route path="/leads/:id" element={<LeadDetailPage />} />
+          <Route path="/customers/:id" element={<CustomerDetailPage />} />
           <Route
             path="/dashboard"
             element={

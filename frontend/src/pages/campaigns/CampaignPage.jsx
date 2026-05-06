@@ -1,74 +1,119 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { getCampaignStatus } from "../../utils/formatters";
-
-// Import các component con
 import CampaignHeader from "./components/CampaignHeader";
 import CampaignFilter from "./components/CampaignFilter";
 import CampaignStatGrid from "./components/CampaignStatGrid";
 import CampaignTable from "./components/CampaignTable";
-import CampaignChart from "./components/CampaignChart";
 import CampaignFormModal from "./CampaignFormModal";
 import CampaignDetailPanel from "./components/CampaignDetailPanel";
 
 const CampaignPage = () => {
-  // === 1. QUẢN LÝ STATE ===
   const [campaigns, setCampaigns] = useState([]);
-  const [leads, setLeads] = useState([]);
-  const [customers, setCustomers] = useState([]);
+  const [stats, setStats] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // State điều khiển Giao diện (Modal & Panel)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState(null);
-  const [selectedCampaign, setSelectedCampaign] = useState(null);
+  const [selectedCampaignForDetail, setSelectedCampaignForDetail] =
+    useState(null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [isFilterSidebarOpen, setIsFilterSidebarOpen] = useState(false);
+  const [selectedRow, setSelectedRow] = useState(null);
 
-  // State Bộ lọc
-  const [filters, setFilters] = useState({
+  // === ĐỔI status THÀNH statuses (Mảng) ===
+  const initialFilters = {
     keyword: "",
-    status: "",
+    statuses: [],
     fromDate: "",
     toDate: "",
-  });
+  };
+  const [filters, setFilters] = useState(initialFilters);
 
-  // === 2. GỌI API ===
   useEffect(() => {
-    fetchData();
+    const handleKeyDown = (e) => {
+      if (e.altKey) {
+        if (e.code === "KeyN" || e.key.toLowerCase() === "n") {
+          e.preventDefault();
+          handleOpenAdd();
+        }
+        if (e.code === "KeyE" || e.key.toLowerCase() === "e") {
+          e.preventDefault();
+          if (selectedRow) handleOpenEdit(selectedRow);
+        }
+        if (e.code === "KeyD" || e.key.toLowerCase() === "d") {
+          e.preventDefault();
+          if (selectedRow)
+            handleDeleteCampaign(selectedRow.id, selectedRow.name);
+        }
+        if (e.code === "KeyV" || e.key.toLowerCase() === "v") {
+          e.preventDefault();
+          if (selectedRow) handleOpenDetail(selectedRow.id);
+        }
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [selectedRow]);
+
+  useEffect(() => {
+    fetchStats();
   }, []);
 
-  const fetchData = async () => {
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      fetchCampaigns();
+    }, 500);
+    return () => clearTimeout(delayDebounce);
+  }, [currentPage, pageSize, filters]);
+
+  const fetchStats = async () => {
     try {
-      setIsLoading(true);
-      // Gọi đồng thời 3 API để có dữ liệu tính toán thống kê
-      const [campRes, leadRes, custRes] = await Promise.all([
-        axios.get("http://localhost:8080/api/v1/campaigns"),
-        axios.get("http://localhost:8080/api/v1/leads"),
-        axios.get("http://localhost:8080/api/v1/customers"),
-      ]);
-      setCampaigns(campRes.data);
-      setLeads(leadRes.data);
-      setCustomers(custRes.data);
+      const res = await axios.get(
+        "http://localhost:8080/api/v1/campaigns/statistics",
+      );
+      setStats(res.data);
     } catch (error) {
-      console.error("Lỗi khi tải dữ liệu hệ thống:", error);
+      console.error("Lỗi lấy thống kê:", error);
+    }
+  };
+
+  const fetchCampaigns = async () => {
+    setIsLoading(true);
+    try {
+      const res = await axios.get("http://localhost:8080/api/v1/campaigns", {
+        params: {
+          page: currentPage - 1,
+          size: pageSize,
+          keyword: filters.keyword || null,
+          // NỐI MẢNG THÀNH CHUỖI GỬI XUỐNG BACKEND
+          statuses:
+            filters.statuses.length > 0 ? filters.statuses.join(",") : null,
+          fromDate: filters.fromDate || null,
+          toDate: filters.toDate || null,
+        },
+      });
+      setCampaigns(res.data.content || res.data);
+      setTotalPages(res.data.totalPages || 1);
+    } catch (error) {
+      console.error("Lỗi tải danh sách chiến dịch:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // === 3. XỬ LÝ SỰ KIỆN (HANDLERS) ===
-
-  // Mở chi tiết chiến dịch (Gọi API lấy Stat tổng hợp từ Backend)
   const handleOpenDetail = async (id) => {
     try {
       const res = await axios.get(
         `http://localhost:8080/api/v1/campaigns/${id}`,
       );
-      setSelectedCampaign(res.data);
+      setSelectedCampaignForDetail(res.data);
       setIsPanelOpen(true);
     } catch (error) {
-      console.error("Lỗi tải chi tiết:", error);
-      alert("Không thể tải thông tin chi tiết chiến dịch này.");
+      console.error("Lỗi tải chi tiết chiến dịch", error);
     }
   };
 
@@ -76,93 +121,156 @@ const CampaignPage = () => {
     setEditingCampaign(null);
     setIsModalOpen(true);
   };
-
   const handleOpenEdit = (campaign) => {
     setEditingCampaign(campaign);
     setIsModalOpen(true);
   };
 
   const handleDeleteCampaign = async (id, name) => {
-    if (window.confirm(`Bạn có chắc chắn muốn xóa chiến dịch "${name}"?`)) {
+    if (window.confirm(`Xóa chiến dịch "${name}"?`)) {
       try {
         await axios.delete(`http://localhost:8080/api/v1/campaigns/${id}`);
-        fetchData(); // Reload lại toàn bộ data
+        setSelectedRow(null);
+        fetchCampaigns();
+        fetchStats();
       } catch (error) {
-        alert(
-          "Lỗi khi xóa: " + (error.response?.data?.message || error.message),
-        );
+        console.error("Xóa thất bại!",error);
       }
     }
   };
 
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
+  // Logic xử lý input chữ (keyword, date)
+  const handleFilterTextChange = (name, value) => {
     setFilters((prev) => ({ ...prev, [name]: value }));
+    setCurrentPage(1);
   };
 
-  // === 4. LOGIC LỌC & TÍNH TOÁN DỮ LIỆU ===
-  const filteredCampaigns = campaigns.filter((c) => {
-    const statusLabel = getCampaignStatus(c.startDate, c.endDate).label;
-    const matchKeyword = c.name
-      .toLowerCase()
-      .includes(filters.keyword.toLowerCase());
-    const matchStatus = filters.status === "" || statusLabel === filters.status;
-    const matchDate =
-      (!filters.fromDate ||
-        new Date(c.startDate) >= new Date(filters.fromDate)) &&
-      (!filters.toDate || new Date(c.endDate) <= new Date(filters.toDate));
-    return matchKeyword && matchStatus && matchDate;
-  });
+  // Logic xử lý mảng (statuses)
+  const handleFilterArrayChange = (name, value) => {
+    setFilters((prev) => {
+      const currentArray = prev[name];
+      const newArray = currentArray.includes(value)
+        ? currentArray.filter((item) => item !== value) // Bỏ chọn
+        : [...currentArray, value]; // Thêm mới
+      return { ...prev, [name]: newArray };
+    });
+    setCurrentPage(1);
+  };
 
-  // Dữ liệu phục vụ thống kê (StatCards & Charts)
-  const leadsFromCampaigns = leads.filter((lead) => lead.campaignId !== null);
-  const customersFromCampaigns = customers.filter(
-    (cus) => cus.campaignId !== null,
-  );
+  const clearFilters = () => {
+    setFilters(initialFilters);
+    setCurrentPage(1);
+  };
 
-  // === 5. GIAO DIỆN ===
+  const renderActiveFilterTags = () => {
+    const activeTags = [];
+    if (filters.keyword)
+      activeTags.push({
+        key: "keyword",
+        label: `Tìm: ${filters.keyword}`,
+        type: "text",
+      });
+    if (filters.fromDate)
+      activeTags.push({
+        key: "fromDate",
+        label: `Từ: ${new Date(filters.fromDate).toLocaleDateString("vi-VN")}`,
+        type: "text",
+      });
+    if (filters.toDate)
+      activeTags.push({
+        key: "toDate",
+        label: `Đến: ${new Date(filters.toDate).toLocaleDateString("vi-VN")}`,
+        type: "text",
+      });
+
+    // In từng trạng thái đang chọn ra màn hình
+    filters.statuses.forEach((st) => {
+      activeTags.push({
+        key: `status-${st}`,
+        label: `Trạng thái: ${st}`,
+        type: "array",
+        field: "statuses",
+        value: st,
+      });
+    });
+
+    if (activeTags.length === 0) return null;
+    return (
+      <div className="flex gap-2 mb-4 items-center flex-wrap">
+        <span className="text-sm font-semibold text-slate-500">Đang lọc:</span>
+        {activeTags.map((tag) => (
+          <div
+            key={tag.key}
+            className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs flex items-center gap-1 font-bold shadow-sm"
+          >
+            {tag.label}
+            <button
+              onClick={() =>
+                tag.type === "text"
+                  ? handleFilterTextChange(tag.key, "")
+                  : handleFilterArrayChange(tag.field, tag.value)
+              }
+              className="hover:text-red-500 ml-1 outline-none"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+        <button
+          onClick={clearFilters}
+          className="text-xs text-error font-bold ml-2 hover:underline outline-none"
+        >
+          Xóa tất cả
+        </button>
+      </div>
+    );
+  };
+
   return (
-    <div className="space-y-8 relative">
-      {/* Tiêu đề & Nút thêm mới */}
+    <div className="space-y-6 relative flex-1">
       <CampaignHeader onOpenAdd={handleOpenAdd} />
+      <CampaignStatGrid stats={stats} />
+      {renderActiveFilterTags()}
 
-      {/* Thanh bộ lọc */}
-      <CampaignFilter filters={filters} onFilterChange={handleFilterChange} />
-
-      {/* Các thẻ chỉ số thống kê (Dự thu/Thực thu/Leads/Khách hàng) */}
-      <CampaignStatGrid
-        campaigns={campaigns}
-        leadsFromCampaigns={leadsFromCampaigns}
-        customersFromCampaigns={customersFromCampaigns}
+      <CampaignTable
+        filteredCampaigns={campaigns}
+        isLoading={isLoading}
+        onOpenEdit={handleOpenEdit}
+        onDelete={handleDeleteCampaign}
+        onOpenDetail={handleOpenDetail}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        setCurrentPage={setCurrentPage}
+        pageSize={pageSize}
+        setPageSize={setPageSize}
+        onRowClick={setSelectedRow}
+        selectedRow={selectedRow}
+        onOpenFilter={() => setIsFilterSidebarOpen(true)}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Bảng danh sách chiến dịch */}
-        <CampaignTable
-          filteredCampaigns={filteredCampaigns}
-          isLoading={isLoading}
-          onOpenEdit={handleOpenEdit}
-          onDelete={handleDeleteCampaign}
-          onOpenDetail={handleOpenDetail} // Truyền sự kiện xem chi tiết
-        />
+      <CampaignFilter
+        isOpen={isFilterSidebarOpen}
+        onClose={() => setIsFilterSidebarOpen(false)}
+        filters={filters}
+        onFilterTextChange={handleFilterTextChange}
+        onFilterArrayChange={handleFilterArrayChange}
+        clearFilters={clearFilters}
+      />
 
-        {/* Biểu đồ xu hướng chuyển đổi (Leads vs Customers) */}
-        <CampaignChart leads={leads} customers={customers} />
-      </div>
-
-      {/* Panel Chi tiết trượt từ bên phải */}
       <CampaignDetailPanel
         isOpen={isPanelOpen}
         onClose={() => setIsPanelOpen(false)}
-        campaign={selectedCampaign}
+        campaign={selectedCampaignForDetail}
         onEdit={handleOpenEdit}
       />
 
-      {/* Modal Form Thêm/Sửa */}
       <CampaignFormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSave={fetchData}
+        onSave={() => {
+          fetchCampaigns();
+          fetchStats();
+        }}
         currentCampaign={editingCampaign}
       />
     </div>

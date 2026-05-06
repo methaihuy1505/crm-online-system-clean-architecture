@@ -2,167 +2,198 @@ import React from "react";
 import Button from "../../../components/ui/Button";
 
 const CustomerFilter = ({
+  isOpen,
+  onClose,
   filters,
-  onFilterChange,
-  showAdvanced,
-  setShowAdvanced,
+  onFilterTextChange,
+  onFilterArrayChange,
   clearFilters,
   statuses,
   ranks,
   sources,
   campaigns,
 }) => {
-  const hasActiveFilters =
-    filters.keyword ||
-    filters.statusId ||
-    filters.rankId ||
-    filters.isOrganization !== "" ||
-    filters.provinceId ||
-    filters.branchId ||
-    filters.assignedUserId ||
-    filters.sourceId ||
-    filters.campaignId; // Bổ sung điều kiện hiện nút Clear
+  const FilterChip = ({ label, isSelected, onClick }) => (
+    <button
+      onClick={onClick}
+      className={`px-3 py-1.5 border rounded-lg text-xs font-bold transition-all text-left ${
+        isSelected
+          ? "bg-primary text-white border-primary shadow-md"
+          : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+      }`}
+    >
+      {label}
+    </button>
+  );
 
   return (
-    <div className="bg-surface-container-low rounded-xl p-6 space-y-4 mb-6">
-      {/* Khối Bộ lọc cơ bản giữ nguyên như cũ... */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="space-y-1.5 lg:col-span-2">
-          <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest pl-1">
-            Tìm kiếm
-          </label>
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm">
-              search
+    <>
+      {/* Overlay che mờ màn hình khi mở Sidebar */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-[100] transition-opacity"
+          onClick={onClose}
+        ></div>
+      )}
+
+      {/* Sidebar trượt từ phải sang */}
+      <div
+        className={`fixed top-0 right-0 h-full w-[400px] bg-white shadow-2xl z-[110] transform transition-transform duration-300 ease-in-out flex flex-col ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+          <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary text-[20px]">
+              tune
             </span>
-            <input
-              name="keyword"
-              value={filters.keyword}
-              onChange={onFilterChange}
-              className="w-full bg-surface-container-lowest border-none rounded-lg text-sm pl-9 pr-4 py-2.5 focus:ring-1 focus:ring-primary/20"
-              placeholder="Mã KH, Tên, Số điện thoại, Email, MST..."
-              type="text"
-            />
-          </div>
+            Bộ lọc Khách hàng
+          </h2>
+          <Button
+            variant="iconOnly"
+            icon="close"
+            onClick={onClose}
+            className="text-slate-400 hover:text-red-500"
+          />
         </div>
 
-        <div className="space-y-1.5">
-          <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest pl-1">
-            Trạng thái
-          </label>
-          <select
-            name="statusId"
-            value={filters.statusId}
-            onChange={onFilterChange}
-            className="w-full bg-surface-container-lowest border-none rounded-lg text-sm px-4 py-2.5 focus:ring-1 focus:ring-primary/20"
-          >
-            <option value="">Tất cả trạng thái</option>
-            {statuses.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex items-end gap-2">
-          <button
-            onClick={() => setShowAdvanced(!showAdvanced)}
-            className="flex-1 bg-surface-container-high text-primary font-semibold py-2.5 rounded-lg hover:bg-primary/10 flex justify-center gap-2"
-          >
-            <span className="material-symbols-outlined text-sm">tune</span>
-            {showAdvanced ? "Thu gọn" : "Nâng cao"}
-          </button>
-          {hasActiveFilters && (
-            <button
-              onClick={clearFilters}
-              className="px-3 bg-error/10 text-error font-semibold py-2.5 rounded-lg hover:bg-error/20 flex justify-center"
-              title="Xóa bộ lọc"
-            >
-              <span className="material-symbols-outlined text-sm">close</span>
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Bộ lọc nâng cao */}
-      {showAdvanced && (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 pt-4 border-t border-surface-variant/50 animate-in fade-in slide-in-from-top-4 duration-300">
-          <div className="space-y-1.5">
-            <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest pl-1">
-              Phân hạng
+        <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
+          <div className="space-y-2">
+            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              Từ khóa
             </label>
-            <select
-              name="rankId"
-              value={filters.rankId}
-              onChange={onFilterChange}
-              className="w-full bg-surface-container-lowest border-none rounded-lg text-sm px-4 py-2.5 focus:ring-1 focus:ring-primary/20"
-            >
-              <option value="">Tất cả phân hạng</option>
-              {ranks.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.name}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">
+                search
+              </span>
+              <input
+                type="text"
+                value={filters.keyword}
+                onChange={(e) => onFilterTextChange("keyword", e.target.value)}
+                className="w-full bg-white border border-slate-200 rounded-lg text-sm pl-9 pr-4 py-2.5 focus:ring-2 focus:ring-primary/50 outline-none"
+                placeholder="Tên, MST, CCCD, SĐT..."
+              />
+            </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest pl-1">
+          <div className="space-y-2">
+            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100 pb-1">
               Loại hình
             </label>
-            <select
-              name="isOrganization"
-              value={filters.isOrganization}
-              onChange={onFilterChange}
-              className="w-full bg-surface-container-lowest border-none rounded-lg text-sm px-4 py-2.5 focus:ring-1 focus:ring-primary/20"
-            >
-              <option value="">Tất cả loại hình</option>
-              <option value="true">Tổ chức (B2B)</option>
-              <option value="false">Cá nhân (B2C)</option>
-            </select>
+            <div className="flex flex-wrap gap-2 pt-1">
+              <button
+                onClick={() => onFilterTextChange("isOrganization", "")}
+                className={`px-3 py-1.5 border rounded-lg text-xs font-bold ${filters.isOrganization === "" ? "bg-slate-800 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
+              >
+                Tất cả
+              </button>
+              <button
+                onClick={() => onFilterTextChange("isOrganization", "true")}
+                className={`px-3 py-1.5 border rounded-lg text-xs font-bold ${filters.isOrganization === "true" ? "bg-indigo-50 text-indigo-700 border-indigo-200 shadow-md" : "bg-white text-slate-600 hover:bg-slate-50"}`}
+              >
+                Tổ chức (B2B)
+              </button>
+              <button
+                onClick={() => onFilterTextChange("isOrganization", "false")}
+                className={`px-3 py-1.5 border rounded-lg text-xs font-bold ${filters.isOrganization === "false" ? "bg-teal-50 text-teal-700 border-teal-200 shadow-md" : "bg-white text-slate-600 hover:bg-slate-50"}`}
+              >
+                Cá nhân (B2C)
+              </button>
+            </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest pl-1">
-              Nguồn khách
+          <div className="space-y-2">
+            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100 pb-1">
+              Trạng thái (Chọn nhiều)
             </label>
-            <select
-              name="sourceId"
-              value={filters.sourceId}
-              onChange={onFilterChange}
-              className="w-full bg-surface-container-lowest border-none rounded-lg text-sm px-4 py-2.5 focus:ring-1 focus:ring-primary/20"
-            >
-              <option value="">Tất cả nguồn</option>
+            <div className="flex flex-wrap gap-2 pt-1">
+              {statuses.map((s) => (
+                <FilterChip
+                  key={s.id}
+                  label={s.name}
+                  isSelected={filters.statusIds.includes(s.id.toString())}
+                  onClick={() =>
+                    onFilterArrayChange("statusIds", s.id.toString())
+                  }
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100 pb-1">
+              Phân hạng (Chọn nhiều)
+            </label>
+            <div className="flex flex-wrap gap-2 pt-1">
+              {ranks.map((r) => (
+                <FilterChip
+                  key={r.id}
+                  label={r.name}
+                  isSelected={filters.rankIds.includes(r.id.toString())}
+                  onClick={() =>
+                    onFilterArrayChange("rankIds", r.id.toString())
+                  }
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100 pb-1">
+              Nguồn khách (Chọn nhiều)
+            </label>
+            <div className="flex flex-wrap gap-2 pt-1 max-h-[120px] overflow-y-auto custom-scrollbar">
               {sources.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
+                <FilterChip
+                  key={s.id}
+                  label={s.name}
+                  isSelected={filters.sourceIds.includes(s.id.toString())}
+                  onClick={() =>
+                    onFilterArrayChange("sourceIds", s.id.toString())
+                  }
+                />
               ))}
-            </select>
+            </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest pl-1">
-              Chiến dịch
+          <div className="space-y-2">
+            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100 pb-1">
+              Chiến dịch (Chọn nhiều)
             </label>
-            <select
-              name="campaignId"
-              value={filters.campaignId}
-              onChange={onFilterChange}
-              className="w-full bg-surface-container-lowest border-none rounded-lg text-sm px-4 py-2.5 focus:ring-1 focus:ring-primary/20"
-            >
-              <option value="">Tất cả chiến dịch</option>
+            <div className="flex flex-wrap gap-2 pt-1 max-h-[120px] overflow-y-auto custom-scrollbar">
               {campaigns.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
+                <FilterChip
+                  key={c.id}
+                  label={c.name}
+                  isSelected={filters.campaignIds.includes(c.id.toString())}
+                  onClick={() =>
+                    onFilterArrayChange("campaignIds", c.id.toString())
+                  }
+                />
               ))}
-            </select>
+            </div>
           </div>
         </div>
-      )}
-    </div>
+
+        {/* Footer Sidebar */}
+        <div className="p-6 border-t border-slate-100 bg-white grid grid-cols-2 gap-3">
+          <Button
+            variant="cancel"
+            className="bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 font-bold py-2.5"
+            onClick={clearFilters}
+          >
+            Xóa bộ lọc
+          </Button>
+          <Button
+            variant="primary"
+            className="font-bold py-2.5 shadow-md shadow-primary/20"
+            onClick={onClose}
+          >
+            Thu gọn
+          </Button>
+        </div>
+      </div>
+    </>
   );
 };
 

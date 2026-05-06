@@ -6,6 +6,8 @@ import com.vti.crm.interfaces.dto.request.LeadUpdateRequest;
 import com.vti.crm.interfaces.dto.response.LeadResponse;
 import com.vti.crm.interfaces.mapper.LeadWebMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,14 +19,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LeadController {
 
-    // Tiêm đủ 5 UseCases tương ứng với 5 hành động
     private final CreateLeadUseCase createLeadUseCase;
     private final GetAllLeadsUseCase getAllLeadsUseCase;
     private final GetLeadByIdUseCase getLeadByIdUseCase;
     private final UpdateLeadUseCase updateLeadUseCase;
     private final DeleteLeadUseCase deleteLeadUseCase;
-
-    // Mapper để chuyển từ Model sang Response
     private final LeadWebMapper webMapper;
 
     @PostMapping
@@ -34,10 +33,17 @@ public class LeadController {
     }
 
     @GetMapping
-    public ResponseEntity<List<LeadResponse>> getAllLeads() {
-        List<LeadResponse> leads = getAllLeadsUseCase.execute().stream()
-                .map(webMapper::toResponse)
-                .toList();
+    public ResponseEntity<Page<LeadResponse>> getAllLeads(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) List<Integer> statusIds,
+            @RequestParam(required = false) List<Integer> sourceIds,
+            @RequestParam(required = false) List<Integer> campaignIds,
+            @RequestParam(required = false) Integer provinceId,
+            @RequestParam(required = false) Integer branchId,
+            Pageable pageable
+    ) {
+        Page<LeadResponse> leads = getAllLeadsUseCase.execute(keyword, statusIds, sourceIds, campaignIds, provinceId, branchId, pageable)
+                .map(webMapper::toResponse);
         return ResponseEntity.ok(leads);
     }
 

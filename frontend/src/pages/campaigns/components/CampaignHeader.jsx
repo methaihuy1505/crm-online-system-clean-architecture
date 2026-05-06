@@ -13,7 +13,7 @@ const CampaignHeader = ({ onOpenAdd }) => {
         </p>
       </div>
       <Button variant="gradient" icon="add" onClick={onOpenAdd}>
-        Thêm chiến dịch
+        Thêm chiến dịch (Alt+N)
       </Button>
     </div>
   );

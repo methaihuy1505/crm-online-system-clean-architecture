@@ -2,21 +2,35 @@ package com.vti.crm.infrastructure.persistence.mapper;
 
 import com.vti.crm.domain.model.Customer;
 import com.vti.crm.infrastructure.persistence.entity.CustomerDbEntity;
+import com.vti.crm.infrastructure.persistence.entity.CustomerRankDbEntity;
+import com.vti.crm.infrastructure.persistence.entity.CustomerStatusDbEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
 import org.mapstruct.ReportingPolicy;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE, builder = @org.mapstruct.Builder(disableBuilder = true))
 public interface CustomerInfraMapper {
 
-    // Map từ Entity (DB) lên Model (Domain)
     @Mapping(target = "statusId", source = "status.id")
     @Mapping(target = "rankId", source = "rank.id")
     Customer toDomain(CustomerDbEntity entity);
 
-    // Map ngược từ Model (Domain) xuống Entity (DB) để lưu
-    @Mapping(target = "status.id", source = "statusId")
-    @Mapping(target = "rank.id", source = "rankId")
+    @Mapping(target = "status", source = "statusId")
+    @Mapping(target = "rank", source = "rankId")
     CustomerDbEntity toEntity(Customer domain);
+
+
+    default CustomerStatusDbEntity mapStatus(Integer id) {
+        if (id == null) return null;
+        CustomerStatusDbEntity entity = new CustomerStatusDbEntity();
+        entity.setId(id);
+        return entity;
+    }
+
+    default CustomerRankDbEntity mapRank(Integer id) {
+        if (id == null) return null;
+        CustomerRankDbEntity entity = new CustomerRankDbEntity();
+        entity.setId(id);
+        return entity;
+    }
 }

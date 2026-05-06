@@ -7,6 +7,8 @@ import com.vti.crm.interfaces.dto.response.CustomerResponse;
 import com.vti.crm.interfaces.mapper.CustomerWebMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +23,7 @@ public class CustomerController {
     private final CreateCustomerUseCase createUseCase;
     private final UpdateCustomerUseCase updateUseCase;
     private final GetCustomerByIdUseCase getByIdUseCase;
-    private final GetAllCustomersUseCase getAllUseCase;
+    private final GetAllCustomersUseCase getAllCustomersUseCase;
     private final DeleteCustomerUseCase deleteUseCase;
     private final CustomerWebMapper webMapper;
 
@@ -32,10 +34,19 @@ public class CustomerController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CustomerResponse>> getAllCustomers() {
-        List<CustomerResponse> responses = getAllUseCase.execute().stream()
-                .map(webMapper::toResponse)
-                .toList();
+    public ResponseEntity<Page<CustomerResponse>> getAllCustomers(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) List<Integer> statusIds,
+            @RequestParam(required = false) List<Integer> rankIds,
+            @RequestParam(required = false) Boolean isOrganization,
+            @RequestParam(required = false) List<Integer> sourceIds,
+            @RequestParam(required = false) List<Integer> campaignIds,
+            Pageable pageable
+    ) {
+        Page<CustomerResponse> responses = getAllCustomersUseCase.execute(
+                keyword, statusIds, rankIds, isOrganization, sourceIds, campaignIds, pageable
+        ).map(webMapper::toResponse);
+
         return ResponseEntity.ok(responses);
     }
 

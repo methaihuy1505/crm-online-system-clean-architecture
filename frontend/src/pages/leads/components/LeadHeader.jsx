@@ -15,7 +15,7 @@ const LeadHeader = ({ onOpenAdd }) => {
 
       {/* Sử dụng Button dùng chung */}
       <Button variant="gradient" icon="person_add" onClick={onOpenAdd}>
-        Thêm Lead mới
+        Thêm Lead mới (Alt+ N)
       </Button>
     </div>
   );

@@ -5,6 +5,8 @@ import com.vti.crm.domain.repository.ICustomerRepository;
 import com.vti.crm.infrastructure.persistence.entity.CustomerDbEntity;
 import com.vti.crm.infrastructure.persistence.mapper.CustomerInfraMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -31,6 +33,15 @@ public class CustomerRepositoryImpl implements ICustomerRepository {
     @Override
     public List<Customer> findAll() {
         return jpaRepository.findAll().stream().map(mapper::toDomain).toList();
+    }
+
+    // Cập nhật tham số List<Integer>
+    @Override
+    public Page<Customer> findCustomers(String keyword, List<Integer> statusIds, List<Integer> rankIds, Boolean isOrganization, List<Integer> sourceIds, List<Integer> campaignIds, Pageable pageable) {
+        Page<CustomerDbEntity> entityPage = jpaRepository.searchCustomers(
+                keyword, statusIds, rankIds, isOrganization, sourceIds, campaignIds, pageable
+        );
+        return entityPage.map(mapper::toDomain);
     }
 
     @Override

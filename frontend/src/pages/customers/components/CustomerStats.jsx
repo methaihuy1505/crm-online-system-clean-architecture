@@ -1,5 +1,4 @@
 import React from "react";
-// Import Component dùng chung
 import StatCard from "../../../components/ui/StatCard";
 
 const CustomerStats = ({ stats }) => {
@@ -16,7 +15,6 @@ const CustomerStats = ({ stats }) => {
           sub="Doanh nghiệp"
         />
       </div>
-
       <div className="col-span-12 md:col-span-3">
         <StatCard
           title="Tổng B2C"
@@ -28,7 +26,6 @@ const CustomerStats = ({ stats }) => {
           sub="Cá nhân"
         />
       </div>
-
       <div className="col-span-12 md:col-span-6 p-6 bg-primary-container text-white rounded-xl shadow-xl flex items-center justify-between relative overflow-hidden h-full">
         <div className="relative z-10">
           <div className="text-[10px] font-bold uppercase tracking-widest opacity-60 mb-1">

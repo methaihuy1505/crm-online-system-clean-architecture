@@ -5,8 +5,12 @@ import com.vti.crm.domain.repository.ICampaignRepository;
 import com.vti.crm.infrastructure.persistence.entity.CampaignDbEntity;
 import com.vti.crm.infrastructure.persistence.mapper.CampaignInfraMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -15,14 +19,13 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CampaignRepositoryImpl implements ICampaignRepository {
 
-    private final JpaCampaignRepository jpaRepository; // JpaRepository cũ của bạn
+    private final JpaCampaignRepository jpaRepository;
     private final CampaignInfraMapper mapper;
 
     @Override
-    public List<Campaign> findAll() {
-        return jpaRepository.findAll().stream()
-                .map(mapper::toDomain)
-                .toList();
+    public Page<Campaign> searchCampaigns(String keyword, List<String> statuses, LocalDate fromDate, LocalDate toDate, Pageable pageable) {
+        return jpaRepository.searchCampaigns(keyword, statuses, fromDate, toDate, pageable)
+                .map(mapper::toDomain);
     }
 
     @Override
@@ -43,5 +46,12 @@ public class CampaignRepositoryImpl implements ICampaignRepository {
             entity.setDeletedAt(LocalDateTime.now());
             jpaRepository.save(entity);
         });
+    }
+
+    @Override
+    public List<Campaign> findOptions(int limit) {
+        Pageable limitRequest = PageRequest.of(0, limit);
+        List<CampaignDbEntity> entities = jpaRepository.findAllByOrderByStartDateDesc(limitRequest);
+        return entities.stream().map(mapper::toDomain).toList();
     }
 }

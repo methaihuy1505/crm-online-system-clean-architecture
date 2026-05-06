@@ -5,14 +5,17 @@ import com.vti.crm.domain.repository.ILeadRepository;
 import com.vti.crm.infrastructure.persistence.entity.LeadDbEntity;
 import com.vti.crm.infrastructure.persistence.mapper.LeadInfraMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
 
-@Repository
+@Component
 @RequiredArgsConstructor
 public class LeadRepositoryImpl implements ILeadRepository {
+
     private final JpaLeadRepository jpaRepository;
     private final LeadInfraMapper mapper;
 
@@ -28,14 +31,16 @@ public class LeadRepositoryImpl implements ILeadRepository {
     }
 
     @Override
-    public List<Lead> findAll() {
-        return jpaRepository.findAll().stream().map(mapper::toDomain).toList();
+    public List<Lead> findByCampaignId(Integer campaignId) {
+        return jpaRepository.findByCampaignId(campaignId)
+                .stream().map(mapper::toDomain).toList();
     }
 
     @Override
-    public List<Lead> findByCampaignId(Integer campaignId) {
-        return jpaRepository.findByCampaignId(campaignId).stream()
-                .map(mapper::toDomain)
-                .toList();
+    public Page<Lead> searchLeads(String keyword, List<Integer> statusIds, List<Integer> sourceIds, List<Integer> campaignIds, Integer provinceId, Integer branchId, Pageable pageable) {
+        Page<LeadDbEntity> entityPage = jpaRepository.searchLeads(
+                keyword, statusIds, sourceIds, campaignIds, provinceId, branchId, pageable
+        );
+        return entityPage.map(mapper::toDomain);
     }
 }
