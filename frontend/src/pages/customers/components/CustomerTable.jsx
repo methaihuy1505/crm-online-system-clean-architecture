@@ -1,5 +1,14 @@
 import React from "react";
-import Button from "../../../components/ui/Button";
+import {
+  Filter,
+  Eye,
+  Edit,
+  Trash2,
+  Building2,
+  User,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
 const CustomerTable = ({
   customers,
@@ -23,9 +32,7 @@ const CustomerTable = ({
       </div>
     );
 
-  // Tính số lượng dòng trống cần in ra để giữ bảng luôn đủ chiều cao
   const emptyRows = Math.max(0, pageSize - customers.length);
-
   const getVisiblePages = (current, total) => {
     if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
     if (current <= 4) return [1, 2, 3, 4, 5, "...", total];
@@ -36,19 +43,16 @@ const CustomerTable = ({
 
   return (
     <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200">
-      {/* HEADER BẢNG - BỘ LỌC ĐƯA VÀO GÓC GỌN GÀNG */}
       <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
         <h3 className="font-bold text-slate-800 text-xs uppercase tracking-widest">
           Danh sách Khách hàng
         </h3>
-        <Button
-          variant="outline"
-          icon="filter_list"
+        <button
           onClick={onOpenFilter}
-          className="bg-white border-slate-200 text-primary hover:bg-primary/5 text-sm py-1.5 shadow-sm"
+          className="flex items-center gap-2 px-4 py-1.5 bg-white border border-slate-200 text-primary rounded-lg hover:bg-primary/5 transition-colors text-sm font-medium shadow-sm outline-none"
         >
-          Bộ lọc chi tiết
-        </Button>
+          <Filter size={16} strokeWidth={2.5} /> Bộ lọc
+        </button>
       </div>
 
       <div className="overflow-x-auto min-h-[400px]">
@@ -86,16 +90,20 @@ const CustomerTable = ({
               customers.map((customer) => (
                 <tr
                   key={customer.id}
-                  className={`hover:bg-slate-50 transition-colors group cursor-pointer ${selectedCustomerForRow?.id === customer.id ? "bg-primary/5" : ""}`}
                   onClick={() => onRowClick(customer)}
                   onDoubleClick={() => onOpenDetail(customer)}
+                  className={`hover:bg-slate-50 transition-colors group cursor-pointer ${selectedCustomerForRow?.id === customer.id ? "bg-primary/5" : ""}`}
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
                       <div
-                        className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg ${customer.isOrganization ? "bg-indigo-50 text-indigo-600" : "bg-slate-100 text-slate-600"}`}
+                        className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold ${customer.isOrganization ? "bg-indigo-50 text-indigo-600" : "bg-slate-100 text-slate-600"}`}
                       >
-                        {customer.name.charAt(0).toUpperCase()}
+                        {customer.isOrganization ? (
+                          <Building2 size={20} />
+                        ) : (
+                          <User size={20} />
+                        )}
                       </div>
                       <div>
                         <div className="text-sm font-bold text-slate-900 line-clamp-1">
@@ -128,52 +136,48 @@ const CustomerTable = ({
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center px-2.5 py-1 rounded bg-green-50 text-green-700 text-[10px] font-bold uppercase tracking-widest border border-green-100">
-                        {customer.statusName || "Đang chăm sóc"}
-                      </span>
-                    </div>
+                    <span className="inline-flex items-center px-2.5 py-1 rounded bg-green-50 text-green-700 text-[10px] font-bold uppercase tracking-widest border border-green-100">
+                      {customer.statusName || "Đang chăm sóc"}
+                    </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
-                      {/* CÁC NÚT ĐÃ ĐƯỢC BỔ SUNG CHÚ THÍCH PHÍM TẮT ĐẦY ĐỦ */}
-                      <Button
-                        variant="iconOnly"
-                        icon="visibility"
-                        className="text-slate-500 hover:text-primary hover:bg-slate-100"
+                    {/* BỎ LÀM MỜ, GẮN MÀU MẶC ĐỊNH CHO NÚT (Giống LeadTable) */}
+                    <div className="flex items-center justify-end gap-1.5">
+                      <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onOpenDetail(customer);
                         }}
+                        className="p-1.5 text-primary bg-primary/5 hover:bg-primary/15 rounded-lg outline-none transition-colors"
                         title="Xem chi tiết (Alt+V)"
-                      />
-                      <Button
-                        variant="iconOnly"
-                        icon="edit"
-                        className="text-slate-500 hover:text-blue-600 hover:bg-blue-50"
+                      >
+                        <Eye size={18} strokeWidth={2} />
+                      </button>
+                      <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onEdit(customer);
                         }}
+                        className="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg outline-none transition-colors"
                         title="Chỉnh sửa (Alt+E)"
-                      />
-                      <Button
-                        variant="iconOnly"
-                        icon="delete"
-                        className="text-slate-500 hover:text-red-600 hover:bg-red-50"
+                      >
+                        <Edit size={18} strokeWidth={2} />
+                      </button>
+                      <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onDelete(customer.id, customer.name);
                         }}
+                        className="p-1.5 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg outline-none transition-colors"
                         title="Xóa (Alt+D)"
-                      />
+                      >
+                        <Trash2 size={18} strokeWidth={2} />
+                      </button>
                     </div>
                   </td>
                 </tr>
               ))
             )}
-
-            {/* VẼ DÒNG TRỐNG ĐỂ GIỮ CỐ ĐỊNH LAYOUT BẢNG */}
             {Array.from({ length: emptyRows }).map((_, index) => (
               <tr key={`empty-${index}`}>
                 <td className="px-6 py-4 text-transparent pointer-events-none select-none">
@@ -190,7 +194,6 @@ const CustomerTable = ({
       </div>
 
       <div className="px-6 py-4 bg-slate-50 flex items-center justify-between border-t border-slate-100">
-        {/* OPTION CHỌN 10/20/50 DÒNG 1 TRANG */}
         <select
           value={pageSize}
           onChange={(e) => {
@@ -204,7 +207,6 @@ const CustomerTable = ({
           <option value={50}>50 dòng / trang</option>
         </select>
 
-        {/* THANH ĐIỀU HƯỚNG PHÂN TRANG */}
         {totalPages > 1 && (
           <div className="flex items-center gap-1.5">
             <button
@@ -212,22 +214,17 @@ const CustomerTable = ({
               disabled={currentPage === 1}
               className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50 transition-colors"
             >
-              <span className="material-symbols-outlined text-sm">
-                chevron_left
-              </span>
+              <ChevronLeft size={16} />
             </button>
-
-            {getVisiblePages(currentPage, totalPages).map((page, index) => {
-              if (page === "...")
-                return (
-                  <span
-                    key={`ellipsis-${index}`}
-                    className="w-8 h-8 flex items-center justify-center text-slate-400 text-xs font-bold"
-                  >
-                    ...
-                  </span>
-                );
-              return (
+            {getVisiblePages(currentPage, totalPages).map((page, index) =>
+              page === "..." ? (
+                <span
+                  key={`ellipsis-${index}`}
+                  className="w-8 h-8 flex items-center justify-center text-slate-400 text-xs font-bold"
+                >
+                  ...
+                </span>
+              ) : (
                 <button
                   key={`page-${page}`}
                   onClick={() => setCurrentPage(page)}
@@ -235,17 +232,14 @@ const CustomerTable = ({
                 >
                   {page}
                 </button>
-              );
-            })}
-
+              ),
+            )}
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage >= totalPages}
               className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50 transition-colors"
             >
-              <span className="material-symbols-outlined text-sm">
-                chevron_right
-              </span>
+              <ChevronRight size={16} />
             </button>
           </div>
         )}

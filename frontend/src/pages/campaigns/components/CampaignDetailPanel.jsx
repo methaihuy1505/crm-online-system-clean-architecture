@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import Button from "../../../components/ui/Button";
+import { X, Edit } from "lucide-react";
 
 const CampaignDetailPanel = ({ isOpen, onClose, campaign, onEdit }) => {
   useEffect(() => {
@@ -22,7 +22,7 @@ const CampaignDetailPanel = ({ isOpen, onClose, campaign, onEdit }) => {
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-[105]"
+          className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-[105] transition-opacity"
           onClick={onClose}
         ></div>
       )}
@@ -40,12 +40,12 @@ const CampaignDetailPanel = ({ isOpen, onClose, campaign, onEdit }) => {
                 {campaign.name}
               </h2>
             </div>
-            <Button
-              variant="iconOnly"
-              icon="close"
+            <button
               onClick={onClose}
-              className="hover:text-red-500 bg-slate-50"
-            />
+              className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg outline-none transition-colors"
+            >
+              <X size={24} />
+            </button>
           </div>
 
           <div className="space-y-8 overflow-y-auto flex-1 pr-2 custom-scrollbar">
@@ -116,17 +116,15 @@ const CampaignDetailPanel = ({ isOpen, onClose, campaign, onEdit }) => {
           </div>
 
           <div className="pt-6 border-t mt-6 flex gap-3">
-            <Button
-              variant="primary"
-              className="flex-1 shadow-md shadow-primary/20"
-              icon="edit"
+            <button
               onClick={() => {
                 onEdit(campaign);
                 onClose();
               }}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white rounded-xl hover:bg-primary/90 font-bold text-sm shadow-md shadow-primary/20 outline-none transition-all"
             >
-              Chỉnh sửa (Alt+E)
-            </Button>
+              <Edit size={16} /> Chỉnh sửa (Alt+E)
+            </button>
           </div>
         </div>
       </div>

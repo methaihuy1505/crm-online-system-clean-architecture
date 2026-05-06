@@ -11,6 +11,15 @@ const CampaignFormModal = ({ isOpen, onClose, onSave, currentCampaign }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState({});
 
+  // BẮT SỰ KIỆN PHÍM ESC ĐỂ ĐÓNG MODAL
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape" && isOpen) onClose();
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [isOpen, onClose]);
+
   useEffect(() => {
     setErrors({});
     if (currentCampaign) {
@@ -77,7 +86,7 @@ const CampaignFormModal = ({ isOpen, onClose, onSave, currentCampaign }) => {
       onSave();
       onClose();
     } catch (error) {
-      console.error("Lỗi lưu dữ liệu!",error);
+      console.error("Lỗi lưu dữ liệu!", error);
     } finally {
       setIsSaving(false);
     }
@@ -86,7 +95,8 @@ const CampaignFormModal = ({ isOpen, onClose, onSave, currentCampaign }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    // ĐÃ NÂNG Z-INDEX LÊN 120 ĐỂ LUÔN NẰM TRÊN CÙNG
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
       <div
         className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
         onClick={onClose}
@@ -170,7 +180,7 @@ const CampaignFormModal = ({ isOpen, onClose, onSave, currentCampaign }) => {
             onClick={onClose}
             className="bg-slate-50 border"
           >
-            Hủy bỏ
+            Hủy bỏ (Esc)
           </Button>
           <Button
             type="submit"

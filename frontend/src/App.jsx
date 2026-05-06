@@ -1,30 +1,27 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import MainLayout from "./components/layout/MainLayout";
+
+import DashboardPage from "./pages/dashboard/DashboardPage";
+
 import LeadPage from "./pages/leads/LeadPage";
 import LeadDetailPage from "./pages/leads/LeadDetailPage";
-import CustomerDetailPage from "./pages/customers/CustomerDetailPage";
-
-import CampaignPage from "./pages/campaigns/CampaignPage";
 import CustomerPage from "./pages/customers/CustomerPage";
+import CustomerDetailPage from "./pages/customers/CustomerDetailPage";
+import CampaignPage from "./pages/campaigns/CampaignPage";
 
 function App() {
   return (
     <BrowserRouter>
+      <Toaster position="top-right" reverseOrder={false} />
       <Routes>
         <Route element={<MainLayout />}>
-          <Route path="/" element={<Navigate to="/leads" replace />} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />{" "}
+          <Route path="/dashboard" element={<DashboardPage />} />{" "}
           <Route path="/customers" element={<CustomerPage />} />
+          <Route path="/customers/:id" element={<CustomerDetailPage />} />
           <Route path="/leads" element={<LeadPage />} />
           <Route path="/leads/:id" element={<LeadDetailPage />} />
-          <Route path="/customers/:id" element={<CustomerDetailPage />} />
-          <Route
-            path="/dashboard"
-            element={
-              <div className="p-4 text-primary font-bold">
-                Trang Bảng điều khiển đang phát triển...
-              </div>
-            }
-          />
           <Route path="/campaigns" element={<CampaignPage />} />
           <Route
             path="/settings"

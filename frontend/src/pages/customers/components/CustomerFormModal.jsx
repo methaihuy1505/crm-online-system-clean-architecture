@@ -14,7 +14,6 @@ const CustomerFormModal = ({
 }) => {
   const isEditMode = !!initialData;
 
-  // SỬA: Loại bỏ provinceId: 1 mặc định, để rỗng hết
   const [formData, setFormData] = useState({
     name: "",
     shortName: "",
@@ -35,6 +34,15 @@ const CustomerFormModal = ({
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // BẮT SỰ KIỆN PHÍM ESC ĐỂ ĐÓNG MODAL
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape" && isOpen) onClose();
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     setErrors({});
@@ -129,7 +137,6 @@ const CustomerFormModal = ({
     if (!validateForm()) return;
     setIsSubmitting(true);
     try {
-      // GIẢI PHÁP CHỐNG LỖI: Ép toàn bộ chuỗi rỗng thành null trước khi nén payload
       const payload = {
         ...formData,
         statusId: formData.statusId ? parseInt(formData.statusId) : null,
@@ -159,7 +166,8 @@ const CustomerFormModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    // ĐÃ NÂNG Z-INDEX LÊN 120
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
@@ -425,7 +433,7 @@ const CustomerFormModal = ({
               onClick={onClose}
               className="bg-white border"
             >
-              Hủy bỏ
+              Hủy bỏ (Esc)
             </Button>
             <Button variant="primary" type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Đang xử lý..." : "Lưu thông tin"}

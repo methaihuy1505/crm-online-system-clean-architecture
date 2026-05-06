@@ -1,13 +1,25 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
+import {
+  Database,
+  Menu,
+  LayoutDashboard,
+  Users,
+  Target,
+  Megaphone,
+  Settings,
+  Bell,
+  HelpCircle,
+  Headphones,
+} from "lucide-react";
 
 const Sidebar = ({ isCollapsed, toggleSidebar }) => {
   // Style động cho các link menu
   const navLinkClass = ({ isActive }) =>
     `flex items-center px-3 py-3 rounded-xl transition-all duration-300 ${
       isActive
-        ? "bg-[#f3f4f5] dark:bg-slate-800 text-[#1A237E] dark:text-white shadow-sm"
-        : "text-slate-600 dark:text-slate-400 hover:bg-[#f3f4f5] dark:hover:bg-slate-800"
+        ? "bg-[#f3f4f5] dark:bg-slate-800 text-[#1A237E] dark:text-white shadow-sm font-bold"
+        : "text-slate-600 dark:text-slate-400 hover:bg-[#f3f4f5] dark:hover:bg-slate-800 font-medium"
     } ${isCollapsed ? "justify-center" : "gap-3"}`;
 
   return (
@@ -25,13 +37,8 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
           <div
             className={`flex items-center gap-3 overflow-hidden transition-all duration-300 ${isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"}`}
           >
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shrink-0 shadow-sm">
-              <span
-                className="material-symbols-outlined text-white"
-                style={{ fontVariationSettings: "'FILL' 1" }}
-              >
-                dataset
-              </span>
+            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shrink-0 shadow-sm text-white">
+              <Database size={20} strokeWidth={2.5} />
             </div>
             <div className="shrink-0 whitespace-nowrap">
               <h1 className="font-headline font-extrabold text-[#1A237E] text-lg leading-tight">
@@ -42,12 +49,10 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
 
           <button
             onClick={toggleSidebar}
-            className="p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors shrink-0"
+            className="p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors shrink-0 outline-none"
             title={isCollapsed ? "Mở rộng" : "Thu gọn"}
           >
-            <span className="material-symbols-outlined">
-              {isCollapsed ? "menu" : "menu_open"}
-            </span>
+            <Menu size={20} strokeWidth={2.5} />
           </button>
         </div>
 
@@ -55,13 +60,13 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
           <NavLink
             to="/dashboard"
             className={navLinkClass}
-            title={isCollapsed ? "Bảng điều khiển" : ""}
+            title={isCollapsed ? "Thống kê hệ thống" : ""}
           >
-            <span className="material-symbols-outlined">dashboard</span>
+            <LayoutDashboard size={20} />
             <span
-              className={`font-medium text-sm whitespace-nowrap transition-all duration-300 ${isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"}`}
+              className={`text-sm whitespace-nowrap transition-all duration-300 ${isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"}`}
             >
-              Bảng điều khiển
+              Thống kê hệ thống
             </span>
           </NavLink>
 
@@ -70,9 +75,9 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
             className={navLinkClass}
             title={isCollapsed ? "Khách hàng" : ""}
           >
-            <span className="material-symbols-outlined">groups</span>
+            <Users size={20} />
             <span
-              className={`font-medium text-sm whitespace-nowrap transition-all duration-300 ${isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"}`}
+              className={`text-sm whitespace-nowrap transition-all duration-300 ${isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"}`}
             >
               Khách hàng
             </span>
@@ -83,14 +88,9 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
             className={navLinkClass}
             title={isCollapsed ? "Tiềm năng" : ""}
           >
+            <Target size={20} />
             <span
-              className="material-symbols-outlined"
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
-              person_search
-            </span>
-            <span
-              className={`font-medium text-sm whitespace-nowrap transition-all duration-300 ${isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"}`}
+              className={`text-sm whitespace-nowrap transition-all duration-300 ${isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"}`}
             >
               Tiềm năng
             </span>
@@ -101,9 +101,9 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
             className={navLinkClass}
             title={isCollapsed ? "Chiến dịch" : ""}
           >
-            <span className="material-symbols-outlined">campaign</span>
+            <Megaphone size={20} />
             <span
-              className={`font-medium text-sm whitespace-nowrap transition-all duration-300 ${isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"}`}
+              className={`text-sm whitespace-nowrap transition-all duration-300 ${isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"}`}
             >
               Chiến dịch
             </span>
@@ -114,9 +114,9 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
             className={navLinkClass}
             title={isCollapsed ? "Cài đặt" : ""}
           >
-            <span className="material-symbols-outlined">settings</span>
+            <Settings size={20} />
             <span
-              className={`font-medium text-sm whitespace-nowrap transition-all duration-300 ${isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"}`}
+              className={`text-sm whitespace-nowrap transition-all duration-300 ${isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"}`}
             >
               Cài đặt
             </span>
@@ -124,34 +124,30 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
         </nav>
       </div>
 
-      {/* KHU VỰC THÔNG TIN CÁ NHÂN & CÔNG CỤ TỪ TOPBAR CHUYỂN XUỐNG */}
+      {/* KHU VỰC THÔNG TIN CÁ NHÂN & CÔNG CỤ */}
       <div className="p-4 border-t border-surface-variant/30 flex flex-col gap-3 overflow-x-hidden">
         {/* Nút Hỗ trợ & Thông báo */}
         <div
           className={`flex items-center ${isCollapsed ? "flex-col gap-2" : "justify-around px-2"}`}
         >
           <button
-            className="p-2 text-on-surface-variant hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors relative"
+            className="p-2 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors relative outline-none"
             title="Thông báo"
           >
-            <span className="material-symbols-outlined text-[22px]">
-              notifications
-            </span>
+            <Bell size={20} />
             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full ring-2 ring-white"></span>
           </button>
           <button
-            className="p-2 text-on-surface-variant hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+            className="p-2 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors outline-none"
             title="Trợ giúp"
           >
-            <span className="material-symbols-outlined text-[22px]">help</span>
+            <HelpCircle size={20} />
           </button>
           <button
-            className="p-2 text-on-surface-variant hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+            className="p-2 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors outline-none"
             title="Liên hệ CSKH"
           >
-            <span className="material-symbols-outlined text-[22px]">
-              contact_support
-            </span>
+            <Headphones size={20} />
           </button>
         </div>
 

@@ -1,31 +1,28 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import toast, { Toaster } from "react-hot-toast";
+
 import CustomerHeader from "./components/CustomerHeader";
-import CustomerStats from "./components/CustomerStats";
 import CustomerFilter from "./components/CustomerFilter";
 import CustomerTable from "./components/CustomerTable";
 import CustomerFormModal from "./components/CustomerFormModal";
 
 const CustomerPage = () => {
   const navigate = useNavigate();
-
   const [customers, setCustomers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Phân trang
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [totalElements, setTotalElements] = useState(0);
 
-  // Danh mục
   const [statuses, setStatuses] = useState([]);
   const [ranks, setRanks] = useState([]);
   const [sources, setSources] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
 
-  // Lọc
   const [isFilterSidebarOpen, setIsFilterSidebarOpen] = useState(false);
   const initialFilters = {
     keyword: "",
@@ -37,12 +34,10 @@ const CustomerPage = () => {
   };
   const [filters, setFilters] = useState(initialFilters);
 
-  // UI & Phím tắt
   const [selectedCustomerForRow, setSelectedCustomerForRow] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [customerToEdit, setCustomerToEdit] = useState(null);
 
-  // === PHÍM TẮT TOÀN CỤC ===
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.altKey) {
@@ -86,7 +81,8 @@ const CustomerPage = () => {
         setSources(srcRes.data);
         setCampaigns(campRes.data);
       } catch (error) {
-        console.error("Lỗi:", error);
+        toast.error("Lỗi khi tải danh mục hệ thống!");
+        console.error("Lỗi khi tải danh mục hệ thống!", error);
       }
     };
     fetchDictionaries();
@@ -115,7 +111,6 @@ const CustomerPage = () => {
         campaignIds:
           filters.campaignIds.length > 0 ? filters.campaignIds.join(",") : null,
       };
-
       const res = await axios.get("http://localhost:8080/api/v1/customers", {
         params,
       });
@@ -123,15 +118,14 @@ const CustomerPage = () => {
       setTotalPages(res.data.totalPages);
       setTotalElements(res.data.totalElements);
     } catch (error) {
-      console.error(error);
+      toast.error("Lỗi tải danh sách khách hàng!");
+      console.error("Lỗi tải danh sách khách hàng!", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleOpenDetail = (customer) => {
-    navigate(`/customers/${customer.id}`);
-  };
+  const handleOpenDetail = (customer) => navigate(`/customers/${customer.id}`);
   const handleOpenAdd = () => {
     setCustomerToEdit(null);
     setIsFormOpen(true);
@@ -142,13 +136,15 @@ const CustomerPage = () => {
   };
 
   const handleDelete = async (id, name) => {
-    if (window.confirm(`Xóa mềm Khách hàng "${name}"?`)) {
+    if (window.confirm(`Xóa Khách hàng "${name}"?`)) {
       try {
         await axios.delete(`http://localhost:8080/api/v1/customers/${id}`);
+        toast.success(`Đã xóa Khách hàng ${name}`);
         fetchCustomers();
         setSelectedCustomerForRow(null);
       } catch (error) {
-        console.error(error);
+        toast.error("Xóa thất bại!");
+        console.error("Lỗi khi xóa khách hàng!", error);
       }
     }
   };
@@ -157,7 +153,6 @@ const CustomerPage = () => {
     setFilters((prev) => ({ ...prev, [field]: value }));
     setCurrentPage(1);
   };
-
   const handleFilterArrayChange = (field, id) => {
     setFilters((prev) => {
       const currentArray = prev[field];
@@ -167,7 +162,6 @@ const CustomerPage = () => {
     });
     setCurrentPage(1);
   };
-
   const clearFilters = () => {
     setFilters(initialFilters);
     setCurrentPage(1);
@@ -237,7 +231,7 @@ const CustomerPage = () => {
         {activeTags.map((tag, index) => (
           <div
             key={index}
-            className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs flex items-center gap-1 font-bold"
+            className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs flex items-center gap-1 font-bold shadow-sm"
           >
             {tag.label}
             <button
@@ -254,7 +248,7 @@ const CustomerPage = () => {
         ))}
         <button
           onClick={clearFilters}
-          className="text-xs text-error font-bold ml-2 hover:underline"
+          className="text-xs text-error font-bold ml-2 hover:underline outline-none"
         >
           Xóa tất cả
         </button>
@@ -262,19 +256,25 @@ const CustomerPage = () => {
     );
   };
 
-  const stats = {
-    totalB2B: customers.filter((c) => c.isOrganization).length,
-    totalB2C: customers.filter((c) => !c.isOrganization).length,
-    totalDiamond: customers.filter((c) => c.rankName === "Kim cương").length,
-  };
-
   return (
     <div className="space-y-6 relative flex-1">
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            borderRadius: "12px",
+            background: "#1e293b",
+            color: "#fff",
+            fontSize: "14px",
+            fontWeight: "bold",
+          },
+        }}
+      />
       <CustomerHeader
         totalCustomers={totalElements}
         onOpenAdd={handleOpenAdd}
       />
-      <CustomerStats stats={stats} />
       {renderActiveFilterTags()}
 
       <CustomerTable
@@ -305,12 +305,14 @@ const CustomerPage = () => {
         sources={sources}
         campaigns={campaigns}
       />
-
       <CustomerFormModal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         initialData={customerToEdit}
-        onSuccess={fetchCustomers}
+        onSuccess={() => {
+          fetchCustomers();
+          toast.success("Đã lưu thông tin Khách hàng!");
+        }}
         statuses={statuses}
         ranks={ranks}
         sources={sources}
@@ -319,5 +321,4 @@ const CustomerPage = () => {
     </div>
   );
 };
-
 export default CustomerPage;

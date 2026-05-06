@@ -1,29 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import toast, { Toaster } from "react-hot-toast";
+
 import LeadHeader from "./components/LeadHeader";
 import LeadFilter from "./components/LeadFilter";
-import LeadStatGrid from "./components/LeadStatGrid";
 import LeadTable from "./components/LeadTable";
 import LeadFormModal from "./LeadFormModal";
 
 const LeadPage = () => {
   const navigate = useNavigate();
-
   const [leads, setLeads] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
-  const [totalElements, setTotalElements] = useState(0);
 
   const [sources, setSources] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
   const [statuses, setStatuses] = useState([]);
 
   const [isFilterSidebarOpen, setIsFilterSidebarOpen] = useState(false);
-  // SỬA: Biến các trường lọc thành Mảng (Array)
   const initialFilters = {
     keyword: "",
     statusIds: [],
@@ -36,7 +33,6 @@ const LeadPage = () => {
   const [editingLead, setEditingLead] = useState(null);
   const [selectedLeadForRow, setSelectedLeadForRow] = useState(null);
 
-  // === LẮNG NGHE PHÍM TẮT TOÀN CỤC BẢNG LIST ===
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.altKey) {
@@ -56,7 +52,6 @@ const LeadPage = () => {
               selectedLeadForRow.fullName,
             );
         }
-        // THÊM PHÍM TẮT XEM CHI TIẾT (Alt + V)
         if (e.code === "KeyV" || e.key.toLowerCase() === "v") {
           e.preventDefault();
           if (selectedLeadForRow) handleOpenDetail(selectedLeadForRow);
@@ -79,7 +74,8 @@ const LeadPage = () => {
         setCampaigns(camRes.data);
         setStatuses(statusRes.data);
       } catch (error) {
-        console.error("Lỗi:", error);
+        toast.error("Không thể tải danh mục cấu hình!");
+        console.error("Lỗi khi tải danh mục cấu hình!", error);
       }
     };
     fetchDictionaries();
@@ -95,7 +91,6 @@ const LeadPage = () => {
   const fetchLeads = async () => {
     setIsLoading(true);
     try {
-      // Ép mảng thành chuỗi phân cách dấu phẩy để Spring Boot hiểu List<Integer>
       const params = {
         page: currentPage - 1,
         size: pageSize,
@@ -107,23 +102,20 @@ const LeadPage = () => {
         campaignIds:
           filters.campaignIds.length > 0 ? filters.campaignIds.join(",") : null,
       };
-
       const response = await axios.get("http://localhost:8080/api/v1/leads", {
         params,
       });
       setLeads(response.data.content);
       setTotalPages(response.data.totalPages);
-      setTotalElements(response.data.totalElements);
     } catch (error) {
-      console.error("Lỗi tải Lead:", error);
+      toast.error("Lỗi khi tải danh sách Tiềm năng!");
+      console.error("Lỗi khi tải danh sách Tiềm năng!", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleOpenDetail = (lead) => {
-    navigate(`/leads/${lead.id}`);
-  };
+  const handleOpenDetail = (lead) => navigate(`/leads/${lead.id}`);
   const handleOpenAdd = () => {
     setEditingLead(null);
     setIsModalOpen(true);
@@ -137,21 +129,21 @@ const LeadPage = () => {
     if (window.confirm(`Xóa tiềm năng "${name}"?`)) {
       try {
         await axios.delete(`http://localhost:8080/api/v1/leads/${id}`);
+        toast.success(`Đã xóa ${name}`);
         fetchLeads();
         setSelectedLeadForRow(null);
       } catch (error) {
-        console.error("Lỗi khi xóa!", error);
+        toast.error("Xóa thất bại!");
+        console.error("Lỗi khi xóa tiềm năng!", error);
       }
     }
   };
 
-  // Hàm xử lý riêng cho Array (Hỗ trợ Multi-select)
   const handleFilterArrayChange = (field, id) => {
     setFilters((prev) => {
       const currentArray = prev[field];
-      if (currentArray.includes(id)) {
+      if (currentArray.includes(id))
         return { ...prev, [field]: currentArray.filter((item) => item !== id) };
-      }
       return { ...prev, [field]: [...currentArray, id] };
     });
     setCurrentPage(1);
@@ -161,7 +153,6 @@ const LeadPage = () => {
     setFilters((prev) => ({ ...prev, keyword: value }));
     setCurrentPage(1);
   };
-
   const clearFilters = () => {
     setFilters(initialFilters);
     setCurrentPage(1);
@@ -175,7 +166,6 @@ const LeadPage = () => {
         key: "keyword",
         label: `Tìm: ${filters.keyword}`,
       });
-
     filters.statusIds.forEach((id) => {
       const obj = statuses.find((s) => s.id.toString() === id);
       if (obj)
@@ -209,7 +199,7 @@ const LeadPage = () => {
 
     if (activeTags.length === 0) return null;
     return (
-      <div className="flex gap-2 mt-4 items-center flex-wrap">
+      <div className="flex gap-2 mb-4 items-center flex-wrap">
         <span className="text-sm font-semibold text-slate-500">Đang lọc:</span>
         {activeTags.map((tag, index) => (
           <div
@@ -223,7 +213,7 @@ const LeadPage = () => {
                   ? handleFilterArrayChange(tag.field, tag.id)
                   : handleFilterTextChange("")
               }
-              className="hover:text-red-500 ml-1"
+              className="hover:text-red-500 ml-1 outline-none"
             >
               ×
             </button>
@@ -231,7 +221,7 @@ const LeadPage = () => {
         ))}
         <button
           onClick={clearFilters}
-          className="text-xs text-error font-bold ml-2 hover:underline"
+          className="text-xs text-error font-bold ml-2 hover:underline outline-none"
         >
           Xóa tất cả
         </button>
@@ -241,13 +231,24 @@ const LeadPage = () => {
 
   return (
     <div className="space-y-6 flex-1 relative">
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            borderRadius: "12px",
+            background: "#1e293b",
+            color: "#fff",
+            fontSize: "14px",
+            fontWeight: "bold",
+          },
+        }}
+      />
       <LeadHeader onOpenAdd={handleOpenAdd} />
-      <LeadStatGrid filteredLeads={leads} />
       {renderActiveFilterTags()}
 
       <LeadTable
         filteredLeads={leads}
-        totalFiltered={totalElements}
         isLoading={isLoading}
         onOpenDetail={handleOpenDetail}
         onOpenEdit={handleOpenEdit}
@@ -273,11 +274,13 @@ const LeadPage = () => {
         sources={sources}
         campaigns={campaigns}
       />
-
       <LeadFormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSave={fetchLeads}
+        onSave={() => {
+          fetchLeads();
+          toast.success("Đã lưu thông tin Lead!");
+        }}
         currentLead={editingLead}
         statuses={statuses}
         sources={sources}
@@ -286,5 +289,4 @@ const LeadPage = () => {
     </div>
   );
 };
-
 export default LeadPage;

@@ -41,3 +41,12 @@ export const getCampaignStatus = (start, end) => {
     };
   }
 };
+
+// Hàm format số rút gọn (Ví dụ: 1500000 -> 1.5M)
+export const formatCompactNumber = (number) => {
+  if (!number) return "0";
+  return new Intl.NumberFormat("en-US", {
+    notation: "compact",
+    maximumFractionDigits: 1, // Lấy 1 số thập phân (VD: 1.5M)
+  }).format(number); 
+};

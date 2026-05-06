@@ -34,6 +34,15 @@ const LeadFormModal = ({
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // BẮT SỰ KIỆN PHÍM ESC ĐỂ ĐÓNG MODAL
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape" && isOpen) onClose();
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [isOpen, onClose]);
+
   useEffect(() => {
     setErrors({});
     if (isOpen && currentLead) {
@@ -141,7 +150,8 @@ const LeadFormModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    // ĐÃ NÂNG Z-INDEX LÊN 120
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
       <div
         className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
         onClick={onClose}
@@ -318,7 +328,6 @@ const LeadFormModal = ({
             />
           </div>
 
-          {/* ĐÃ GỠ BỎ KHÓA CỦA NGUỒN VÀ CHIẾN DỊCH */}
           <div className="col-span-1 mt-2">
             <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
               Nguồn
@@ -381,7 +390,7 @@ const LeadFormModal = ({
             onClick={onClose}
             className="bg-slate-50 border"
           >
-            Hủy bỏ
+            Hủy bỏ (Esc)
           </Button>
           <Button
             type="submit"

@@ -1,7 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import Button from "../../components/ui/Button";
+import {
+  ArrowLeft,
+  Edit,
+  Phone,
+  Mail,
+  FileText,
+  Globe,
+  MapPin,
+  Network,
+  Flag,
+  Calendar,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import CustomerFormModal from "./components/CustomerFormModal";
 import ContactFormModal from "../contacts/components/ContactFormModal";
 
@@ -22,7 +35,6 @@ const CustomerDetailPage = () => {
   const [sources, setSources] = useState([]);
   const [campaigns, setCampaigns] = useState([]);
 
-  // === LẮNG NGHE PHÍM TẮT TRONG TRANG DETAIL ===
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape" && !isCustomerModalOpen && !isContactModalOpen) {
@@ -55,7 +67,6 @@ const CustomerDetailPage = () => {
           axios.get("http://localhost:8080/api/v1/sources"),
           axios.get("http://localhost:8080/api/v1/campaigns/options"),
         ]);
-
       setCustomer(cusRes.data);
       setContacts(
         contactRes.data.sort(
@@ -67,7 +78,7 @@ const CustomerDetailPage = () => {
       setSources(srcRes.data);
       setCampaigns(campRes.data);
     } catch (err) {
-      console.error("Lỗi tải chi tiết:", err);
+      console.error("Lỗi:", err);
     } finally {
       setIsLoading(false);
     }
@@ -112,8 +123,7 @@ const CustomerDetailPage = () => {
 
   return (
     <div className="space-y-6 flex-1">
-      {/* HEADER CARD */}
-      <div className="bg-white rounded-2xl shadow-sm p-6 border border-outline-variant/10">
+      <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-200">
         <div className="flex flex-col md:flex-row justify-between gap-6 items-start md:items-center">
           <div className="flex gap-4 items-center">
             <div
@@ -142,79 +152,75 @@ const CustomerDetailPage = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              variant="cancel"
-              icon="arrow_back"
+            <button
               onClick={() => navigate(-1)}
-              className="bg-white border"
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 font-bold text-sm outline-none"
             >
-              Quay lại (Esc)
-            </Button>
-            <Button
-              variant="primary"
-              icon="edit"
+              <ArrowLeft size={16} /> Quay lại (Esc)
+            </button>
+            <button
               onClick={() => setIsCustomerModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 font-bold text-sm shadow-md shadow-primary/20 outline-none"
             >
-              Sửa thông tin (Alt+E)
-            </Button>
+              <Edit size={16} /> Sửa thông tin (Alt+E)
+            </button>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* CỘT TRÁI: THÔNG TIN CHI TIẾT */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-2xl shadow-sm border border-outline-variant/10 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="px-6 py-4 border-b font-bold text-slate-800 bg-slate-50 uppercase tracking-wider text-xs">
               Thông tin chi tiết
             </div>
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
               <InfoItem
-                icon="call"
+                icon={<Phone />}
                 label="Điện thoại chính"
                 value={customer.mainPhone || "---"}
               />
               <InfoItem
-                icon="mail"
+                icon={<Mail />}
                 label="Email chính"
                 value={customer.emailOfficial || "---"}
               />
               <InfoItem
-                icon={customer.isOrganization ? "domain" : "fingerprint"}
+                icon={<FileText />}
                 label={customer.isOrganization ? "Mã số thuế" : "CCCD/CMND"}
                 value={customer.taxCode || customer.citizenId || "---"}
               />
               <InfoItem
-                icon="public"
+                icon={<Globe />}
                 label="Website"
                 value={customer.website || "---"}
               />
               <InfoItem
-                icon="location_on"
+                icon={<MapPin />}
                 label="Địa chỉ"
                 value={
                   customer.addressCompany || customer.addressBilling || "---"
                 }
               />
               <InfoItem
-                icon="share"
+                icon={<Network />}
                 label="Nguồn khách"
                 value={customer.sourceName || "Tự nhiên"}
               />
               <InfoItem
-                icon="campaign"
+                icon={<Flag />}
                 label="Chiến dịch"
                 value={customer.campaignName || "Không có"}
               />
               <InfoItem
-                icon="event"
+                icon={<Calendar />}
                 label="Ngày tạo"
                 value={new Date(customer.createdAt).toLocaleDateString("vi-VN")}
               />
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-outline-variant/10 p-6">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
             <h4 className="font-bold text-slate-800 mb-4 uppercase tracking-wider text-xs">
               Mô tả / Ghi chú
             </h4>
@@ -226,21 +232,17 @@ const CustomerDetailPage = () => {
           </div>
         </div>
 
-        {/* CỘT PHẢI: QUẢN LÝ DANH BẠ LIÊN HỆ */}
         <div className="space-y-6">
-          <div className="bg-white rounded-2xl shadow-sm border border-outline-variant/10 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="px-6 py-4 border-b bg-slate-50 flex justify-between items-center">
               <h4 className="font-bold text-slate-800 uppercase tracking-wider text-xs">
                 Danh bạ Liên hệ ({contacts.length})
               </h4>
               <button
                 onClick={handleOpenAddContact}
-                className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-1 rounded hover:bg-primary/20 flex items-center transition-colors"
+                className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-1.5 rounded-lg hover:bg-primary/20 flex items-center transition-colors outline-none"
               >
-                <span className="material-symbols-outlined text-[14px] mr-1">
-                  add
-                </span>{" "}
-                Thêm
+                <Plus size={14} className="mr-1" /> Thêm
               </button>
             </div>
 
@@ -255,25 +257,20 @@ const CustomerDetailPage = () => {
                     key={contact.id}
                     className={`p-4 rounded-xl border ${contact.isPrimary ? "bg-indigo-50/50 border-indigo-200" : "bg-white border-slate-100"} relative group transition-colors`}
                   >
-                    {/* Nút Action ẩn hiện */}
                     <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => handleOpenEditContact(contact)}
-                        className="w-7 h-7 flex items-center justify-center bg-white border shadow-sm rounded text-slate-400 hover:text-blue-600"
+                        className="p-1.5 bg-white border shadow-sm rounded-lg text-slate-400 hover:text-blue-600 outline-none"
                       >
-                        <span className="material-symbols-outlined text-[14px]">
-                          edit
-                        </span>
+                        <Edit size={14} />
                       </button>
                       <button
                         onClick={() =>
                           handleDeleteContact(contact.id, contact.fullName)
                         }
-                        className="w-7 h-7 flex items-center justify-center bg-white border shadow-sm rounded text-slate-400 hover:text-red-600"
+                        className="p-1.5 bg-white border shadow-sm rounded-lg text-slate-400 hover:text-red-600 outline-none"
                       >
-                        <span className="material-symbols-outlined text-[14px]">
-                          delete
-                        </span>
+                        <Trash2 size={14} />
                       </button>
                     </div>
 
@@ -298,9 +295,7 @@ const CustomerDetailPage = () => {
                           {contact.jobTitle || "Nhân viên"}
                         </div>
                         <div className="text-xs text-slate-700 font-medium mt-2 flex items-center gap-1.5">
-                          <span className="material-symbols-outlined text-[14px] text-slate-400">
-                            call
-                          </span>{" "}
+                          <Phone size={12} className="text-slate-400" />{" "}
                           {contact.personalPhone || "Chưa có SĐT"}
                         </div>
                       </div>
@@ -323,7 +318,6 @@ const CustomerDetailPage = () => {
         sources={sources}
         campaigns={campaigns}
       />
-
       <ContactFormModal
         isOpen={isContactModalOpen}
         onClose={() => setIsContactModalOpen(false)}
@@ -337,9 +331,7 @@ const CustomerDetailPage = () => {
 
 const InfoItem = ({ icon, label, value }) => (
   <div className="flex gap-3">
-    <span className="material-symbols-outlined text-slate-300 text-xl">
-      {icon}
-    </span>
+    <div className="text-slate-300 [&>svg]:w-5 [&>svg]:h-5 mt-0.5">{icon}</div>
     <div>
       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
         {label}

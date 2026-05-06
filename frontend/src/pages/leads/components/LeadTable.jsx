@@ -1,6 +1,15 @@
 import React from "react";
-import { formatCurrency, getInitials } from "../../../utils/formatters";
-import Button from "../../../components/ui/Button";
+import {
+  Filter,
+  Eye,
+  Edit,
+  Trash2,
+  Building2,
+  User,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { formatCurrency } from "../../../utils/formatters";
 
 const LeadTable = ({
   filteredLeads,
@@ -25,7 +34,6 @@ const LeadTable = ({
   };
 
   const emptyRows = Math.max(0, pageSize - filteredLeads.length);
-
   const getVisiblePages = (current, total) => {
     if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
     if (current <= 4) return [1, 2, 3, 4, 5, "...", total];
@@ -40,14 +48,12 @@ const LeadTable = ({
         <h3 className="font-bold text-slate-800 text-xs uppercase tracking-widest">
           Danh sách Tiềm năng
         </h3>
-        <Button
-          variant="outline"
-          icon="filter_list"
+        <button
           onClick={onOpenFilter}
-          className="bg-white border-slate-200 text-primary hover:bg-primary/5 text-sm py-1.5 shadow-sm"
+          className="flex items-center gap-2 px-4 py-1.5 bg-white border border-slate-200 text-primary rounded-lg hover:bg-primary/5 transition-colors text-sm font-medium shadow-sm outline-none"
         >
-          Bộ lọc chi tiết
-        </Button>
+          <Filter size={16} strokeWidth={2.5} /> Bộ lọc
+        </button>
       </div>
 
       <div className="overflow-x-auto custom-scrollbar min-h-[400px]">
@@ -82,7 +88,7 @@ const LeadTable = ({
               <tr>
                 <td
                   colSpan="7"
-                  className="px-6 py-12 text-center text-slate-500"
+                  className="px-6 py-12 text-center text-slate-500 font-medium"
                 >
                   Đang tải dữ liệu...
                 </td>
@@ -91,7 +97,7 @@ const LeadTable = ({
               <tr>
                 <td
                   colSpan="7"
-                  className="px-6 py-12 text-center text-slate-500"
+                  className="px-6 py-12 text-center text-slate-500 font-medium"
                 >
                   Không tìm thấy khách hàng.
                 </td>
@@ -106,8 +112,14 @@ const LeadTable = ({
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">
-                        {getInitials(lead.fullName)}
+                      <div
+                        className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${lead.companyName ? "bg-indigo-50 text-indigo-600" : "bg-emerald-50 text-emerald-600"}`}
+                      >
+                        {lead.companyName ? (
+                          <Building2 size={18} />
+                        ) : (
+                          <User size={18} />
+                        )}
                       </div>
                       <div>
                         <p className="font-bold text-slate-900 text-sm line-clamp-1">
@@ -163,37 +175,38 @@ const LeadTable = ({
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        variant="iconOnly"
-                        className="hover:bg-slate-100 text-slate-500"
+                    {/* BỎ LÀM MỜ, THÊM MÀU MẶC ĐỊNH CHO TỪNG NÚT */}
+                    <div className="flex items-center justify-end gap-1.5">
+                      <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onOpenDetail(lead);
                         }}
+                        className="p-1.5 text-primary bg-primary/5 hover:bg-primary/15 rounded-lg outline-none transition-colors"
                         title="Xem chi tiết (Alt+V)"
-                        icon="visibility"
-                      />
-                      <Button
-                        variant="iconOnly"
-                        className="hover:bg-blue-50 text-slate-500 hover:text-blue-600"
+                      >
+                        <Eye size={18} strokeWidth={2} />
+                      </button>
+                      <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onOpenEdit(lead);
                         }}
+                        className="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg outline-none transition-colors"
                         title="Sửa (Alt+E)"
-                        icon="edit"
-                      />
-                      <Button
-                        variant="iconOnly"
-                        className="hover:bg-red-50 text-slate-500 hover:text-red-600"
+                      >
+                        <Edit size={18} strokeWidth={2} />
+                      </button>
+                      <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onDelete(lead.id, lead.fullName);
                         }}
+                        className="p-1.5 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg outline-none transition-colors"
                         title="Xóa (Alt+D)"
-                        icon="delete"
-                      />
+                      >
+                        <Trash2 size={18} strokeWidth={2} />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -237,9 +250,7 @@ const LeadTable = ({
               disabled={currentPage === 1}
               className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50"
             >
-              <span className="material-symbols-outlined text-sm">
-                chevron_left
-              </span>
+              <ChevronLeft size={16} />
             </button>
             {getVisiblePages(currentPage, totalPages).map((page, idx) =>
               page === "..." ? (
@@ -264,9 +275,7 @@ const LeadTable = ({
               disabled={currentPage >= totalPages}
               className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50"
             >
-              <span className="material-symbols-outlined text-sm">
-                chevron_right
-              </span>
+              <ChevronRight size={16} />
             </button>
           </div>
         )}

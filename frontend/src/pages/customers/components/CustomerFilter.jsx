@@ -1,5 +1,5 @@
 import React from "react";
-import Button from "../../../components/ui/Button";
+import { Settings2, X, Search } from "lucide-react";
 
 const CustomerFilter = ({
   isOpen,
@@ -16,11 +16,7 @@ const CustomerFilter = ({
   const FilterChip = ({ label, isSelected, onClick }) => (
     <button
       onClick={onClick}
-      className={`px-3 py-1.5 border rounded-lg text-xs font-bold transition-all text-left ${
-        isSelected
-          ? "bg-primary text-white border-primary shadow-md"
-          : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-      }`}
+      className={`px-3 py-1.5 border rounded-lg text-xs font-bold transition-all text-left outline-none ${isSelected ? "bg-primary text-white border-primary shadow-md" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"}`}
     >
       {label}
     </button>
@@ -28,33 +24,25 @@ const CustomerFilter = ({
 
   return (
     <>
-      {/* Overlay che mờ màn hình khi mở Sidebar */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-[100] transition-opacity"
           onClick={onClose}
         ></div>
       )}
-
-      {/* Sidebar trượt từ phải sang */}
       <div
-        className={`fixed top-0 right-0 h-full w-[400px] bg-white shadow-2xl z-[110] transform transition-transform duration-300 ease-in-out flex flex-col ${
-          isOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed top-0 right-0 h-full w-[400px] bg-white shadow-2xl z-[110] transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"}`}
       >
         <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
           <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary text-[20px]">
-              tune
-            </span>
-            Bộ lọc Khách hàng
+            <Settings2 size={20} className="text-primary" /> Bộ lọc Khách hàng
           </h2>
-          <Button
-            variant="iconOnly"
-            icon="close"
+          <button
             onClick={onClose}
-            className="text-slate-400 hover:text-red-500"
-          />
+            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg outline-none transition-colors"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
@@ -63,9 +51,10 @@ const CustomerFilter = ({
               Từ khóa
             </label>
             <div className="relative">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">
-                search
-              </span>
+              <Search
+                size={18}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+              />
               <input
                 type="text"
                 value={filters.keyword}
@@ -83,19 +72,19 @@ const CustomerFilter = ({
             <div className="flex flex-wrap gap-2 pt-1">
               <button
                 onClick={() => onFilterTextChange("isOrganization", "")}
-                className={`px-3 py-1.5 border rounded-lg text-xs font-bold ${filters.isOrganization === "" ? "bg-slate-800 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
+                className={`px-3 py-1.5 border rounded-lg text-xs font-bold outline-none ${filters.isOrganization === "" ? "bg-slate-800 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
               >
                 Tất cả
               </button>
               <button
                 onClick={() => onFilterTextChange("isOrganization", "true")}
-                className={`px-3 py-1.5 border rounded-lg text-xs font-bold ${filters.isOrganization === "true" ? "bg-indigo-50 text-indigo-700 border-indigo-200 shadow-md" : "bg-white text-slate-600 hover:bg-slate-50"}`}
+                className={`px-3 py-1.5 border rounded-lg text-xs font-bold outline-none ${filters.isOrganization === "true" ? "bg-indigo-50 text-indigo-700 border-indigo-200 shadow-md" : "bg-white text-slate-600 hover:bg-slate-50"}`}
               >
                 Tổ chức (B2B)
               </button>
               <button
                 onClick={() => onFilterTextChange("isOrganization", "false")}
-                className={`px-3 py-1.5 border rounded-lg text-xs font-bold ${filters.isOrganization === "false" ? "bg-teal-50 text-teal-700 border-teal-200 shadow-md" : "bg-white text-slate-600 hover:bg-slate-50"}`}
+                className={`px-3 py-1.5 border rounded-lg text-xs font-bold outline-none ${filters.isOrganization === "false" ? "bg-teal-50 text-teal-700 border-teal-200 shadow-md" : "bg-white text-slate-600 hover:bg-slate-50"}`}
               >
                 Cá nhân (B2C)
               </button>
@@ -140,7 +129,7 @@ const CustomerFilter = ({
 
           <div className="space-y-2">
             <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100 pb-1">
-              Nguồn khách (Chọn nhiều)
+              Nguồn khách
             </label>
             <div className="flex flex-wrap gap-2 pt-1 max-h-[120px] overflow-y-auto custom-scrollbar">
               {sources.map((s) => (
@@ -158,7 +147,7 @@ const CustomerFilter = ({
 
           <div className="space-y-2">
             <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-100 pb-1">
-              Chiến dịch (Chọn nhiều)
+              Chiến dịch
             </label>
             <div className="flex flex-wrap gap-2 pt-1 max-h-[120px] overflow-y-auto custom-scrollbar">
               {campaigns.map((c) => (
@@ -175,22 +164,19 @@ const CustomerFilter = ({
           </div>
         </div>
 
-        {/* Footer Sidebar */}
         <div className="p-6 border-t border-slate-100 bg-white grid grid-cols-2 gap-3">
-          <Button
-            variant="cancel"
-            className="bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 font-bold py-2.5"
+          <button
+            className="bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 font-bold py-2.5 rounded-lg outline-none transition-colors text-sm"
             onClick={clearFilters}
           >
             Xóa bộ lọc
-          </Button>
-          <Button
-            variant="primary"
-            className="font-bold py-2.5 shadow-md shadow-primary/20"
+          </button>
+          <button
+            className="bg-primary text-white font-bold py-2.5 rounded-lg outline-none hover:bg-primary/90 transition-colors shadow-md shadow-primary/20 text-sm"
             onClick={onClose}
           >
             Thu gọn
-          </Button>
+          </button>
         </div>
       </div>
     </>

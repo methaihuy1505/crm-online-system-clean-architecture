@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import toast, { Toaster } from "react-hot-toast";
+
 import CampaignHeader from "./components/CampaignHeader";
 import CampaignFilter from "./components/CampaignFilter";
-import CampaignStatGrid from "./components/CampaignStatGrid";
 import CampaignTable from "./components/CampaignTable";
 import CampaignFormModal from "./CampaignFormModal";
 import CampaignDetailPanel from "./components/CampaignDetailPanel";
 
 const CampaignPage = () => {
   const [campaigns, setCampaigns] = useState([]);
-  const [stats, setStats] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -24,7 +24,6 @@ const CampaignPage = () => {
   const [isFilterSidebarOpen, setIsFilterSidebarOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
 
-  // === ĐỔI status THÀNH statuses (Mảng) ===
   const initialFilters = {
     keyword: "",
     statuses: [],
@@ -60,26 +59,11 @@ const CampaignPage = () => {
   }, [selectedRow]);
 
   useEffect(() => {
-    fetchStats();
-  }, []);
-
-  useEffect(() => {
     const delayDebounce = setTimeout(() => {
       fetchCampaigns();
     }, 500);
     return () => clearTimeout(delayDebounce);
   }, [currentPage, pageSize, filters]);
-
-  const fetchStats = async () => {
-    try {
-      const res = await axios.get(
-        "http://localhost:8080/api/v1/campaigns/statistics",
-      );
-      setStats(res.data);
-    } catch (error) {
-      console.error("Lỗi lấy thống kê:", error);
-    }
-  };
 
   const fetchCampaigns = async () => {
     setIsLoading(true);
@@ -89,7 +73,6 @@ const CampaignPage = () => {
           page: currentPage - 1,
           size: pageSize,
           keyword: filters.keyword || null,
-          // NỐI MẢNG THÀNH CHUỖI GỬI XUỐNG BACKEND
           statuses:
             filters.statuses.length > 0 ? filters.statuses.join(",") : null,
           fromDate: filters.fromDate || null,
@@ -99,7 +82,8 @@ const CampaignPage = () => {
       setCampaigns(res.data.content || res.data);
       setTotalPages(res.data.totalPages || 1);
     } catch (error) {
-      console.error("Lỗi tải danh sách chiến dịch:", error);
+      toast.error("Lỗi tải danh sách chiến dịch!");
+      console.error("Lỗi tải danh sách chiến dịch!", error);
     } finally {
       setIsLoading(false);
     }
@@ -113,7 +97,8 @@ const CampaignPage = () => {
       setSelectedCampaignForDetail(res.data);
       setIsPanelOpen(true);
     } catch (error) {
-      console.error("Lỗi tải chi tiết chiến dịch", error);
+      toast.error("Không thể tải chi tiết chiến dịch!");
+      console.error("Lỗi khi tải chi tiết chiến dịch!", error);
     }
   };
 
@@ -131,32 +116,29 @@ const CampaignPage = () => {
       try {
         await axios.delete(`http://localhost:8080/api/v1/campaigns/${id}`);
         setSelectedRow(null);
+        toast.success(`Đã xóa ${name}`);
         fetchCampaigns();
-        fetchStats();
       } catch (error) {
-        console.error("Xóa thất bại!",error);
+        toast.error("Xóa thất bại!");
+        console.error("Lỗi khi xóa chiến dịch!", error);
       }
     }
   };
 
-  // Logic xử lý input chữ (keyword, date)
   const handleFilterTextChange = (name, value) => {
     setFilters((prev) => ({ ...prev, [name]: value }));
     setCurrentPage(1);
   };
-
-  // Logic xử lý mảng (statuses)
   const handleFilterArrayChange = (name, value) => {
     setFilters((prev) => {
       const currentArray = prev[name];
       const newArray = currentArray.includes(value)
-        ? currentArray.filter((item) => item !== value) // Bỏ chọn
-        : [...currentArray, value]; // Thêm mới
+        ? currentArray.filter((item) => item !== value)
+        : [...currentArray, value];
       return { ...prev, [name]: newArray };
     });
     setCurrentPage(1);
   };
-
   const clearFilters = () => {
     setFilters(initialFilters);
     setCurrentPage(1);
@@ -183,7 +165,6 @@ const CampaignPage = () => {
         type: "text",
       });
 
-    // In từng trạng thái đang chọn ra màn hình
     filters.statuses.forEach((st) => {
       activeTags.push({
         key: `status-${st}`,
@@ -228,8 +209,20 @@ const CampaignPage = () => {
 
   return (
     <div className="space-y-6 relative flex-1">
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            borderRadius: "12px",
+            background: "#1e293b",
+            color: "#fff",
+            fontSize: "14px",
+            fontWeight: "bold",
+          },
+        }}
+      />
       <CampaignHeader onOpenAdd={handleOpenAdd} />
-      <CampaignStatGrid stats={stats} />
       {renderActiveFilterTags()}
 
       <CampaignTable
@@ -256,25 +249,22 @@ const CampaignPage = () => {
         onFilterArrayChange={handleFilterArrayChange}
         clearFilters={clearFilters}
       />
-
       <CampaignDetailPanel
         isOpen={isPanelOpen}
         onClose={() => setIsPanelOpen(false)}
         campaign={selectedCampaignForDetail}
         onEdit={handleOpenEdit}
       />
-
       <CampaignFormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={() => {
           fetchCampaigns();
-          fetchStats();
+          toast.success("Đã lưu Chiến dịch!");
         }}
         currentCampaign={editingCampaign}
       />
     </div>
   );
 };
-
 export default CampaignPage;
