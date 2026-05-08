@@ -1,4 +1,4 @@
-// ProductFilter.jsx — inline right panel (giống Opportunities)
+// OpportunityFilter.jsx — inline right panel (giống ProductFilter)
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
@@ -6,17 +6,10 @@ const api = axios.create({ baseURL: "http://localhost:8080/api/v1" });
 
 const SORT_OPTIONS = [
   { label: "Mặc định", value: "" },
-  { label: "Giá cao → thấp", value: "price_desc" },
-  { label: "Giá thấp → cao", value: "price_asc" },
+  { label: "Tiền cọc ↓", value: "deposit_desc" },
+  { label: "Tiền cọc ↑", value: "deposit_asc" },
+  { label: "Xác suất ↓", value: "prob_desc" },
   { label: "Tên A → Z", value: "name_asc" },
-  { label: "Tên Z → A", value: "name_desc" },
-];
-
-const PRODUCT_TYPE_OPTIONS = [
-  { label: "Tất cả", value: "" },
-  { label: "Vật lý", value: "PHYSICAL" },
-  { label: "Dịch vụ", value: "SERVICE" },
-  { label: "Kỹ thuật số", value: "DIGITAL" },
 ];
 
 function RadioButtonGroup({ options, selected, onChange, cols = 2 }) {
@@ -84,25 +77,31 @@ function CheckboxButtonGroup({ items, selected, onChange, cols = 2 }) {
   );
 }
 
-export default function ProductFilterPanel({ filters, onChange, onClose }) {
-  const [categories, setCategories] = useState([]);
-  const [uoms, setUoms] = useState([]);
+export default function OpportunityFilterPanel({ filters, onChange, onClose }) {
+  const [stages, setStages] = useState([]);
+  const [statuses, setStatuses] = useState([]);
+  const [reasons, setReasons] = useState([]);
 
   useEffect(() => {
-    Promise.all([api.get("/product-categories"), api.get("/uoms")]).then(
-      ([catRes, uomRes]) => {
-        setCategories(
-          catRes.data.map((c) => ({ label: c.name, value: String(c.id) })),
-        );
-        setUoms(
-          uomRes.data.map((u) => ({ label: u.name, value: String(u.id) })),
-        );
-      },
-    );
+    Promise.all([
+      api.get("/opportunity-stages"),
+      api.get("/opportunity-statuses"),
+      api.get("/lost-reasons"),
+    ]).then(([stgRes, stsRes, rsnRes]) => {
+      setStages(
+        stgRes.data.map((s) => ({ label: s.name, value: String(s.id) })),
+      );
+      setStatuses(
+        stsRes.data.map((s) => ({ label: s.name, value: String(s.id) })),
+      );
+      setReasons(
+        rsnRes.data.map((r) => ({ label: r.name, value: String(r.id) })),
+      );
+    });
   }, []);
 
   const handleReset = () =>
-    onChange({ sort: "", productType: "", categoryIds: [], uomIds: [] });
+    onChange({ sort: "", stageIds: [], statusIds: [], reasonIds: [] });
 
   return (
     <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs p-4 animate-fade-in relative">
@@ -131,41 +130,41 @@ export default function ProductFilterPanel({ filters, onChange, onClose }) {
           />
         </div>
 
-        {/* Loại sản phẩm */}
+        {/* Giai đoạn */}
         <div>
           <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">
-            Loại sản phẩm
+            Giai đoạn
           </p>
-          <RadioButtonGroup
-            options={PRODUCT_TYPE_OPTIONS}
-            selected={filters.productType}
-            onChange={(v) => onChange({ ...filters, productType: v })}
+          <CheckboxButtonGroup
+            items={stages}
+            selected={filters.stageIds}
+            onChange={(v) => onChange({ ...filters, stageIds: v })}
             cols={2}
           />
         </div>
 
-        {/* Danh mục */}
+        {/* Trạng thái */}
         <div>
           <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">
-            Danh mục
+            Trạng thái
           </p>
           <CheckboxButtonGroup
-            items={categories}
-            selected={filters.categoryIds}
-            onChange={(v) => onChange({ ...filters, categoryIds: v })}
+            items={statuses}
+            selected={filters.statusIds}
+            onChange={(v) => onChange({ ...filters, statusIds: v })}
             cols={2}
           />
         </div>
 
-        {/* Đơn vị tính */}
+        {/* Lý do thất bại */}
         <div>
           <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">
-            Đơn vị tính
+            Lý do thất bại
           </p>
           <CheckboxButtonGroup
-            items={uoms}
-            selected={filters.uomIds}
-            onChange={(v) => onChange({ ...filters, uomIds: v })}
+            items={reasons}
+            selected={filters.reasonIds}
+            onChange={(v) => onChange({ ...filters, reasonIds: v })}
             cols={2}
           />
         </div>

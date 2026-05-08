@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import OpportunityItemAddModal from "./OpportunityItemAdd";
+
 import axios from "axios";
 import * as XLSX from "xlsx";
 // --- Icons ---
@@ -64,11 +66,12 @@ export default function OpportunityLineItems() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
   // Lấy id từ URL (ví dụ: /opportunitylineitems/12)
-  const { id: opportunityId } = useParams();
-  const navigate = useNavigate();
+  const { opportunityId, id } = useParams();
+  const currentOpportunityId = opportunityId || id;
 
+  console.log("ID Cơ hội lấy được từ thanh URL là:", currentOpportunityId);
   useEffect(() => {
     // Chỉ gọi API khi có opportunityId
     if (opportunityId) {
@@ -80,33 +83,39 @@ export default function OpportunityLineItems() {
   }, [opportunityId]); // Theo dõi opportunityId để fetch lại nếu ID thay đổi
 
   const fetchItems = async () => {
+    // Bỏ bớt điều kiện chặn hoặc chỉnh sửa lại cho đúng biến
+    if (!currentOpportunityId) {
+      console.warn(
+        "Không thể gọi API vì currentOpportunityId đang bị undefined hoặc trống!",
+      );
+      return;
+    }
+
     try {
       setLoading(true);
-      // Gửi request xuống Backend theo ID cụ thể
-      // Giả sử API của bạn là: GET /api/v1/opportunity-items/opportunity/12
-      // Hoặc sửa lại URL tùy theo mapping thực tế ở Controller của bạn
-      const response = await axios.get(
-        `${API_BASE_URL}/opportunity/${opportunityId}`,
+      // Gọi đúng API endpoint theo dạng PathVariable cố định
+      const res = await axios.get(
+        `${API_BASE_URL}/opportunity/${currentOpportunityId}`,
       );
-
-      const data = Array.isArray(response.data)
-        ? response.data
-        : response.data.content;
-
-      setItems(data || []);
-    } catch (error) {
-      console.error("Lỗi khi fetch items:", error);
-      setItems([]);
+      console.log("Kết nối Backend thành công! Dữ liệu trả về:", res.data);
+      setItems(res.data || []);
+    } catch (err) {
+      console.error("Lỗi kết nối từ React xuống Spring Boot Backend:", err);
     } finally {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    // Gọi hàm chạy khi component được load
+    fetchItems();
+  }, [currentOpportunityId]);
+
   const handleAddClick = () => {
-    if (opportunityId) {
-      navigate(`/addeditlineitem/${opportunityId}`);
-    } else {
-      alert("Cần có Opportunity ID để thêm mục mới!");
+    if (!currentOpportunityId) {
+      alert("Không tìm thấy ID Cơ hội trên thanh URL!");
+      return;
     }
+    setIsModalOpen(true);
   };
   // 2. Xử lý Xóa item khỏi DB
   const handleDelete = async (id) => {
@@ -127,10 +136,10 @@ export default function OpportunityLineItems() {
         items.map((item) => ({
           ID: item.id,
           // Cách 1: Dùng biến opportunityId từ useParams (Khuyên dùng)
-          "Opportunity ID": opportunityId,
+          "Opportunity ID": currentOpportunityId,
 
           // Cách 2: Nếu muốn lấy từ data của item (phòng hờ)
-          // "Opportunity ID": item.opportunity?.id || item.opportunityId || opportunityId,
+          // "Opportunity ID": item.opportunity?.id || item.opportunityId || currentOpportunityId,
 
           "Product Name": item.productName,
           Quantity: item.quantity,
@@ -146,7 +155,7 @@ export default function OpportunityLineItems() {
 
       XLSX.writeFile(
         workbook,
-        `Quote_${opportunityId}_${new Date().getTime()}.xlsx`,
+        `Quote_${currentOpportunityId}_${new Date().getTime()}.xlsx`,
       );
 
       alert("Quote finalized and Excel exported!");
@@ -198,7 +207,8 @@ export default function OpportunityLineItems() {
         <div className="flex flex-1 min-w-0">
           <div className="flex-1 px-8 py-6 min-w-0 overflow-y-auto">
             {/* Page header */}
-            <div className="flex justify-between items-end mb-7">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-7 pb-4 border-b border-slate-100">
+              {/* Khối bên trái: Tiêu đề */}
               <div>
                 <h2
                   className="text-3xl font-extrabold tracking-tight text-[#191c1d]"
@@ -206,87 +216,31 @@ export default function OpportunityLineItems() {
                 >
                   Opportunity Line Items
                 </h2>
-                <p className="text-sm text-slate-400 mt-1.5 max-w-lg">
-                  Manage detailed specifications and pricing for the
-                  Metropolitan Commercial Development project.
-                </p>
               </div>
-              <button
-                onClick={handleAddClick}
-                className="flex items-center gap-2 bg-[#000666] text-white px-5 py-2.5 rounded-lg font-bold text-sm hover:opacity-90 active:scale-[0.98] transition-all"
-              >
-                <Icon path={ic.addCircle} size={16} />
-                Add Line Item
-              </button>
-            </div>
 
-            {/* Stats bento */}
-            <div className="grid grid-cols-12 gap-5 mb-8">
-              <div className="col-span-4 bg-[#f3f4f5] p-5 rounded-xl">
-                <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
-                  Total Gross Value
-                </span>
-                <div
-                  className="mt-3 text-2xl font-black text-[#000666]"
-                  style={{ fontFamily: "Manrope, sans-serif" }}
-                >
-                  {fmt(grandTotal)}
-                </div>
-                <div className="flex items-center gap-1 mt-1 text-green-600 text-xs font-bold">
-                  <Icon path={ic.trending} size={13} color="currentColor" />
-                  +12% vs last quote
-                </div>
-              </div>
-              <div className="col-span-3 bg-[#f3f4f5] p-5 rounded-xl">
-                <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
-                  Items Count
-                </span>
-                <div
-                  className="mt-3 text-xl font-black"
-                  style={{ fontFamily: "Manrope, sans-serif" }}
-                >
-                  {items.length} Items
-                </div>
-                <div className="mt-1 text-xs text-slate-400 font-medium">
-                  3 Categories selected
-                </div>
-              </div>
-              <div className="col-span-5 bg-[#1a237e] p-5 rounded-xl text-white relative overflow-hidden">
-                <div className="relative z-10">
-                  <span className="text-[10px] font-bold tracking-widest text-[#8690ee] uppercase">
-                    Estimated Margin
+              {/* Khối bên phải: Bao gồm Ô Search và Nút Add xếp hàng ngang */}
+              <div className="flex items-center gap-3">
+                {/* Ô Search được tinh chỉnh màu đậm và rõ ràng hơn */}
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
+                    <Icon path={ic.search} size={15} />
                   </span>
-                  <div
-                    className="mt-3 text-2xl font-black"
-                    style={{ fontFamily: "Manrope, sans-serif" }}
-                  >
-                    24.8%
-                  </div>
-                  <p className="mt-1 text-xs text-[#8690ee] font-medium">
-                    Above enterprise benchmark of 18%
-                  </p>
-                </div>
-                <div className="absolute -right-6 -bottom-6 opacity-10">
-                  <Icon
-                    path={ic.analytics}
-                    size={100}
-                    color="white"
-                    strokeWidth={0.5}
+                  <input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="bg-slate-50 border border-slate-300 rounded-lg pl-9 pr-4 py-2 text-sm w-60 text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#000666]/30 focus:bg-white focus:border-[#000666] transition-all shadow-sm"
+                    placeholder="Search line items..."
                   />
                 </div>
-              </div>
-            </div>
-            <div>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                  <Icon path={ic.search} size={15} />
-                </span>
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="bg-[#f3f4f5] border-none rounded-lg pl-9 pr-4 py-2 text-sm w-56 focus:outline-none focus:ring-2 focus:ring-[#000666]/20 focus:bg-white transition-all"
-                  placeholder="Search line items..."
-                />
+
+                {/* Nút Add Line Item */}
+                <button
+                  onClick={handleAddClick}
+                  className="flex items-center gap-2 bg-[#000666] text-white px-5 py-2.5 rounded-lg font-bold text-sm hover:opacity-95 active:scale-[0.98] transition-all shadow-sm shrink-0"
+                >
+                  <Icon path={ic.addCircle} size={16} />
+                  Add Line Item
+                </button>
               </div>
             </div>
             {/* Table */}
@@ -489,6 +443,12 @@ export default function OpportunityLineItems() {
           </div>
         </div>
       </div>
+      <OpportunityItemAddModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        opportunityId={currentOpportunityId}
+        onSuccess={fetchItems} // Gọi lại hàm lấy dữ liệu sau khi thêm/sửa thành công
+      />
     </div>
   );
 }

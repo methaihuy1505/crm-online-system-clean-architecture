@@ -6,13 +6,11 @@ import ProductInventory from "./pages/product/ProductPage";
 import ProductEdit from "./pages/product/ProductEdit";
 import MetadataManagement from "./pages/opportunity/MetadataManagement";
 import SalesOpportunities from "./pages/opportunity/Opportunities";
-import CreateOpportunity from "./pages/opportunity/OpportunityAdd";
 import EditOpportunityStatus from "./pages/opportunity/StatusAdd";
 import EditStage from "./pages/opportunity/StageAdd";
 import LostReasons from "./pages/opportunity/LostReasons";
 import OpportunityLineItems from "./pages/opportunity/OppotunityItem";
-import AddEditLineItem from "./pages/opportunity/OpportunityItemAdd";
-
+import OpportunityItemAdd from "./pages/opportunity/OpportunityItemAdd";
 function App() {
   return (
     <BrowserRouter>
@@ -26,23 +24,23 @@ function App() {
           <Route path="/metadatamanagement" element={<MetadataManagement />} />
           <Route path="/opportunities" element={<SalesOpportunities />} />
           <Route
-            path="/opportunities/create/:id?"
-            element={<CreateOpportunity />}
-          />{" "}
-          <Route
             path="/editopportunitystatus/:id?"
             element={<EditOpportunityStatus />}
           />{" "}
           <Route path="/editstage/:id?" element={<EditStage />} />{" "}
           <Route path="/lostreason/:id?" element={<LostReasons />} />{" "}
           <Route
-            path="/opportunitylineitems/:id?"
+            path="/opportunities/:id/items"
             element={<OpportunityLineItems />}
-          />{" "}
+          />
           <Route
-            path="/addeditlineitem/:id?"
-            element={<AddEditLineItem />}
-          />{" "}
+            path="/opportunities/:opportunityId/items/add"
+            element={<OpportunityItemAdd />}
+          />
+          <Route
+            path="/opportunity-items/:itemId/edit"
+            element={<OpportunityItemAdd />}
+          />
         </Route>
       </Routes>
     </BrowserRouter>

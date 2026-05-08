@@ -64,6 +64,7 @@ public class OpportunityDbEntity {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "opportunity", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OpportunityItemDbEntity> items = new ArrayList<>();
+//    @OneToMany(cascade = CascadeType.ALL)
+//    @JoinColumn(name = "opportunity_id")
+//    private List<OpportunityItemDbEntity> items = new ArrayList<>();
 }

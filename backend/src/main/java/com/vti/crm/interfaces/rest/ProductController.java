@@ -24,12 +24,11 @@ public class ProductController {
 
     private final CreateProductUseCase createUseCase;
     private final GetProductByIdUseCase getByIdUseCase;
-    private final GetAllProductsUseCase getAllUseCase;
     private final UpdateProductUseCase updateUseCase;
     private final DeleteProductUseCase deleteUseCase;
-    private final CloudinaryService cloudinaryService;
     private final GetProductsWithFilterUseCase getProductsWithFilterUseCase;
     private final ProductWebMapper webMapper;
+    private final SearchProductsUseCase searchProductsUseCase;
 
     @PostMapping(consumes = {"multipart/form-data"})
     @ResponseStatus(HttpStatus.CREATED)
@@ -53,7 +52,7 @@ public class ProductController {
                 )
         );
     }
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public ProductResponse getById(@PathVariable Integer id) {
         return webMapper.toResponse(getByIdUseCase.execute(id));
     }
@@ -86,7 +85,7 @@ public class ProductController {
                 .toList();
     }
 
-    @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
+    @PutMapping(value = "/{id:\\d+}", consumes = {"multipart/form-data"})
     public ProductResponse update(
             @PathVariable Integer id,
             @Valid @RequestPart("product") ProductRequest request,
@@ -109,9 +108,23 @@ public class ProductController {
         );
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:\\d+}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Integer id) {
         deleteUseCase.execute(id);
+    }
+
+    @GetMapping("/search")
+    public org.springframework.http.ResponseEntity<List<ProductResponse>> search(@RequestParam("keyword") String keyword) {
+        try {
+            List<ProductResponse> responses = searchProductsUseCase.execute(keyword)
+                    .stream()
+                    .map(webMapper::toResponse)
+                    .toList();
+            return org.springframework.http.ResponseEntity.ok(responses);
+        } catch (Exception e) {
+            e.printStackTrace(); // In log ra console backend để xem lỗi cụ thể ở dòng nào
+            return org.springframework.http.ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

@@ -11,7 +11,7 @@ import java.util.Optional;
 
 public interface JpaProductRepository
         extends JpaRepository<ProductDbEntity, Integer>,
-        JpaSpecificationExecutor<ProductDbEntity> { // THÊM
+        JpaSpecificationExecutor<ProductDbEntity> {
 
     Optional<ProductDbEntity> findByIdAndIsDeletedFalse(Integer id);
     List<ProductDbEntity> findByIsDeletedFalse();
@@ -21,4 +21,10 @@ public interface JpaProductRepository
             "AND p.productCode = :productCode AND p.isDeleted = false")
     boolean existsByProductCodeExcludingId(@Param("id") Integer id,
                                            @Param("productCode") String productCode);
+
+    // ================= THÊM MỚI HÀM SEARCH TẠI ĐÂY =================
+    @Query("SELECT p FROM ProductDbEntity p WHERE p.isDeleted = false " +
+            "AND (LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR LOWER(p.productCode) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    List<ProductDbEntity> searchActiveProducts(@Param("keyword") String keyword);
 }

@@ -1,7 +1,9 @@
 package com.vti.crm.infrastructure.persistence.repository;
 
 import com.vti.crm.infrastructure.persistence.entity.OpportunityDbEntity;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -36,4 +38,8 @@ public interface JpaOpportunityRepository extends JpaRepository<OpportunityDbEnt
             "WHERE o.status IN :statusIds " +
             "GROUP BY o.status")
     List<Object[]> countClosedOpportunities();
+
+    @Modifying
+    @Query("UPDATE OpportunityDbEntity o SET o.totalAmount = :total, o.remainingAmount = :remaining WHERE o.id = :id")
+    void updateFinancialsManual(@Param("id") Integer id, @Param("total") Double total, @Param("remaining") Double remaining);
 }

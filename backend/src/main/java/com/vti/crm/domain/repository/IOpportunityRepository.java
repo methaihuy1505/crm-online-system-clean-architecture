@@ -18,4 +18,5 @@ public interface IOpportunityRepository {
     long countByStatusIn(List<Integer> statusIds);
     Object[] getSumAndCountByDateRange(LocalDateTime start, LocalDateTime end);
     List<Object[]> countClosedOpportunities();
+    void updateFinancialsManual(Integer opportunityId, double totalAmount, double remainingAmount);
 }

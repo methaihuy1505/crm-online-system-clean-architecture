@@ -66,4 +66,15 @@ public class ProductRepositoryImpl implements IProductRepository {
                 .map(mapper::toDomainEntity)
                 .toList();
     }
+
+    @Override
+    public List<Product> searchProducts(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return List.of();
+        }
+        return jpaRepository.searchActiveProducts(keyword.trim())
+                .stream()
+                .map(mapper::toDomainEntity)
+                .collect(Collectors.toList());
+    }
 }

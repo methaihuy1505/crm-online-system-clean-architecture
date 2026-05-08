@@ -13,4 +13,5 @@ public interface IProductRepository {
     boolean existsByProductCodeExcludingId(Integer id, String productCode);
     void save(Product product, boolean update);
     List<Product> findAllWithFilter(ProductFilter filter);
+    List<Product> searchProducts(String keyword);
 }

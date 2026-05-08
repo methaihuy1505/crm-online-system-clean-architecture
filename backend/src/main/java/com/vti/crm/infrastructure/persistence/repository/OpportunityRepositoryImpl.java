@@ -6,6 +6,7 @@ import com.vti.crm.infrastructure.persistence.mapper.OpportunityInfraMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -58,12 +59,17 @@ public class OpportunityRepositoryImpl implements IOpportunityRepository {
 
     @Override
     public Object[] getSumAndCountByDateRange(LocalDateTime start, LocalDateTime end) {
-        Object[] raw = (Object[]) jpaRepository.getSumAndCountByDateRange(start, end)[0];
-        return raw;
+        List<Object[]> results = Collections.singletonList(jpaRepository.getSumAndCountByDateRange(start, end));
+        return results.isEmpty() ? new Object[]{0.0, 0L} : results.get(0);
     }
 
     @Override
     public List<Object[]> countClosedOpportunities() {
         return jpaRepository.countClosedOpportunities();
+    }
+
+    @Override
+    public void updateFinancialsManual(Integer opportunityId, double totalAmount, double remainingAmount) {
+        jpaRepository.updateFinancialsManual(opportunityId,totalAmount,remainingAmount);
     }
 }

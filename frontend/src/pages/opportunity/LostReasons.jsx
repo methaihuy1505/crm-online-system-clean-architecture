@@ -1,202 +1,134 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom"; // Import thêm
-import axios from "axios"; // Import axios
+import React, { useEffect, useRef, useState } from "react";
+import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8080/api/v1/lost-reasons";
+const api = axios.create({ baseURL: "http://localhost:8080/api/v1" });
 
-function Icon({ d, size = 18, color = "currentColor", strokeWidth = 1.5 }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke={color}
-      strokeWidth={strokeWidth}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d={d} />
-    </svg>
-  );
-}
-
-export default function LostReasons() {
-  const { id } = useParams(); // Lấy ID từ URL (ví dụ: /lost-reasons/edit/1)
-  const navigate = useNavigate();
-
+export default function ReasonModal({ open, reasonId, onClose, onSaved }) {
   const [reasonCode, setReasonCode] = useState("");
   const [reasonName, setReasonName] = useState("");
   const [description, setDescription] = useState("");
-  const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // 1. Xử lý lấy dữ liệu từ BE nếu có ID (Chế độ Edit)
+  const focusRef = useRef(null);
+
   useEffect(() => {
-    if (id) {
-      const fetchData = async () => {
-        try {
-          const response = await axios.get(`${API_BASE_URL}/${id}`);
-          const data = response.data;
-          setReasonCode(data.code || ""); // Giả định field BE là 'code'
-          setReasonName(data.name || ""); // Giả định field BE là 'name'
-          setDescription(data.description || "");
-        } catch (error) {
-          console.error("Lỗi khi tải dữ liệu:", error);
-          alert("Không tìm thấy thông tin lý do thất bại này!");
-        }
-      };
-      fetchData();
-    }
-  }, [id]);
-
-  // 2. Xử lý Lưu (Thêm mới hoặc Cập nhật)
-  const handleSave = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    const payload = {
-      code: reasonCode,
-      name: reasonName,
-      description: description,
-    };
-
-    try {
-      if (id) {
-        // Thực hiện PUT nếu có ID
-        await axios.put(`${API_BASE_URL}/${id}`, payload);
+    if (open) {
+      if (reasonId) {
+        setLoading(true);
+        api
+          .get(`/lost-reasons/${reasonId}`)
+          .then((res) => {
+            setReasonCode(res.data.code || res.data.reasonCode || "");
+            setReasonName(res.data.name || res.data.reasonName || "");
+            setDescription(res.data.description || "");
+          })
+          .catch((err) => console.error(err))
+          .finally(() => setLoading(false));
       } else {
-        // Thực hiện POST nếu không có ID
-        await axios.post(API_BASE_URL, payload);
+        setReasonCode("");
+        setReasonName("");
+        setDescription("");
       }
+      const timer = setTimeout(() => focusRef.current?.focus(), 120);
+      return () => clearTimeout(timer);
+    }
+  }, [open, reasonId]);
 
-      setSaved(true);
-      setTimeout(() => {
-        setSaved(false);
-        navigate("/metadatamanagement"); // Chuyển hướng sau khi lưu thành công
-      }, 1500);
-    } catch (error) {
-      console.error("Lỗi khi lưu:", error);
-      alert("Lỗi hệ thống: Không thể lưu dữ liệu.");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!reasonName || !reasonCode)
+      return alert("Vui lòng điền đủ Tên và Mã lý do!");
+    try {
+      setLoading(true);
+      const payload = {
+        code: reasonCode,
+        name: reasonName,
+        description: description,
+      };
+      if (reasonId) {
+        await api.put(`/lost-reasons/${reasonId}`, payload);
+      } else {
+        await api.post("/lost-reasons", payload);
+      }
+      onSaved();
+      onClose();
+    } catch (err) {
+      alert("Lỗi khi lưu dữ liệu!" + err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCancel = () => {
-    navigate("/metadatamanagement");
-  };
+  if (!open) return null;
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#f8f9fa] text-[#191c1d] font-['Inter',sans-serif]">
-      <div className="flex flex-1 overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-8 lg:p-10 bg-[#f8f9fa]">
-          <div className="mb-8">
-            <h1
-              className="text-3xl font-extrabold text-[#191c1d] tracking-tight leading-none mb-3"
-              style={{ fontFamily: "Manrope, sans-serif" }}
+    <div className="fixed inset-0 z-[110] flex items-center justify-center px-4">
+      <div
+        className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      <div className="relative bg-white w-full max-w-2xl rounded-2xl p-6 shadow-2xl animate-fadeIn">
+        <h3 className="text-lg font-bold text-[#1A237E] mb-4">
+          {reasonId ? "Cập nhật Lý do thất bại" : "Thêm mới Lý do thất bại"}
+        </h3>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                Mã lý do
+              </label>
+              <input
+                ref={focusRef}
+                type="text"
+                value={reasonCode}
+                onChange={(e) => setReasonCode(e.target.value)}
+                disabled={!!reasonId}
+                className="w-full border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-blue-600 bg-slate-50 disabled:opacity-50"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                Tên lý do cụ thể
+              </label>
+              <input
+                type="text"
+                value={reasonName}
+                onChange={(e) => setReasonName(e.target.value)}
+                className="w-full border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-blue-600 bg-slate-50"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+              Mô tả lý do
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={2}
+              className="w-full border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-blue-600 bg-slate-50 resize-none"
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-2 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-5 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 rounded-xl transition-all"
             >
-              {id ? "Edit Lost Reason" : "Create Lost Reason"}
-            </h1>
-            <p className="text-sm text-gray-400 max-w-xl leading-relaxed">
-              Define and categorize why opportunities are being lost to improve
-              architectural pipeline intelligence and refine conversion
-              strategies.
-            </p>
+              Hủy bỏ
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-6 py-2 bg-[#1A237E] text-white text-xs font-bold rounded-xl shadow-md hover:bg-blue-900 transition-all disabled:opacity-50"
+            >
+              {loading ? "Đang xử lý..." : reasonId ? "Cập nhật" : "Tạo mới"}
+            </button>
           </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            <section className="lg:col-span-7 bg-[#f3f4f5] rounded-xl p-7">
-              <form className="space-y-6" onSubmit={handleSave}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div className="space-y-1.5">
-                    <label className="block text-[11px] font-semibold uppercase tracking-widest text-gray-500">
-                      Reason Code
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      disabled={!!id} // Nếu có id (tức là đang edit), input sẽ bị vô hiệu hóa
-                      value={reasonCode}
-                      onChange={(e) => setReasonCode(e.target.value)}
-                      placeholder="e.g. LR-COMP-001"
-                      className={`w-full border border-gray-100 rounded-lg px-3.5 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#000666]/20 transition-all ${
-                        id
-                          ? "bg-gray-50 cursor-not-allowed text-gray-500"
-                          : "bg-white"
-                      }`}
-                    />
-                    <p className="text-[11px] text-gray-400 italic">
-                      Must be a unique identifier for reporting.
-                    </p>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="block text-[11px] font-semibold uppercase tracking-widest text-gray-500">
-                      Reason Name
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={reasonName}
-                      onChange={(e) => setReasonName(e.target.value)}
-                      placeholder="e.g. Budget Constraint"
-                      className="w-full bg-white border border-gray-100 rounded-lg px-3.5 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#000666]/20 transition-all"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="block text-[11px] font-semibold uppercase tracking-widest text-gray-500">
-                    Description
-                  </label>
-                  <textarea
-                    rows={6}
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Describe the typical scenario for this lost reason..."
-                    className="w-full bg-white border border-gray-100 rounded-lg px-3.5 py-2.5 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#000666]/20 transition-all resize-none"
-                  />
-                </div>
-
-                <div className="flex gap-3 pt-2">
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className={`px-7 py-2.5 rounded-lg text-sm font-bold text-white transition-all active:scale-[0.99] ${
-                      saved
-                        ? "bg-green-600"
-                        : loading
-                          ? "bg-gray-400 cursor-not-allowed"
-                          : "bg-[#000666] hover:opacity-90"
-                    }`}
-                  >
-                    {loading
-                      ? "Processing..."
-                      : saved
-                        ? "✓ Saved!"
-                        : id
-                          ? "Update Changes"
-                          : "Create Reason"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleCancel}
-                    className="px-7 py-2.5 bg-[#e1e3e4] text-[#00355c] rounded-lg text-sm font-bold hover:bg-[#d9dadb] transition-all"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </section>
-          </div>
-        </main>
-      </div>
-
-      <div className="fixed bottom-6 right-6 flex items-center gap-2.5 bg-white shadow-xl rounded-full px-4 py-2.5 border border-gray-100">
-        <div className="w-2 h-2 rounded-full bg-[#0061a4] ring-4 ring-[#33a0fd]/20" />
-        <span className="text-[11px] font-bold uppercase tracking-widest text-[#0061a4]">
-          {loading ? "Syncing..." : "System Sync Active"}
-        </span>
+        </form>
       </div>
     </div>
   );

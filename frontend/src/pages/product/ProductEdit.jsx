@@ -97,7 +97,7 @@ export default function EditProductModal({
   const [saving, setSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [errors, setErrors] = useState({});
-
+  const editInputRef = useRef(null);
   const defaultForm = {
     id: null,
     productCode: "",
@@ -152,13 +152,38 @@ export default function EditProductModal({
       }
     })();
   }, [open, productId, handleClose]);
+  useEffect(() => {
+    // Focus khi modal mở HOẶC khi productId thay đổi (dữ liệu mới nạp xong)
+    if (open) {
+      const timer = setTimeout(() => {
+        editInputRef.current?.focus();
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [open, productId]);
+  const change = (fieldName) => (e) => {
+    let value = parseFloat(e.target.value);
 
-  const change = (field) => (e) => {
-    const value =
-      e.target.type === "number" ? parseFloat(e.target.value) : e.target.value;
-    setForm((p) => ({ ...p, [field]: value }));
-    // Xóa lỗi khi người dùng bắt đầu sửa
-    if (errors[field]) setErrors((p) => ({ ...p, [field]: "" }));
+    // Nếu ô nhập trống (người dùng đang xóa đi để nhập lại)
+    if (isNaN(value)) {
+      setForm((prev) => ({ ...prev, [fieldName]: "" }));
+      return;
+    }
+
+    // Chặn logic cho từng trường dữ liệu
+    if (fieldName === "basePrice") {
+      value = Math.max(0, value); // Giá tiền không được âm
+    }
+
+    if (fieldName === "vatRate" || fieldName === "depositOverride") {
+      value = Math.min(100, Math.max(0, value)); // Thuế và cọc chỉ được nằm trong khoảng 0 - 100
+    }
+
+    // Cập nhật lại state form của bạn (thay setForm bằng hàm update state thực tế bạn đang dùng)
+    setForm((prev) => ({
+      ...prev,
+      [fieldName]: value,
+    }));
   };
 
   const handleFileChange = (e) => {
@@ -300,6 +325,7 @@ export default function EditProductModal({
                 <Field label="Tên sản phẩm *" error={errors.name}>
                   <input
                     type="text"
+                    ref={editInputRef}
                     className={inputCls(!!errors.name)}
                     value={form.name}
                     onChange={change("name")}
@@ -389,43 +415,60 @@ export default function EditProductModal({
                     Thông số tài chính
                   </p>
                   <div className="grid grid-cols-3 gap-3">
-                    <Field label="Giá bán lẻ ($)">
+                    {/* Giá bán lẻ: Đã chuyển sang VND và cấu hình giới hạn >= 0 */}
+                    <Field label="Giá bán lẻ (VND)">
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xs font-semibold">
-                          $
-                        </span>
                         <input
                           type="number"
-                          className={inputCls(false) + " pl-6 font-mono"}
+                          min="0" // Giới hạn giao diện không cho giảm xuống dưới 0
+                          className={inputCls(false) + " pr-10 font-mono"} // Đổi từ pl-6 sang pr-10 để nhường chỗ cho chữ "đ" bên phải
                           value={form.basePrice}
-                          onChange={change("basePrice")}
+                          onChange={(e) => {
+                            // Bạn có thể xử lý validate trực tiếp tại đây hoặc xử lý tập trung trong hàm change() như hướng dẫn bên dưới
+                            change("basePrice")(e);
+                          }}
                         />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm font-semibold">
+                          đ
+                        </span>
                       </div>
                     </Field>
+
+                    {/* Thuế VAT: Giới hạn từ 0% đến 100% */}
                     <Field label="Thuế VAT (%)">
                       <div className="relative">
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xs font-semibold">
-                          %
-                        </span>
                         <input
                           type="number"
+                          min="0"
+                          max="100"
                           className={inputCls(false) + " pr-6 font-mono"}
                           value={form.vatRate}
-                          onChange={change("vatRate")}
+                          onChange={(e) => {
+                            change("vatRate")(e);
+                          }}
                         />
-                      </div>
-                    </Field>
-                    <Field label="Đặt cọc (%)">
-                      <div className="relative">
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xs font-semibold">
                           %
                         </span>
+                      </div>
+                    </Field>
+
+                    {/* Đặt cọc: Giới hạn từ 0% đến 100% */}
+                    <Field label="Đặt cọc (%)">
+                      <div className="relative">
                         <input
                           type="number"
+                          min="0"
+                          max="100"
                           className={inputCls(false) + " pr-6 font-mono"}
                           value={form.depositOverride}
-                          onChange={change("depositOverride")}
+                          onChange={(e) => {
+                            change("depositOverride")(e);
+                          }}
                         />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xs font-semibold">
+                          %
+                        </span>
                       </div>
                     </Field>
                   </div>
@@ -436,7 +479,7 @@ export default function EditProductModal({
                       Tổng (bao gồm VAT)
                     </span>
                     <span className="text-sm font-bold text-primary-container">
-                      ${total}
+                      {total}đ
                     </span>
                   </div>
                 </div>

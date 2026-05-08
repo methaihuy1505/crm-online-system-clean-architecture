@@ -42,7 +42,7 @@ export default function AddProductModal({ open, onClose, onSaved }) {
   const [imagePreview, setImagePreview] = useState("");
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
-
+  const inputRef = useRef(null);
   const defaultForm = {
     name: "",
     code: "",
@@ -77,10 +77,34 @@ export default function AddProductModal({ open, onClose, onSaved }) {
       }
     })();
   }, [open]);
+  useEffect(() => {
+    if (open) {
+      // Đợi modal render xong animation rồi mới focus
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [open]);
+  const set = (fieldsName) => (e) => {
+    let value = parseFloat(e.target.value);
 
-  const set = (field) => (e) => {
-    setForm((p) => ({ ...p, [field]: e.target.value }));
-    if (errors[field]) setErrors((p) => ({ ...p, [field]: "" }));
+    // Nếu ô nhập trống, giữ nguyên để user xóa nhập lại, hoặc mặc định là 0
+    if (isNaN(value)) value = 0;
+
+    // Thực hiện validate dựa trên tên trường dữ liệu
+    if (fieldsName === "basePrice") {
+      value = Math.max(0, value); // Không cho âm
+    }
+
+    if (fieldsName === "vat" || fieldsName === "deposit") {
+      value = Math.min(100, Math.max(0, value)); // Giới hạn nghiêm ngặt từ 0 đến 100
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      [fieldsName]: value,
+    }));
   };
 
   const handleFileChange = (e) => {
@@ -207,6 +231,7 @@ export default function AddProductModal({ open, onClose, onSaved }) {
                 <Field label="Tên sản phẩm *" error={errors.name}>
                   <input
                     type="text"
+                    ref={inputRef}
                     className={inputCls(!!errors.name)}
                     value={form.name}
                     maxLength={50}
@@ -296,19 +321,27 @@ export default function AddProductModal({ open, onClose, onSaved }) {
                 Thông số tài chính
               </p>
               <div className="grid grid-cols-3 gap-3">
-                <Field label="Giá cơ bản ($)">
+                {/* Giá cơ bản: Phải lớn hơn hoặc bằng 0 */}
+                <Field label="Giá cơ bản (VND)">
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xs font-semibold">
-                      $
-                    </span>
+                    {/* Ô input: Đổi từ pl-6 (padding-left) thành pr-10 (padding-right) vì chữ "đ" hoặc "VND" nằm bên phải */}
                     <input
                       type="number"
-                      className={inputCls(false) + " pl-6 font-mono"}
+                      min="0"
+                      className={inputCls(false) + " pr-10 font-mono"}
                       value={form.basePrice}
-                      onChange={set("basePrice")}
+                      onChange={(e) => {
+                        set("basePrice")(e);
+                      }}
                     />
+                    {/* Ký hiệu đơn vị: Đổi từ bên trái (left-3) sang bên phải (right-3) */}
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm font-semibold">
+                      đ
+                    </span>
                   </div>
                 </Field>
+
+                {/* Thuế VAT: Từ 0% đến 100% */}
                 <Field label="Thuế VAT (%)">
                   <div className="relative">
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xs font-semibold">
@@ -316,12 +349,22 @@ export default function AddProductModal({ open, onClose, onSaved }) {
                     </span>
                     <input
                       type="number"
+                      min="0"
+                      max="100" // Giới hạn giao diện từ 0 - 100
                       className={inputCls(false) + " pr-6 font-mono"}
                       value={form.vat}
-                      onChange={set("vat")}
+                      onChange={(e) => {
+                        let val = parseFloat(e.target.value) || 0;
+                        if (val < 0) val = 0;
+                        if (val > 100) val = 100;
+                        // Cập nhật giá trị đã chặn vào state
+                        set("vat")(e);
+                      }}
                     />
                   </div>
                 </Field>
+
+                {/* Đặt cọc: Từ 0% đến 100% */}
                 <Field label="Đặt cọc (%)">
                   <div className="relative">
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xs font-semibold">
@@ -329,9 +372,16 @@ export default function AddProductModal({ open, onClose, onSaved }) {
                     </span>
                     <input
                       type="number"
+                      min="0"
+                      max="100"
                       className={inputCls(false) + " pr-6 font-mono"}
                       value={form.deposit}
-                      onChange={set("deposit")}
+                      onChange={(e) => {
+                        let val = parseFloat(e.target.value) || 0;
+                        if (val < 0) val = 0;
+                        if (val > 100) val = 100;
+                        set("deposit")(e);
+                      }}
                     />
                   </div>
                 </Field>
@@ -342,7 +392,7 @@ export default function AddProductModal({ open, onClose, onSaved }) {
                   Tổng (bao gồm VAT)
                 </span>
                 <span className="text-sm font-bold text-primary-container">
-                  ${total}
+                  {total}đ
                 </span>
               </div>
             </div>

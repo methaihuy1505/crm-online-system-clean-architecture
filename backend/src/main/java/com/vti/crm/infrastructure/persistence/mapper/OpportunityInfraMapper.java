@@ -8,7 +8,6 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface OpportunityInfraMapper {
 
-    @Mapping(target = "items", ignore = true)
     OpportunityDbEntity toDbEntity(Opportunity domain);
 
     default Opportunity toDomain(OpportunityDbEntity db) {
