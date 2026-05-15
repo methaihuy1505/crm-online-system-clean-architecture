@@ -37,4 +37,9 @@ public class OpportunityStageRepositoryImpl implements IOpportunityStageReposito
     public void delete(OpportunityStage stage) {
         jpaRepository.deleteById(stage.getId());
     }
+
+    @Override
+    public int findMaxSortOrder() {
+        return jpaRepository.findMaxSortOrder().orElse(0);
+    }
 }

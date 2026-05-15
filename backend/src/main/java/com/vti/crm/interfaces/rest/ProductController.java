@@ -59,16 +59,16 @@ public class ProductController {
 
     @GetMapping
     public List<ProductResponse> getAll(
+            @RequestParam(required = false) String search,
             @RequestParam(required = false) String categoryId,
             @RequestParam(required = false) String uomId,
             @RequestParam(required = false) String productType,
             @RequestParam(required = false) String sort) {
 
-        // Parse categoryId="1,2,6" → List<Integer>
         List<Integer> categoryIds = parseIds(categoryId);
         List<Integer> uomIds      = parseIds(uomId);
 
-        ProductFilter filter = new ProductFilter(categoryIds, uomIds, productType, sort);
+        ProductFilter filter = new ProductFilter(search, categoryIds, uomIds, productType, sort);
 
         return getProductsWithFilterUseCase.execute(filter)
                 .stream()

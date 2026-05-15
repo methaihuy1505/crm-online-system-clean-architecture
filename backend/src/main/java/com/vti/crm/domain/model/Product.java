@@ -42,6 +42,7 @@ public class Product {
         this.depositOverride = validateBusinessRules(builder.depositOverride);
         this.imageUrl         = builder.imageUrl;
         this.description     = builder.description;
+
         this.createdAt       = LocalDateTime.now();
         this.updatedAt       = this.createdAt;
 //        this.createdByID     = Objects.requireNonNull(builder.createdByID, "Creator is required");

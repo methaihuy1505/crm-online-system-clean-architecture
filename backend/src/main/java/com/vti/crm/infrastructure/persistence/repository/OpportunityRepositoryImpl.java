@@ -1,8 +1,10 @@
 package com.vti.crm.infrastructure.persistence.repository;
 
 import com.vti.crm.domain.model.Opportunity;
+import com.vti.crm.domain.model.OpportunityFilter;
 import com.vti.crm.domain.repository.IOpportunityRepository;
 import com.vti.crm.infrastructure.persistence.mapper.OpportunityInfraMapper;
+import com.vti.crm.infrastructure.persistence.specification.OpportunitySpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
@@ -40,6 +42,14 @@ public class OpportunityRepositoryImpl implements IOpportunityRepository {
     @Override
     public void delete(Opportunity opportunity) {
         jpaRepository.deleteById(opportunity.getId());
+    }
+
+    @Override
+    public List<Opportunity> findAllWithFilter(OpportunityFilter filter) {
+        return jpaRepository.findAll(OpportunitySpecification.withFilter(filter))
+                .stream()
+                .map(mapper::toDomain)
+                .toList();
     }
 
     @Override

@@ -1,485 +1,385 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { Link, useLocation } from "react-router-dom";
 import axios from "axios";
-import AddProductModal from "./ProductInput";
-import EditProductModal from "./ProductEdit";
-import ProductFilterPanel from "./ProductFilter";
 
-// Import các Module đã được bóc tách
-import ProductInspectionPanel from "./ProductInspectionPanel";
-import ProductRow from "./ProductRow";
-import ProductPagination from "./ProductPagination";
+const API_BASE_URL = "http://localhost:8080";
+const USAGES_ENDPOINT = `${API_BASE_URL}/voucher-usages`;
+const USERS_ENDPOINT = `${API_BASE_URL}/users`;
+const VOUCHERS_ENDPOINT = `${API_BASE_URL}/vouchers`;
 
-const api = axios.create({
-  baseURL: "http://localhost:8080/api/v1",
-});
+function NavLink({ to, icon, label }) {
+  const { pathname } = useLocation();
+  const active = pathname === to;
+  return (
+    <Link
+      to={to}
+      className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+        active
+          ? "bg-indigo-600 text-white shadow-sm"
+          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+      }`}
+    >
+      <span className="text-base">{icon}</span>
+      {label}
+    </Link>
+  );
+}
 
-const iconStyle = {
-  fontVariationSettings: "'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24",
+function Layout({ children }) {
+  return (
+    <div className="min-h-screen bg-slate-50 flex">
+      <aside className="w-56 shrink-0 bg-white border-r border-slate-200 flex flex-col py-6 px-3 gap-1">
+        <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest px-4 mb-3">
+          Menu
+        </p>
+        <NavLink to="/users" icon="👤" label="Users" />
+        <NavLink to="/vouchers" icon="🎟️" label="Vouchers" />
+        <NavLink to="/voucher-usages" icon="📋" label="Voucher Usage" />
+      </aside>
+      <main className="flex-1 p-8 overflow-auto">{children}</main>
+    </div>
+  );
+}
+
+const parseApiResponse = (res) => {
+  const b = res?.data;
+  if (b && typeof b === "object" && "success" in b) {
+    if (b.success) return b.data;
+    throw new Error(b.message || "Request failed");
+  }
+  return b;
 };
 
-export default function ProductInventory() {
-  const [products, setProducts] = useState([]);
-  const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
+const extract = (key) => (d) =>
+  Array.isArray(d)
+    ? d
+    : Array.isArray(d?.data)
+      ? d.data
+      : Array.isArray(d?.[key])
+        ? d[key]
+        : [];
+
+const formatDate = (s) => {
+  if (!s) return "—";
+  try {
+    return new Date(s).toLocaleString();
+  } catch {
+    return s;
+  }
+};
+
+export default function VoucherUsagePage() {
+  const [usages, setUsages] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [vouchers, setVouchers] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(50);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [editProductId, setEditProductId] = useState(null);
-  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [formData, setFormData] = useState({ userId: "", voucherId: "" });
+  const [submitting, setSubmitting] = useState(false);
 
-  const searchInputRef = useRef(null);
-  const pageSizeRef = useRef(null);
-  const tableContainerRef = useRef(null);
-
-  const [rightPanel, setRightPanel] = useState("inspection"); // "inspection" | "filter"
-  const [filters, setFilters] = useState({
-    sort: "",
-    productType: "",
-    categoryIds: [],
-    uomIds: [],
-  });
-
-  // Hàm fetch data gốc
-  const fetchProducts = async (activeFilters = filters) => {
+  const loadUsages = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      const params = {};
-      if (activeFilters.sort) params.sort = activeFilters.sort;
-      if (activeFilters.productType)
-        params.productType = activeFilters.productType;
-      if (activeFilters.categoryIds.length)
-        params.categoryId = activeFilters.categoryIds.join(",");
-      if (activeFilters.uomIds.length)
-        params.uomId = activeFilters.uomIds.join(",");
-
-      const [productsRes, categoriesRes, uomsRes] = await Promise.all([
-        api.get("/products", { params }),
-        api.get("/product-categories"),
-        api.get("/uoms"),
-      ]);
-
-      const categoryMap = Object.fromEntries(
-        categoriesRes.data.map((c) => [c.id, c.name]),
+      setUsages(
+        extract("usages")(parseApiResponse(await axios.get(USAGES_ENDPOINT))),
       );
-      const uomMap = Object.fromEntries(
-        uomsRes.data.map((u) => [u.id, u.name]),
-      );
-
-      const merged = productsRes.data.map((p) => ({
-        ...p,
-        categoryName: categoryMap[p.categoryId] ?? "Chưa phân loại",
-        uomName: uomMap[p.uomId] ?? "Cái",
-      }));
-
-      setProducts(merged);
-      setError(null);
-    } catch (err) {
-      setError("Không thể tải danh sách sản phẩm." + err);
+    } catch (e) {
+      setError(e.response?.data?.message || e.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Bạn có chắc muốn xóa sản phẩm này?")) return;
+  const loadUsers = useCallback(async () => {
     try {
-      await api.delete(`/products/${id}`);
-      setProducts((prev) => prev.filter((p) => p.id !== id));
-      setSelectedProduct(null);
-      setSelectedIndex(-1);
-      alert("Xóa thành công!");
-    } catch (error) {
-      console.error("Lỗi khi xóa:", error);
-      alert("Không thể xóa sản phẩm!");
+      setUsers(
+        extract("users")(parseApiResponse(await axios.get(USERS_ENDPOINT))),
+      );
+    } catch (e) {
+      console.error(e);
     }
-  };
+  }, []);
 
-  const handleSearch = (val) => {
-    setSearch(val);
-    setPage(1);
-    setSelectedIndex(-1);
-  };
+  const loadVouchers = useCallback(async () => {
+    try {
+      setVouchers(
+        extract("vouchers")(
+          parseApiResponse(await axios.get(VOUCHERS_ENDPOINT)),
+        ),
+      );
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
 
-  const filtered = products.filter(
-    (p) =>
-      p.name?.toLowerCase().includes(search.toLowerCase()) ||
-      p.productCode?.toLowerCase().includes(search.toLowerCase()),
-  );
-
-  const handleFilterChange = (newFilters) => {
-    setFilters(newFilters);
-    setPage(1);
-    setSelectedIndex(-1);
-  };
-
-  const activeFilterCount = [
-    filters.sort !== "",
-    filters.productType !== "",
-    filters.categoryIds.length > 0,
-    filters.uomIds.length > 0,
-  ].filter(Boolean).length;
-
-  const totalFiltered = filtered.length;
-  const startIdx = (page - 1) * pageSize;
-  const paginated = filtered.slice(startIdx, startIdx + pageSize);
-
-  const colWidths = ["25%", "15%", "15%", "10%", "15%", "8%", "12%"];
-  const COLS = [
-    "Sản phẩm",
-    "Mã SKU",
-    "Danh mục",
-    "Đơn vị",
-    "Giá cơ bản",
-    "Thuế",
-    "",
-  ];
-
-  // --- EFFECT 1: CHỈ ĐỒNG BỘ DỮ LIỆU KHI BỘ LỌC THAY ĐỔI ---
-  // Tách biệt hoàn toàn khỏi logic phím tắt để chặn Infinite Loop
   useEffect(() => {
-    fetchProducts(filters);
-  }, [filters]);
-
-  // --- EFFECT 2: XỬ LÝ LẮNG NGHE BÀN PHÍM TOÀN CỤC ---
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      // Nếu đang focus gõ chữ ở ô tìm kiếm hoặc các select modal thì bỏ qua hotkey điều hướng
-      if (
-        ["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement.tagName)
-      ) {
-        if (e.key === "Escape") {
-          document.activeElement.blur();
-        }
-        return;
+    const loadUsages = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        setUsages(
+          extract("usages")(parseApiResponse(await axios.get(USAGES_ENDPOINT))),
+        );
+      } catch (e) {
+        setError(e.response?.data?.message || e.message);
+      } finally {
+        setLoading(false);
       }
-
-      if (e.key === "Escape") {
-        setShowAddModal(false);
-        setEditProductId(null);
-        setRightPanel("inspection");
-        return;
+    };
+    const loadUsers = async () => {
+      try {
+        setUsers(
+          extract("users")(parseApiResponse(await axios.get(USERS_ENDPOINT))),
+        );
+      } catch (e) {
+        console.error(e);
       }
-
-      // Nếu bất kỳ modal/sidebar nào đang mở thì khóa các phím tắt quản lý danh sách bên dưới
-      if (showAddModal || editProductId !== null || rightPanel === "filter")
-        return;
-
-      switch (e.key) {
-        case "ArrowDown":
-          e.preventDefault();
-          setSelectedIndex((prevIndex) => {
-            const nextIndex =
-              prevIndex < paginated.length - 1 ? prevIndex + 1 : prevIndex;
-            setSelectedProduct(paginated[nextIndex]);
-            return nextIndex;
-          });
-          break;
-
-        case "ArrowUp":
-          e.preventDefault();
-          setSelectedIndex((prevIndex) => {
-            const nextIndex = prevIndex > 0 ? prevIndex - 1 : 0;
-            setSelectedProduct(paginated[nextIndex]);
-            return nextIndex;
-          });
-          break;
-
-        case "e":
-        case "E":
-          if (selectedProduct) {
-            e.preventDefault();
-            setEditProductId(selectedProduct.id);
-          }
-          break;
-
-        case "Delete":
-        case "Backspace":
-          if (selectedProduct) {
-            e.preventDefault();
-            handleDelete(selectedProduct.id);
-          }
-          break;
-
-        default:
-          break;
-      }
-
-      // Phím tắt tổ hợp Alt + ...
-      if (e.altKey) {
-        switch (e.key.toLowerCase()) {
-          case "e":
-            if (selectedProduct) {
-              e.preventDefault();
-              setEditProductId(selectedProduct.id);
-            }
-            break;
-          case "delete":
-          case "backspace":
-            if (selectedProduct) {
-              e.preventDefault();
-              handleDelete(selectedProduct.id);
-            }
-            break;
-          case "n":
-            e.preventDefault();
-            setShowAddModal(true);
-            break;
-          case "s":
-            e.preventDefault();
-            searchInputRef.current?.focus();
-            break;
-          case "p":
-            e.preventDefault();
-            pageSizeRef.current?.focus();
-            break;
-          case ",":
-            e.preventDefault();
-            setPage(1);
-            break;
-          case ".":
-            e.preventDefault();
-            setPage(Math.ceil(totalFiltered / pageSize) || 1);
-            break;
-        }
-      }
-
-      // Di chuyển trang nhanh bằng mũi tên Trái / Phải độc lập
-      if (e.key === "ArrowLeft" && page > 1) setPage(page - 1);
-      if (e.key === "ArrowRight" && page < Math.ceil(totalFiltered / pageSize))
-        setPage(page + 1);
     };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [
-    page,
-    pageSize,
-    totalFiltered,
-    showAddModal,
-    editProductId,
-    rightPanel,
-    paginated,
-    selectedProduct,
-  ]);
-
-  // --- EFFECT 3: TỰ ĐỘNG CUỘN THEO ĐIỀU HƯỚNG PHÍM ---
-  useEffect(() => {
-    if (selectedIndex === -1 || !tableContainerRef.current) return;
-
-    const activeRow = tableContainerRef.current.querySelector(
-      `tr[data-index="${selectedIndex}"]`,
-    );
-
-    if (activeRow) {
-      const container = tableContainerRef.current;
-      const rowTop = activeRow.offsetTop;
-      const rowBottom = rowTop + activeRow.offsetHeight;
-      const containerTop = container.scrollTop;
-      const containerBottom = containerTop + container.clientHeight;
-
-      if (rowTop < containerTop) {
-        container.scrollTo({ top: rowTop, behavior: "smooth" });
-      } else if (rowBottom > containerBottom) {
-        container.scrollTo({
-          top: rowBottom - container.clientHeight,
-          behavior: "smooth",
-        });
+    const loadVouchers = async () => {
+      try {
+        setVouchers(
+          extract("vouchers")(
+            parseApiResponse(await axios.get(VOUCHERS_ENDPOINT)),
+          ),
+        );
+      } catch (e) {
+        console.error(e);
       }
+    };
+    loadUsages();
+    loadUsers();
+    loadVouchers();
+  }, [loadUsages, loadUsers, loadVouchers]);
+
+  const handleChange = (e) =>
+    setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.userId || !formData.voucherId)
+      return setError("Please select both user and voucher.");
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await axios.post(USAGES_ENDPOINT, {
+        userId: parseInt(formData.userId),
+        voucherId: parseInt(formData.voucherId),
+      });
+      setUsages((p) => [...p, parseApiResponse(res)]);
+      setFormData({ userId: "", voucherId: "" });
+      await loadVouchers();
+    } catch (e) {
+      setError(e.response?.data?.message || e.message);
+    } finally {
+      setSubmitting(false);
     }
-  }, [selectedIndex]);
+  };
+
+  const getUserName = (id) => {
+    const u = users.find((u) => u.id === id);
+    return u ? u.fullname : `User ${id}`;
+  };
+  const getVoucherCode = (id) => {
+    const v = vouchers.find((v) => v.id === id);
+    return v ? v.code : `Voucher ${id}`;
+  };
+
+  const activeVouchers = vouchers.filter((v) => v.status === "ACTIVE");
 
   return (
-    <>
-      <link
-        href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap"
-        rel="stylesheet"
-      />
-      <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-        rel="stylesheet"
-      />
+    <Layout>
+      <div className="max-w-6xl mx-auto space-y-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">Voucher Usage</h1>
+            <p className="text-sm text-slate-500 mt-1">
+              Record and track voucher redemptions
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              loadUsages();
+              loadUsers();
+              loadVouchers();
+            }}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+          >
+            🔄 Refresh
+          </button>
+        </div>
 
-      <div className="bg-[#f8f9fa] text-[#191c1d] h-screen flex flex-col font-sans">
-        <div className="flex flex-1 overflow-hidden">
-          <main className="flex-1 flex flex-col overflow-hidden p-8 gap-8">
-            <div className="flex justify-between items-end shrink-0 gap-4">
-              <div>
-                <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">
-                  Catalog Manager
-                </p>
-                <h2 className="text-3xl font-black text-[#1a237e]">
-                  Danh mục sản phẩm
-                </h2>
-              </div>
+        {error && (
+          <div className="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
+            <span>⚠️</span> {error}
+            <button
+              onClick={() => setError(null)}
+              className="ml-auto text-red-400 hover:text-red-600"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
-              <div className="hidden lg:flex items-center bg-[#e6e6e7] px-4 py-2.5 rounded-full w-80 lg:w-96 focus-within:bg-white border border-transparent focus-within:border-slate-200 transition-all">
-                <span
-                  className="material-symbols-outlined text-slate-400 text-xl"
-                  style={iconStyle}
-                >
-                  search
-                </span>
-                <input
-                  className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400 text-[#191c1d] ml-2 outline-none"
-                  placeholder="Tìm kiếm..."
-                  ref={searchInputRef}
-                  value={search}
-                  onChange={(e) => handleSearch(e.target.value)}
-                />
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() =>
-                    setRightPanel(
-                      rightPanel === "filter" ? "inspection" : "filter",
-                    )
-                  }
-                  className="relative bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-slate-50 transition-all"
-                >
-                  <span className="material-symbols-outlined text-lg">
-                    tune
-                  </span>
-                  Lọc
-                  {activeFilterCount > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 bg-[#1a237e] text-white text-[0.6rem] font-bold rounded-full w-4 h-4 flex items-center justify-center">
-                      {activeFilterCount}
-                    </span>
-                  )}
-                </button>
-                <button className="bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-slate-50 transition-all">
-                  <span className="material-symbols-outlined text-lg">
-                    file_download
-                  </span>
-                </button>
-                <button
-                  onClick={() => setShowAddModal(true)}
-                  className="bg-[#1a237e] text-white px-6 py-2 rounded-xl text-sm font-bold shadow-lg shadow-blue-900/20 hover:bg-blue-800 transition-all flex items-center gap-2"
-                >
-                  <span className="material-symbols-outlined text-lg">add</span>
-                </button>
-              </div>
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-4">
+          {[
+            {
+              label: "Total Usages",
+              value: usages.length,
+              color: "bg-indigo-50 text-indigo-700",
+            },
+            {
+              label: "Active Vouchers",
+              value: activeVouchers.length,
+              color: "bg-emerald-50 text-emerald-700",
+            },
+            {
+              label: "Total Users",
+              value: users.length,
+              color: "bg-amber-50 text-amber-700",
+            },
+          ].map(({ label, value, color }) => (
+            <div
+              key={label}
+              className="bg-white rounded-2xl border border-slate-200 p-5"
+            >
+              <p className="text-xs font-medium text-slate-500 mb-1">{label}</p>
+              <p className={`text-2xl font-bold ${color.split(" ")[1]}`}>
+                {value}
+              </p>
             </div>
+          ))}
+        </div>
 
-            <section className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col flex-1 overflow-hidden min-h-0">
-              <div className="shrink-0 border-b border-slate-100">
-                <table className="w-full text-left border-collapse table-fixed">
-                  <colgroup>
-                    {colWidths.map((w, i) => (
-                      <col key={i} style={{ width: w }} />
-                    ))}
-                  </colgroup>
+        <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
+          {/* Form */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 h-fit">
+            <h2 className="text-base font-semibold text-slate-800 mb-5">
+              🎟️ Use a Voucher
+            </h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-slate-700">
+                  User
+                </label>
+                <select
+                  name="userId"
+                  value={formData.userId}
+                  onChange={handleChange}
+                  required
+                  className="px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                >
+                  <option value="">Select a user…</option>
+                  {users.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.fullname} — {u.email}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-slate-700">
+                  Voucher
+                </label>
+                <select
+                  name="voucherId"
+                  value={formData.voucherId}
+                  onChange={handleChange}
+                  required
+                  className="px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                >
+                  <option value="">Select a voucher…</option>
+                  {activeVouchers.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.code} — {v.discountPercent}% off (Qty: {v.quantity})
+                    </option>
+                  ))}
+                </select>
+                {activeVouchers.length === 0 && (
+                  <p className="text-xs text-slate-400">
+                    No active vouchers available
+                  </p>
+                )}
+              </div>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full py-2.5 rounded-lg text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors mt-2"
+              >
+                {submitting ? "Applying…" : "Apply Voucher"}
+              </button>
+            </form>
+          </div>
+
+          {/* History Table */}
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden h-fit">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+              <h2 className="text-base font-semibold text-slate-800">
+                Usage History
+              </h2>
+              <span className="text-xs font-medium bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">
+                {usages.length} records
+              </span>
+            </div>
+            {loading ? (
+              <div className="py-16 text-center text-slate-400 text-sm">
+                ⏳ Loading…
+              </div>
+            ) : usages.length === 0 ? (
+              <div className="py-16 flex flex-col items-center text-slate-400 gap-2">
+                <span className="text-4xl">📭</span>
+                <p className="text-sm">No usage history yet</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-[#f3f4f5]/50">
-                      {COLS.map((h, i) => (
-                        <th
-                          key={i}
-                          className={`px-2 py-4 text-[0.65rem] uppercase tracking-widest text-slate-400 font-black ${i === 0 ? "pl-8" : ""}`}
-                        >
+                    <tr className="text-xs font-medium text-slate-500 uppercase tracking-wider bg-slate-50">
+                      {["ID", "User", "Voucher", "Used At"].map((h) => (
+                        <th key={h} className="px-6 py-3 text-left">
                           {h}
                         </th>
                       ))}
                     </tr>
                   </thead>
-                </table>
-              </div>
-
-              <div
-                ref={tableContainerRef}
-                className="flex-1 overflow-y-auto min-h-0"
-                style={{ scrollbarWidth: "none" }}
-              >
-                <table className="w-full text-left border-collapse table-fixed">
-                  <colgroup>
-                    {colWidths.map((w, i) => (
-                      <col key={i} style={{ width: w }} />
+                  <tbody className="divide-y divide-slate-100">
+                    {usages.map((u, i) => (
+                      <tr
+                        key={u.id ?? i}
+                        className="hover:bg-slate-50 transition-colors"
+                      >
+                        <td className="px-6 py-4 text-slate-400 font-mono text-xs">
+                          #{u.id ?? "—"}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 text-xs font-semibold flex items-center justify-center shrink-0">
+                              {getUserName(u.userId).charAt(0).toUpperCase()}
+                            </div>
+                            <span className="text-slate-800">
+                              {getUserName(u.userId)}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="bg-indigo-50 text-indigo-700 text-xs font-semibold px-2.5 py-1 rounded">
+                            {getVoucherCode(u.voucherId)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-slate-500 text-xs">
+                          {formatDate(u.usedAt)}
+                        </td>
+                      </tr>
                     ))}
-                  </colgroup>
-                  <tbody className="divide-y divide-slate-50">
-                    {loading ? (
-                      <tr>
-                        <td
-                          colSpan={7}
-                          className="px-8 py-20 text-center text-slate-400"
-                        >
-                          Đang đồng bộ dữ liệu...
-                        </td>
-                      </tr>
-                    ) : error ? (
-                      <tr>
-                        <td
-                          colSpan={7}
-                          className="px-8 py-20 text-center text-red-400"
-                        >
-                          {error}
-                        </td>
-                      </tr>
-                    ) : paginated.length > 0 ? (
-                      paginated.map((p, index) => (
-                        <ProductRow
-                          key={p.id}
-                          product={p}
-                          index={index}
-                          isActive={index === selectedIndex}
-                          onSelect={() => {
-                            setSelectedProduct(p);
-                            setSelectedIndex(index);
-                          }}
-                          onDelete={handleDelete}
-                          onEdit={setEditProductId}
-                        />
-                      ))
-                    ) : (
-                      <tr>
-                        <td
-                          colSpan={7}
-                          className="px-8 py-20 text-center text-slate-400"
-                        >
-                          Không có dữ liệu phù hợp.
-                        </td>
-                      </tr>
-                    )}
                   </tbody>
                 </table>
               </div>
-
-              <ProductPagination
-                current={page}
-                total={totalFiltered}
-                pageSize={pageSize}
-                onPageChange={setPage}
-                onPageSizeChange={setPageSize}
-                selectRef={pageSizeRef}
-              />
-            </section>
-          </main>
-
-          <aside className="hidden xl:block w-80 shrink-0 border-l border-slate-200/50 bg-[#f3f4f5]/50 overflow-y-auto p-6">
-            {rightPanel === "filter" ? (
-              <ProductFilterPanel
-                filters={filters}
-                onChange={handleFilterChange}
-                onClose={() => setRightPanel("inspection")}
-              />
-            ) : (
-              <ProductInspectionPanel selectedProduct={selectedProduct} />
             )}
-          </aside>
+          </div>
         </div>
       </div>
-      <AddProductModal
-        open={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onSaved={fetchProducts}
-      />
-      <EditProductModal
-        open={editProductId !== null}
-        productId={editProductId}
-        onClose={() => setEditProductId(null)}
-        onSaved={fetchProducts}
-      />
-    </>
+    </Layout>
   );
 }

@@ -38,10 +38,10 @@ const Sidebar = ({ collapsed, onToggle }) => {
       ],
     },
     {
-      to: "/metadatamanagement",
+      to: "/metadatapage",
       icon: "database",
       label: "Metadata",
-      matchPaths: ["/metadatamanagement"],
+      matchPaths: ["/metadatapage"],
     },
     { to: "/settings", icon: "settings", label: "Cài đặt" },
   ];

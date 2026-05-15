@@ -9,4 +9,6 @@ public interface IOpportunityStageRepository {
     Optional<OpportunityStage> findById(Integer id);
     List<OpportunityStage> findAll();
     void delete(OpportunityStage stage);
+    int findMaxSortOrder();
+
 }

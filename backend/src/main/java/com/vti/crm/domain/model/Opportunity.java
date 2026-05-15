@@ -11,6 +11,7 @@ public class Opportunity {
     private String opportunityCode;
     private String name;
     private Integer customerId;                    // giữ Integer vì customerId chưa có CustomerId
+    private Integer campaignId;
     private Integer stage;
     private Integer status;
     private Integer lostReason;
@@ -19,6 +20,14 @@ public class Opportunity {
     private Double remainingAmount;
     private Integer probability;
     private String description;
+    private LocalDateTime nextFollowUpDate;
+    private String        currencyCode;
+    private LocalDateTime expectedCloseDate;
+    private LocalDateTime actualCloseDate;
+    private Integer       assignedTo;
+    private Integer       createdBy;
+    private Integer       updatedBy;
+    private LocalDateTime deletedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<OpportunityItem> items = new ArrayList<>();
@@ -29,6 +38,7 @@ public class Opportunity {
         this.opportunityCode = Objects.requireNonNull(builder.opportunityCode, "Opportunity code is required");
         this.name            = Objects.requireNonNull(builder.name, "Name is required");
         this.customerId      = Objects.requireNonNull(builder.customerId, "Customer ID is required");
+        this.campaignId = builder.campaignId != null ? builder.campaignId : 0;
         this.stage           = Objects.requireNonNull(builder.stage, "Stage is required");
         this.status          = Objects.requireNonNull(builder.status, "Status is required");
         this.lostReason      = builder.lostReason;
@@ -40,6 +50,14 @@ public class Opportunity {
                 : this.totalAmount;
         this.probability     = builder.probability != null ? builder.probability : 0;
         this.description     = builder.description;
+        this.nextFollowUpDate  = builder.nextFollowUpDate;
+        this.currencyCode      = builder.currencyCode != null ? builder.currencyCode : "VND";
+        this.expectedCloseDate = builder.expectedCloseDate;
+        this.actualCloseDate   = builder.actualCloseDate;
+        this.assignedTo        = builder.assignedTo != null ? builder.assignedTo : 0;
+        this.createdBy         = builder.createdBy  != null ? builder.createdBy  : 0;
+        this.updatedBy         = builder.updatedBy  != null ? builder.updatedBy  : 0;
+        this.deletedAt         = builder.deletedAt;
         this.createdAt       = builder.createdAt != null ? builder.createdAt : LocalDateTime.now();
         this.updatedAt       = builder.updatedAt != null ? builder.updatedAt : LocalDateTime.now();
         this.items           = new ArrayList<>(builder.items); // defensive copy
@@ -95,6 +113,7 @@ public class Opportunity {
         private String opportunityCode;
         private String name;
         private Integer customerId;
+        private Integer campaignId;
         private Integer stage;
         private Integer status;
         private Integer lostReason;
@@ -103,6 +122,14 @@ public class Opportunity {
         private Double remainingAmount;
         private Integer probability;
         private String description;
+    private LocalDateTime nextFollowUpDate;
+    private String        currencyCode;
+    private LocalDateTime expectedCloseDate;
+    private LocalDateTime actualCloseDate;
+    private Integer       assignedTo;
+    private Integer       createdBy;
+    private Integer       updatedBy;
+    private LocalDateTime deletedAt;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
         private List<OpportunityItem> items = new ArrayList<>();
@@ -127,6 +154,10 @@ public class Opportunity {
             return this;
         }
 
+        public OpportunityBuilder campaignId(Integer campaignId){
+            this.campaignId = campaignId;
+            return  this;
+        }
         public OpportunityBuilder stage(Integer stage) {
             this.stage = stage;
             return this;
@@ -167,6 +198,14 @@ public class Opportunity {
             return this;
         }
 
+    public OpportunityBuilder nextFollowUpDate(LocalDateTime v)  { this.nextFollowUpDate = v;  return this; }
+    public OpportunityBuilder currencyCode(String v)             { this.currencyCode = v;      return this; }
+    public OpportunityBuilder expectedCloseDate(LocalDateTime v) { this.expectedCloseDate = v; return this; }
+    public OpportunityBuilder actualCloseDate(LocalDateTime v)   { this.actualCloseDate = v;   return this; }
+    public OpportunityBuilder assignedTo(Integer v)              { this.assignedTo = v;        return this; }
+    public OpportunityBuilder createdBy(Integer v)               { this.createdBy = v;         return this; }
+    public OpportunityBuilder updatedBy(Integer v)               { this.updatedBy = v;         return this; }
+    public OpportunityBuilder deletedAt(LocalDateTime v)         { this.deletedAt = v;         return this; }
         public OpportunityBuilder createdAt(LocalDateTime createdAt) {
             this.createdAt = createdAt;
             return this;
@@ -202,6 +241,7 @@ public class Opportunity {
     public String getOpportunityCode() { return opportunityCode; }
     public String getName() { return name; }
     public Integer getCustomerId() { return customerId; }
+    public Integer getCampaignId() { return campaignId; }
     public Integer getStage() { return stage; }
     public Integer getStatus() { return status; }
     public Integer getLostReason() { return lostReason; }
@@ -210,6 +250,14 @@ public class Opportunity {
     public Double getRemainingAmount() { return remainingAmount; }
     public Integer getProbability() { return probability; }
     public String getDescription() { return description; }
+    public LocalDateTime getNextFollowUpDate()  { return nextFollowUpDate; }
+    public String        getCurrencyCode()      { return currencyCode; }
+    public LocalDateTime getExpectedCloseDate() { return expectedCloseDate; }
+    public LocalDateTime getActualCloseDate()   { return actualCloseDate; }
+    public Integer       getAssignedTo()        { return assignedTo; }
+    public Integer       getCreatedBy()         { return createdBy; }
+    public Integer       getUpdatedBy()         { return updatedBy; }
+    public LocalDateTime getDeletedAt()         { return deletedAt; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
 

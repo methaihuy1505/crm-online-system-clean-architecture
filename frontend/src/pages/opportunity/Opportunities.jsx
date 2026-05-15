@@ -1,505 +1,663 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import OpportunityFormModal from "./OpportunityFormModal";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 import OpportunityFilterPanel from "./OpportunityFilter";
+import OpportunityRow from "./OpportunityRow";
 
 const api = axios.create({ baseURL: "http://localhost:8080/api/v1" });
+
+// ==========================================
+// GIẢ LẬP ĐOẠN ĐÓN REQUEST /customers CHO DEMO
+// ==========================================
+api.interceptors.request.use(
+  (config) => {
+    if (config.url === "/customers") {
+      config.adapter = async () => {
+        return {
+          data: [
+            { id: 1, name: "Tập đoàn Vingroup" },
+            { id: 2, name: "Công ty Cổ phần FPT" },
+            { id: 3, name: "Tập đoàn Viettel" },
+            { id: 4, name: "Ngân hàng Vietcombank" },
+            { id: 5, name: "Công ty Sữa Vinamilk" },
+          ],
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config,
+        };
+      };
+    }
+    return config;
+  },
+  (error) => Promise.reject(error),
+);
+// ==========================================
 
 const iconStyle = {
   fontVariationSettings: "'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24",
 };
 
-const formatCompactCurrency = (value) => {
-  if (value === undefined || value === null || isNaN(value)) return "0 đ";
-  const num = Number(value);
-  if (num >= 1000000000) {
-    return `${(num / 1000000000).toLocaleString("vi-VN", { maximumFractionDigits: 1 })} Tỉ`;
-  }
-  if (num >= 1000000) {
-    return `${(num / 1000000).toLocaleString("vi-VN", { maximumFractionDigits: 1 })} Triệu`;
-  }
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-  }).format(num);
-};
+export default function OpportunityDashboard() {
+  const [opportunities, setOpportunities] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-const mapStyles = (stage, status) => {
-  const stageStyleMap = {
-    Qualification: "bg-purple-50 text-purple-700 border border-purple-200/50",
-    Discovery: "bg-amber-50 text-amber-700 border border-amber-200/50",
-    Proposal: "bg-indigo-50 text-indigo-700 border border-indigo-200/50",
-    Negotiation: "bg-blue-50 text-blue-700 border border-blue-200/50",
-    Closing: "bg-emerald-50 text-emerald-700 border border-emerald-200/50",
-    "Closed Won": "bg-green-50 text-green-700 border border-green-200",
-  };
-  const statusMap = {
-    Active: {
-      style: "bg-blue-50 border-blue-100",
-      dot: "bg-[#0061a4]",
-      text: "text-[#0061a4]",
-    },
-    "At Risk": {
-      style: "bg-red-50 border-red-100",
-      dot: "bg-[#ba1a1a]",
-      text: "text-[#ba1a1a]",
-    },
-    "On Hold": {
-      style: "bg-slate-50 border-slate-200",
-      dot: "bg-slate-400",
-      text: "text-slate-500",
-    },
-    Closed: {
-      style: "bg-green-50 border-green-100",
-      dot: "bg-green-600",
-      text: "text-green-700",
-    },
-  };
-  const st = statusMap[status] || statusMap["Active"];
-  return {
-    stageStyle:
-      stageStyleMap[stage] ||
-      "bg-slate-50 text-slate-600 border border-slate-200",
-    statusStyle: st.style,
-    statusDot: st.dot,
-    statusTextStyle: st.text,
-  };
-};
-
-export default function SalesOpportunities() {
-  const [opps, setOpps] = useState([]);
-  const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [totalCount, setTotalCount] = useState(0);
-  const [deleteTarget, setDeleteTarget] = useState(null);
-  const [rightPanel, setRightPanel] = useState("stats");
+  const [pageSize, setPageSize] = useState(50);
   const [selectedOpp, setSelectedOpp] = useState(null);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editId, setEditId] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+
+  const searchInputRef = useRef(null);
+  const pageSizeRef = useRef(null);
+  const tableContainerRef = useRef(null);
+
+  const [rightPanel, setRightPanel] = useState("stats");
 
   const [filters, setFilters] = useState({
+    search: "",
     sort: "",
     stageIds: [],
     statusIds: [],
     reasonIds: [],
   });
 
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const handleRefresh = () => setRefreshTrigger((prev) => prev + 1);
-
-  // Reset về trang 1 khi filter/search thay đổi
-
-  useEffect(() => {
-    const fetchOpps = async () => {
-      try {
-        const params = new URLSearchParams();
-
-        if (search) params.append("search", search);
-        if (filters.sort) params.append("sort", filters.sort);
-        filters.stageIds.forEach((id) => params.append("stageIds", id));
-        filters.statusIds.forEach((id) => params.append("statusIds", id));
-        filters.reasonIds.forEach((id) => params.append("reasonIds", id));
-        params.append("page", page - 1); // BE thường dùng 0-based
-        params.append("size", rowsPerPage);
-
-        const res = await api.get(`/opportunities?${params.toString()}`);
-
-        // Hỗ trợ cả 2 dạng response: array thuần hoặc Page object { content, totalElements }
-        const raw = Array.isArray(res.data)
-          ? res.data
-          : (res.data.content ?? []);
-        const total = Array.isArray(res.data)
-          ? res.data.length
-          : (res.data.totalElements ?? raw.length);
-
-        setOpps(
-          raw.map((item) => ({
-            ...item,
-            dbId: item.id,
-            id: item.opportunityCode || `OPP-${item.id}`,
-            customerName: item.customerName || `Khách hàng #${item.customerId}`,
-          })),
-        );
-        setTotalCount(total);
-      } catch (err) {
-        console.error("Lỗi khi tải dữ liệu cơ hội:", err);
-      }
-    };
-
-    fetchOpps();
-  }, [filters, search, page, rowsPerPage, refreshTrigger]);
-
-  const handleDeleteConfirm = async () => {
-    if (!deleteTarget) return;
+  const fetchOpportunities = async (activeFilters = filters) => {
     try {
-      await api.delete(`/opportunities/${deleteTarget.dbId}`);
-      setDeleteTarget(null);
-      handleRefresh();
-      if (selectedOpp && selectedOpp.dbId === deleteTarget.dbId) {
-        setRightPanel("stats");
-        setSelectedOpp(null);
-      }
+      setLoading(true);
+      const params = {};
+
+      params.search = activeFilters.search || "";
+      if (activeFilters.sort) params.sort = activeFilters.sort;
+      if (activeFilters.stageIds.length)
+        params.stageIds = activeFilters.stageIds.join(",");
+      if (activeFilters.statusIds.length)
+        params.statusIds = activeFilters.statusIds.join(",");
+      if (activeFilters.reasonIds.length)
+        params.reasonIds = activeFilters.reasonIds.join(",");
+
+      const [oppsRes, customersRes] = await Promise.all([
+        api.get("/opportunities", { params }),
+        api.get("/customers"),
+      ]);
+
+      const customerMap = Object.fromEntries(
+        customersRes.data.map((c) => [c.id, c.name]),
+      );
+
+      // Do BE đã trả về sẵn stageName và statusName, ta chỉ cần gán thêm customerName
+      const merged = oppsRes.data.map((o) => ({
+        ...o,
+        customerName: customerMap[o.customerId] ?? "Khách hàng Vãng lai",
+      }));
+
+      setOpportunities(merged);
+      setError(null);
     } catch (err) {
-      console.error("Lỗi khi xóa cơ hội:", err);
+      setError("Không thể tải danh sách cơ hội bán hàng. " + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const totalPages = Math.ceil(totalCount / rowsPerPage) || 1;
+  useEffect(() => {
+    fetchOpportunities(filters);
+  }, [filters]);
+
+  // Debounce tìm kiếm
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setFilters((prev) => ({ ...prev, search: searchTerm }));
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
+
+  const handleRefresh = () => fetchOpportunities(filters);
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await api.delete(`/opportunities/${deleteTarget.id}`);
+      setOpportunities((prev) => prev.filter((o) => o.id !== deleteTarget.id));
+      setSelectedOpp(null);
+      setSelectedIndex(-1);
+      setDeleteTarget(null);
+    } catch (error) {
+      alert("Không thể xóa cơ hội này!");
+      console.error(error);
+    }
+  };
+
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+    setPage(1);
+    setSelectedIndex(-1);
+  };
+
+  const handleSearchChange = (val) => {
+    setSearchTerm(val);
+    setPage(1);
+    setSelectedIndex(-1);
+  };
+
+  const activeFilterCount = [
+    filters.sort !== "",
+    filters.stageIds.length > 0,
+    filters.statusIds.length > 0,
+    filters.reasonIds.length > 0,
+  ].filter(Boolean).length;
+
+  const totalFiltered = opportunities.length;
+  const startIdx = (page - 1) * pageSize;
+  const paginated = opportunities.slice(startIdx, startIdx + pageSize);
+
+  const colWidths = ["22%", "18%", "12%", "10%", "15%", "13%", "10%"];
+  const COLS = [
+    "Cơ hội",
+    "Khách hàng",
+    "Tổng tiền",
+    "Xác suất",
+    "Giai đoạn",
+    "Trạng thái",
+    "",
+  ];
+
+  // Keyboard navigation & Auto Scroll
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (
+        ["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement.tagName)
+      ) {
+        if (e.key === "Escape") document.activeElement.blur();
+        return;
+      }
+      if (e.key === "Escape") {
+        setIsModalOpen(false);
+        setEditId(null);
+        setRightPanel("stats");
+        return;
+      }
+      if (isModalOpen || editId !== null || rightPanel === "filter") return;
+
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          setSelectedIndex((prev) => {
+            const idx = prev < paginated.length - 1 ? prev + 1 : prev;
+            if (paginated[idx]) setSelectedOpp(paginated[idx]);
+            return idx;
+          });
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          setSelectedIndex((prev) => {
+            const idx = prev > 0 ? prev - 1 : 0;
+            if (paginated[idx]) setSelectedOpp(paginated[idx]);
+            return idx;
+          });
+          break;
+        case "e":
+        case "E":
+          if (selectedOpp) {
+            e.preventDefault();
+            setEditId(selectedOpp.id);
+            setIsModalOpen(true);
+          }
+          break;
+        case "Delete":
+        case "Backspace":
+          if (selectedOpp) {
+            e.preventDefault();
+            setDeleteTarget(selectedOpp);
+          }
+          break;
+      }
+
+      if (e.altKey) {
+        if (e.key.toLowerCase() === "n") {
+          e.preventDefault();
+          setIsModalOpen(true);
+        }
+        if (e.key.toLowerCase() === "s") {
+          e.preventDefault();
+          searchInputRef.current?.focus();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    page,
+    pageSize,
+    totalFiltered,
+    isModalOpen,
+    editId,
+    rightPanel,
+    paginated,
+    selectedOpp,
+  ]);
+
+  useEffect(() => {
+    if (selectedIndex === -1 || !tableContainerRef.current) return;
+    const activeRow = tableContainerRef.current.querySelector(
+      `tr[data-index="${selectedIndex}"]`,
+    );
+    if (activeRow) {
+      const container = tableContainerRef.current;
+      if (activeRow.offsetTop < container.scrollTop) {
+        container.scrollTo({ top: activeRow.offsetTop, behavior: "smooth" });
+      } else if (
+        activeRow.offsetTop + activeRow.offsetHeight >
+        container.scrollTop + container.clientHeight
+      ) {
+        container.scrollTo({
+          top:
+            activeRow.offsetTop +
+            activeRow.offsetHeight -
+            container.clientHeight,
+          behavior: "smooth",
+        });
+      }
+    }
+  }, [selectedIndex]);
+
+  const formatCompactCurrency = (value) => {
+    if (value === undefined || value === null || isNaN(value)) return "0 đ";
+    const num = Number(value);
+    if (num >= 1000000000)
+      return `${(num / 1000000000).toLocaleString("vi-VN", { maximumFractionDigits: 1 })} Tỉ`;
+    if (num >= 1000000)
+      return `${(num / 1000000).toLocaleString("vi-VN", { maximumFractionDigits: 1 })} Triệu`;
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(num);
+  };
 
   return (
-    <div
-      className="min-h-screen bg-[#f3f4f5] flex flex-col text-[#191c1d]"
-      style={{ fontFamily: "Manrope, sans-serif" }}
-    >
-      <main className="flex-1 w-full mx-auto px-6 py-6 flex flex-col lg:flex-row gap-6">
-        <div className="flex-1 flex flex-col min-w-0">
-          <div className="flex justify-between items-end shrink-0 gap-4 mb-4">
-            <div>
-              <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">
-                Opportunity Manager
-              </p>
-              <h2 className="text-3xl font-black text-[#1a237e]">
-                Cơ hội bán hàng
-              </h2>
-            </div>
-            <div className="hidden lg:flex items-center bg-[#e6e6e7] px-4 py-2.5 rounded-full w-80 lg:w-96 focus-within:bg-white border border-transparent focus-within:border-slate-200 transition-all">
-              <span
-                className="material-symbols-outlined text-slate-400 text-xl"
-                style={iconStyle}
-              >
-                search
-              </span>
-              <input
-                type="text"
-                className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400 text-[#191c1d] ml-2 outline-none"
-                placeholder="Tìm kiếm..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1); // Reset trang ở đây
-                }}
-              />
-            </div>
+    <>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+      />
+      <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet"
+      />
 
-            <div className="flex gap-3 w-full lg:w-auto justify-between lg:justify-end">
-              <button
-                onClick={() =>
-                  setRightPanel((p) => (p === "filter" ? "stats" : "filter"))
-                }
-                className="relative bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-slate-50 transition-all"
-              >
+      <main className="bg-[#f8f9fa] text-[#191c1d] h-screen flex flex-col font-sans overflow-hidden">
+        <div className="flex flex-1 overflow-hidden">
+          <div className="flex-1 flex flex-col overflow-hidden p-8 gap-8">
+            <div className="flex justify-between items-end shrink-0 gap-4">
+              <div>
+                <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">
+                  CRM System
+                </p>
+                <h2 className="text-3xl font-black text-[#1a237e]">
+                  Cơ hội bán hàng
+                </h2>
+              </div>
+
+              <div className="hidden lg:flex items-center bg-[#e6e6e7] px-4 py-2.5 rounded-full w-80 lg:w-96 focus-within:bg-white border border-transparent focus-within:border-slate-200 transition-all">
                 <span
-                  className="material-symbols-outlined text-lg"
+                  className="material-symbols-outlined text-slate-400 text-xl"
                   style={iconStyle}
                 >
-                  tune
+                  search
                 </span>
-                <span>Bộ lọc</span>
-                {/* Badge khi có filter đang active */}
-                {(filters.stageIds.length > 0 ||
-                  filters.statusIds.length > 0 ||
-                  filters.reasonIds.length > 0 ||
-                  filters.sort !== "") && (
-                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#1a237e] rounded-full" />
-                )}
-              </button>
+                <input
+                  className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400 text-[#191c1d] ml-2 outline-none"
+                  placeholder="Tìm kiếm cơ hội..."
+                  ref={searchInputRef}
+                  value={searchTerm}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                />
+              </div>
 
-              <button
-                onClick={() => {
-                  setEditId(null);
-                  setIsModalOpen(true);
-                }}
-                className="bg-[#1a237e] text-white px-6 py-2 rounded-xl text-sm font-bold shadow-lg shadow-blue-900/20 hover:bg-blue-800 transition-all flex items-center gap-2"
-              >
-                <span className="material-symbols-outlined text-lg">add</span>
-                <span>Thêm cơ hội</span>
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={() =>
+                    setRightPanel(rightPanel === "filter" ? "stats" : "filter")
+                  }
+                  className="relative bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-slate-50 transition-all"
+                >
+                  <span className="material-symbols-outlined text-lg">
+                    tune
+                  </span>
+                  Lọc
+                  {activeFilterCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 bg-[#1a237e] text-white text-[0.6rem] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </button>
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="bg-[#1a237e] text-white px-6 py-2 rounded-xl text-sm font-bold shadow-lg shadow-blue-900/20 hover:bg-blue-800 transition-all flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-lg">add</span>
+                </button>
+              </div>
             </div>
-          </div>
 
-          <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs overflow-hidden flex-1 flex flex-col">
-            <div className="overflow-x-auto flex-1">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200/60 text-slate-500 text-[10px] font-bold uppercase tracking-wider">
-                    <th className="py-3 px-5">Mã</th>
-                    <th className="py-0.5 px-4">Tên Thương Vụ</th>
-                    <th className="py-0.5 px-4">Khách Hàng</th>
-                    <th className="py-0.5 px-4">Giai Đoạn</th>
-                    <th className="py-0.5 px-4 text-right">Giá Trị</th>
-                    <th className="py-0.5 px-4 text-center">Xác Suất</th>
-                    <th className="py-0.5 px-4 text-center">Trạng Thái</th>
-                    <th className="py-3 px-5 text-center">Thao Tác</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-xs">
-                  {opps.map((opp) => {
-                    const styles = mapStyles(opp.stage?.name, opp.status?.name);
-                    return (
-                      <tr
-                        key={opp.dbId}
-                        onClick={() => {
-                          setSelectedOpp(opp);
-                          setRightPanel("inspection");
-                        }}
-                        className="hover:bg-slate-50 cursor-pointer transition-colors"
-                      >
-                        <td className="py-0.5 px-5 font-bold text-[#000666]">
-                          {opp.id}
-                        </td>
-                        <td className="py-0.5 px-4 font-bold text-slate-800">
-                          {opp.name}
-                        </td>
-                        <td className="py-0.5 px-4 text-slate-600 font-semibold">
-                          {opp.customerName}
-                        </td>
-                        <td className="py-0.5 px-4">
-                          <span
-                            className={`text-[10px] px-2 py-0.5 rounded font-bold ${styles.stageStyle}`}
-                          >
-                            {opp.stage?.name}
-                          </span>
-                        </td>
-                        <td className="py-0.5 px-4 text-right font-bold">
-                          {formatCompactCurrency(opp.totalAmount)}
-                        </td>
-                        <td className="py-0.5 px-4 text-center font-bold">
-                          {opp.probability}%
-                        </td>
-                        <td className="py-0.5 px-4 text-center">
-                          <span
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded border text-[10px] font-bold ${styles.statusStyle}`}
-                          >
-                            <span
-                              className={`w-1 h-1 rounded-full ${styles.statusDot}`}
-                            />{" "}
-                            {opp.status?.name}
-                          </span>
-                        </td>
-                        <td
-                          className="py-0.5 px-5 text-center"
-                          onClick={(e) => e.stopPropagation()}
+            <section className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col flex-1 overflow-hidden min-h-0">
+              <div className="shrink-0 border-b border-slate-100">
+                <table className="w-full text-left border-collapse table-fixed">
+                  <colgroup>
+                    {colWidths.map((w, i) => (
+                      <col key={i} style={{ width: w }} />
+                    ))}
+                  </colgroup>
+                  <thead>
+                    <tr className="bg-[#f3f4f5]/50">
+                      {COLS.map((h, i) => (
+                        <th
+                          key={i}
+                          className={`px-2 py-4 text-[0.65rem] uppercase tracking-widest text-slate-400 font-black ${i === 0 ? "pl-8" : ""}`}
                         >
-                          <div className="flex justify-center gap-1">
-                            <button
-                              onClick={() => {
-                                setEditId(opp.dbId);
-                                setIsModalOpen(true);
-                              }}
-                              className="p-1 hover:text-blue-700 transition-all"
-                            >
-                              <span className="material-symbols-outlined text-base">
-                                edit
-                              </span>
-                            </button>
-                            <button
-                              onClick={() => setDeleteTarget(opp)}
-                              className="p-1 hover:text-red-600 transition-all"
-                            >
-                              <span className="material-symbols-outlined text-base">
-                                delete
-                              </span>
-                            </button>
-                          </div>
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                </table>
+              </div>
+
+              <div
+                ref={tableContainerRef}
+                className="flex-1 overflow-y-auto min-h-0"
+                style={{ scrollbarWidth: "none" }}
+              >
+                <table className="w-full text-left border-collapse table-fixed">
+                  <colgroup>
+                    {colWidths.map((w, i) => (
+                      <col key={i} style={{ width: w }} />
+                    ))}
+                  </colgroup>
+                  <tbody className="divide-y divide-slate-50">
+                    {loading ? (
+                      <tr>
+                        <td
+                          colSpan={7}
+                          className="px-8 py-20 text-center text-slate-400"
+                        >
+                          Đang tải dữ liệu...
                         </td>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                    ) : error ? (
+                      <tr>
+                        <td
+                          colSpan={7}
+                          className="px-8 py-20 text-center text-red-400"
+                        >
+                          {error}
+                        </td>
+                      </tr>
+                    ) : paginated.length > 0 ? (
+                      paginated.map((opp, index) => (
+                        <OpportunityRow
+                          key={opp.id}
+                          opp={opp}
+                          index={index}
+                          isActive={index === selectedIndex}
+                          onSelect={(item) => {
+                            setSelectedOpp(item);
+                            setSelectedIndex(index);
+                          }}
+                          onDelete={setDeleteTarget}
+                          onEdit={(id) => {
+                            setEditId(id);
+                            setIsModalOpen(true);
+                          }}
+                        />
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={7}
+                          className="px-8 py-20 text-center text-slate-400"
+                        >
+                          Không có dữ liệu phù hợp.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
 
-            <div className="p-4 border-t border-slate-100 flex justify-between items-center bg-slate-50/50 text-[11px]">
-              <div className="text-slate-500 font-bold">
-                Mỗi trang:{" "}
-                <select
-                  className="bg-transparent"
-                  value={rowsPerPage}
-                  onChange={(e) => setRowsPerPage(Number(e.target.value))}
-                >
-                  <option value={10}>10</option>
-                  <option value={20}>20</option>
-                </select>
+              <div className="shrink-0 border-t border-slate-100 px-6 py-4 flex items-center justify-between bg-white rounded-b-3xl">
+                <div className="flex items-center gap-2">
+                  <p className="text-xs font-bold text-slate-400 uppercase">
+                    Hiển thị
+                  </p>
+                  <select
+                    ref={pageSizeRef}
+                    value={pageSize}
+                    onChange={(e) => {
+                      setPageSize(Number(e.target.value));
+                      setPage(1);
+                    }}
+                    className="bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg px-2 py-1 outline-none"
+                  >
+                    {[10, 20, 30, 50, 100].map((size) => (
+                      <option key={size} value={size}>
+                        {size} dòng
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    disabled={page === 1}
+                    onClick={() => setPage(page - 1)}
+                    className="p-2 border border-slate-200 rounded-xl hover:bg-slate-50 disabled:opacity-40"
+                  >
+                    <span className="material-symbols-outlined text-sm block">
+                      chevron_left
+                    </span>
+                  </button>
+                  <div className="flex items-center px-4 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 bg-slate-50">
+                    Trang {page} / {Math.ceil(totalFiltered / pageSize) || 1}
+                  </div>
+                  <button
+                    disabled={page >= Math.ceil(totalFiltered / pageSize)}
+                    onClick={() => setPage(page + 1)}
+                    className="p-2 border border-slate-200 rounded-xl hover:bg-slate-50 disabled:opacity-40"
+                  >
+                    <span className="material-symbols-outlined text-sm block">
+                      chevron_right
+                    </span>
+                  </button>
+                </div>
               </div>
-              <div className="flex gap-2 items-center font-bold">
-                <button
-                  onClick={() => setPage((p) => Math.max(p - 1, 1))}
-                  disabled={page === 1}
-                  className="w-6 h-6 border rounded bg-white"
-                >
-                  {"<"}
-                </button>
-                <span>
-                  {page} / {totalPages}
-                </span>
-                <button
-                  onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-                  disabled={page === totalPages}
-                  className="w-6 h-6 border rounded bg-white"
-                >
-                  {">"}
-                </button>
-              </div>
-            </div>
+            </section>
           </div>
-        </div>
 
-        <aside className="w-full lg:w-80 shrink-0 flex flex-col gap-4">
-          {rightPanel === "stats" && (
-            <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-xs flex flex-col">
-              <div className="text-[10px] font-black uppercase text-[#1A237E] tracking-widest mb-4 flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-sm">
-                  monitoring
-                </span>{" "}
-                Số liệu tổng quan
-              </div>
-
-              <div className="flex flex-col items-center justify-center py-12 px-4 text-center border border-dashed border-slate-200 bg-slate-50/50 rounded-xl">
-                <span className="material-symbols-outlined text-slate-300 text-3xl mb-2">
-                  analytics
-                </span>
-                <p className="text-xs font-bold text-slate-500 mb-1">
-                  Đang thiết lập dữ liệu
-                </p>
-              </div>
-            </div>
-          )}
-
-          {rightPanel === "inspection" && selectedOpp && (
-            <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs p-4 animate-fade-in relative flex flex-col gap-4">
-              <button
-                onClick={() => setRightPanel("stats")}
-                className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 transition-colors"
-              >
-                <span className="material-symbols-outlined text-md">close</span>
-              </button>
-
-              <h3 className="text-[10px] font-black uppercase text-[#1A237E] tracking-wider">
-                Chi tiết thương vụ nâng cao
-              </h3>
-
-              <div className="space-y-3.5">
-                <div className="p-3 bg-[#1a237e]/5 rounded-xl border border-[#1a237e]/10">
-                  <p className="text-[10px] text-blue-600 font-bold uppercase tracking-wider mb-0.5">
-                    {selectedOpp.id || selectedOpp.opportunityCode}
-                  </p>
-                  <p className="text-sm font-black text-[#1a237e] leading-tight mb-1">
-                    {selectedOpp.name}
-                  </p>
-                  <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
-                    <span className="material-symbols-outlined text-xs">
-                      person
-                    </span>
-                    <span>
-                      {selectedOpp.customerName ||
-                        `Mã KH: #${selectedOpp.customerId}`}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-2 bg-slate-50/50 p-2.5 rounded-xl border border-slate-100">
-                  <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-slate-400 font-semibold">
-                      Giai đoạn:
-                    </span>
-                    <span className="font-bold text-[#1a237e]">
-                      {selectedOpp.stageName ||
-                        selectedOpp.stage?.name ||
-                        "Chưa rõ"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-slate-400 font-semibold">
-                      Trạng thái:
-                    </span>
-                    <span className="font-bold text-slate-700">
-                      {selectedOpp.statusName ||
-                        selectedOpp.status?.name ||
-                        "Chưa rõ"}
+          <aside className="hidden xl:block w-80 shrink-0 border-l border-slate-200/50 bg-[#f3f4f5]/50 overflow-y-auto p-6">
+            {rightPanel === "filter" ? (
+              <OpportunityFilterPanel
+                filters={filters}
+                onChange={handleFilterChange}
+                onClose={() => setRightPanel("stats")}
+              />
+            ) : (
+              selectedOpp && (
+                <div className="bg-white rounded-2xl border border-slate-200/60 p-5 space-y-5 shadow-xs">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <h3 className="text-[10px] font-black uppercase text-[#1A237E] tracking-wider">
+                      Thông tin chi tiết
+                    </h3>
+                    <span className="text-[10px] font-mono font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
+                      ID: {selectedOpp.id}
                     </span>
                   </div>
 
-                  {(selectedOpp.lostReasonName || selectedOpp.lostReasonId) && (
-                    <div className="flex justify-between items-start text-[11px] pt-1.5 border-t border-slate-200/60">
-                      <span className="text-red-500 font-bold">
-                        Lý do thất bại:
-                      </span>
-                      <span className="font-semibold text-red-600 text-right max-w-[140px] break-words">
-                        {selectedOpp.lostReasonName ||
-                          `Mã lý do: #${selectedOpp.lostReasonId}`}
-                      </span>
+                  <div className="space-y-4">
+                    {/* Thông tin cơ bản */}
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">
+                          Mã cơ hội
+                        </p>
+                        <p className="text-xs font-mono font-bold text-slate-700 bg-slate-50 px-2 py-1 rounded border border-slate-100 inline-block">
+                          {selectedOpp.opportunityCode || "N/A"}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">
+                          Tên cơ hội
+                        </p>
+                        <p className="text-xs font-bold text-slate-800 leading-tight">
+                          {selectedOpp.name}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">
+                          Khách hàng
+                        </p>
+                        <p className="text-xs font-semibold text-slate-700 flex items-center gap-1">
+                          <span className="material-symbols-outlined text-slate-400 text-sm">
+                            person
+                          </span>
+                          {selectedOpp.customerName}
+                        </p>
+                      </div>
                     </div>
-                  )}
-                </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="p-2 border border-slate-100 bg-white rounded-lg shadow-2xs">
-                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">
-                      Tổng giá trị
-                    </p>
-                    <p className="text-xs font-extrabold text-slate-800">
-                      {formatCompactCurrency(selectedOpp.totalAmount)}
-                    </p>
-                  </div>
-                  <div className="p-2 border border-slate-100 bg-white rounded-lg shadow-2xs">
-                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">
-                      Xác suất
-                    </p>
-                    <p className="text-xs font-extrabold text-indigo-600">
-                      {selectedOpp.probability}%
-                    </p>
-                  </div>
-                  <div className="p-2 border border-slate-100 bg-emerald-50/30 rounded-lg">
-                    <p className="text-[9px] text-emerald-600/80 font-bold uppercase tracking-wider mb-0.5">
-                      Tiền đặt cọc
-                    </p>
-                    <p className="text-xs font-extrabold text-emerald-600">
-                      {formatCompactCurrency(selectedOpp.depositAmount)}
-                    </p>
-                  </div>
-                  <div className="p-2 border border-slate-100 bg-amber-50/30 rounded-lg">
-                    <p className="text-[9px] text-amber-600/80 font-bold uppercase tracking-wider mb-0.5">
-                      Còn lại phải thu
-                    </p>
-                    <p className="text-xs font-extrabold text-amber-600">
-                      {formatCompactCurrency(
-                        selectedOpp.remainingAmount ??
-                          selectedOpp.totalAmount - selectedOpp.depositAmount,
-                      )}
-                    </p>
+                    <hr className="border-slate-100" />
+
+                    {/* Phân tích tài chính */}
+                    <div>
+                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-2">
+                        Giá trị tài chính
+                      </p>
+                      <div className="bg-slate-50/50 rounded-xl p-3 border border-slate-100 space-y-2.5">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[11px] text-slate-500 font-medium">
+                            Tổng giá trị:
+                          </span>
+                          <span className="text-xs font-bold text-slate-800">
+                            {formatCompactCurrency(selectedOpp.totalAmount)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-[11px] text-slate-500 font-medium">
+                            Đã đặt cọc:
+                          </span>
+                          <span className="text-xs font-bold text-emerald-600">
+                            {formatCompactCurrency(selectedOpp.depositAmount)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center pt-1.5 border-t border-dashed border-slate-200">
+                          <span className="text-[11px] text-slate-600 font-bold">
+                            Còn lại cần thu:
+                          </span>
+                          <span className="text-xs font-black text-blue-700">
+                            {formatCompactCurrency(selectedOpp.remainingAmount)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <hr className="border-slate-100" />
+
+                    {/* Tiến độ & Trạng thái */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-1">
+                          Xác suất
+                        </p>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-black text-slate-800">
+                            {selectedOpp.probability}%
+                          </span>
+                          <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-blue-600 rounded-full"
+                              style={{ width: `${selectedOpp.probability}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-1">
+                          Giai đoạn
+                        </p>
+                        <p
+                          className="text-xs font-bold text-slate-700 truncate"
+                          title={selectedOpp.stageName}
+                        >
+                          {selectedOpp.stageName || "N/A"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-1">
+                        Trạng thái hiện tại
+                      </p>
+                      <div className="flex">
+                        <span
+                          className={`px-2.5 py-1 text-[10px] font-black rounded-lg uppercase border ${
+                            String(selectedOpp.statusName).toUpperCase() ===
+                            "LOST"
+                              ? "bg-rose-50 text-rose-700 border-rose-200"
+                              : String(selectedOpp.statusName).toUpperCase() ===
+                                  "WON"
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                : "bg-blue-50 text-blue-700 border-blue-200"
+                          }`}
+                        >
+                          {selectedOpp.statusName || "N/A"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Hiển thị lý do thất bại nếu trạng thái là Lost hoặc có dữ liệu lý do */}
+                    {(selectedOpp.lostReasonName ||
+                      selectedOpp.lostReasonId) && (
+                      <div className="bg-red-50/60 p-3 rounded-xl border border-red-100/70 animate-fade-in">
+                        <div className="flex items-center gap-1 text-red-700 mb-1">
+                          <span className="material-symbols-outlined text-sm">
+                            error
+                          </span>
+                          <p className="text-[9px] font-black uppercase tracking-wider">
+                            Lý do thất bại
+                          </p>
+                        </div>
+                        <p className="text-xs font-medium text-red-800 leading-relaxed">
+                          {selectedOpp.lostReasonName ||
+                            `Mã lý do: # ${selectedOpp.lostReasonId}`}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Mô tả bổ sung (nếu có trường description trong object gốc) */}
+                    {selectedOpp.description && (
+                      <div>
+                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-1">
+                          Mô tả thêm
+                        </p>
+                        <p className="text-xs text-slate-500 leading-relaxed italic bg-slate-50 p-2.5 rounded-lg border border-slate-100 max-h-24 overflow-y-auto">
+                          "{selectedOpp.description}"
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
-
-                <div className="pt-1">
-                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-1">
-                    Mô tả chi tiết
-                  </p>
-                  <p className="text-xs text-slate-500 leading-relaxed italic bg-slate-50 p-2.5 rounded-lg border border-slate-100 max-h-24 overflow-y-auto">
-                    "
-                    {selectedOpp.description ||
-                      "Không có mô tả cho cơ hội này..."}
-                    "
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {rightPanel === "filter" && (
-            <OpportunityFilterPanel
-              filters={filters}
-              onChange={setFilters}
-              onClose={() => setRightPanel("stats")}
-              onChange={(newFilters) => {
-                setFilters(newFilters);
-                setPage(1); // Reset trang ở đây
-              }}
-            />
-          )}
-        </aside>
+              )
+            )}
+          </aside>
+        </div>
       </main>
 
       <OpportunityFormModal
@@ -511,13 +669,12 @@ export default function SalesOpportunities() {
         opportunityId={editId}
         onSaveSuccess={handleRefresh}
       />
-
       <DeleteConfirmModal
         isOpen={!!deleteTarget}
         targetName={deleteTarget?.name || ""}
         onClose={() => setDeleteTarget(null)}
-        onConfirm={handleDeleteConfirm}
+        onConfirm={handleConfirmDelete}
       />
-    </div>
+    </>
   );
 }

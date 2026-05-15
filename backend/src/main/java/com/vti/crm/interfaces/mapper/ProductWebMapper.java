@@ -12,7 +12,6 @@ public interface ProductWebMapper {
     @Mapping(source = "productCode",     target = "productCode")
     @Mapping(source = "name",            target = "name")
     @Mapping(source = "categoryID",      target = "categoryId")
-    // Lưu ý: categoryName và uomName sẽ không có trong Product, bạn sẽ cần set thủ công hoặc bỏ qua
     @Mapping(target = "categoryName", ignore = true)
     @Mapping(source = "uomID",           target = "uomId")
     @Mapping(target = "uomName",         ignore = true)

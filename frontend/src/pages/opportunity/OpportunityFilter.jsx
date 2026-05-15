@@ -1,15 +1,15 @@
-// OpportunityFilter.jsx — inline right panel (giống ProductFilter)
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const api = axios.create({ baseURL: "http://localhost:8080/api/v1" });
 
 const SORT_OPTIONS = [
-  { label: "Mặc định", value: "" },
-  { label: "Tiền cọc ↓", value: "deposit_desc" },
-  { label: "Tiền cọc ↑", value: "deposit_asc" },
-  { label: "Xác suất ↓", value: "prob_desc" },
   { label: "Tên A → Z", value: "name_asc" },
+  { label: "Tên Z → A", value: "name_desc" },
+  { label: "Tổng tiền ↓", value: "totalAmount_desc" },
+  { label: "Tổng tiền ↑", value: "totalAmount_asc" },
+  { label: "Xác suất ↓", value: "prob_desc" },
+  { label: "Xác suất ↑", value: "prob_asc" },
 ];
 
 function RadioButtonGroup({ options, selected, onChange, cols = 2 }) {
@@ -23,6 +23,7 @@ function RadioButtonGroup({ options, selected, onChange, cols = 2 }) {
         return (
           <button
             key={opt.value}
+            type="button"
             onClick={() => onChange(opt.value)}
             className={`px-2 py-2 rounded-xl text-[10px] font-bold border transition-all text-center leading-tight ${
               active
@@ -45,15 +46,16 @@ function CheckboxButtonGroup({ items, selected, onChange, cols = 2 }) {
       style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
     >
       {items.length === 0 ? (
-        <p className="text-xs text-slate-400 italic col-span-full">
+        <span className="text-xs text-slate-400 italic col-span-2 text-center py-2">
           Đang tải...
-        </p>
+        </span>
       ) : (
         items.map((item) => {
           const checked = selected.includes(item.value);
           return (
             <button
               key={item.value}
+              type="button"
               onClick={() =>
                 onChange(
                   checked
@@ -79,47 +81,67 @@ function CheckboxButtonGroup({ items, selected, onChange, cols = 2 }) {
 
 export default function OpportunityFilterPanel({ filters, onChange, onClose }) {
   const [stages, setStages] = useState([]);
-  const [statuses, setStatuses] = useState([]);
+  const [statuses, setStatuses] = useState([]); // Bước 1: Chuyển trạng thái ban đầu thành mảng rỗng []
   const [reasons, setReasons] = useState([]);
 
   useEffect(() => {
+    // Bước 2: Thêm api.get("/opportunity-statuses") vào Promise.all
     Promise.all([
       api.get("/opportunity-stages"),
       api.get("/opportunity-statuses"),
       api.get("/lost-reasons"),
-    ]).then(([stgRes, stsRes, rsnRes]) => {
-      setStages(
-        stgRes.data.map((s) => ({ label: s.name, value: String(s.id) })),
-      );
-      setStatuses(
-        stsRes.data.map((s) => ({ label: s.name, value: String(s.id) })),
-      );
-      setReasons(
-        rsnRes.data.map((r) => ({ label: r.name, value: String(r.id) })),
-      );
-    });
+    ])
+      .then(([stageRes, statusRes, reasonRes]) => {
+        setStages(
+          stageRes.data.map((s) => ({ label: s.name, value: String(s.id) })),
+        );
+
+        // Bước 3: Đọc thuộc tính id và name từ OpportunityStatusResponse để gán vào state
+        setStatuses(
+          statusRes.data.map((st) => ({
+            label: st.name,
+            value: String(st.id),
+          })),
+        );
+
+        setReasons(
+          reasonRes.data.map((r) => ({ label: r.name, value: String(r.id) })),
+        );
+      })
+      .catch((err) => console.error("Lỗi tải danh mục bộ lọc", err));
   }, []);
 
-  const handleReset = () =>
-    onChange({ sort: "", stageIds: [], statusIds: [], reasonIds: [] });
+  const handleReset = () => {
+    onChange({
+      search: filters.search,
+      sort: "",
+      stageIds: [],
+      statusIds: [],
+      reasonIds: [],
+    });
+  };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs p-4 animate-fade-in relative">
-      <button
-        onClick={onClose}
-        className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
-      >
-        <span className="material-symbols-outlined text-md">close</span>
-      </button>
+    <div className="relative flex flex-col gap-5 p-5 bg-white h-full w-full">
+      {/* Header Panel */}
+      <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+        <h3 className="text-xs font-black text-slate-700 uppercase tracking-wider">
+          Bộ lọc nâng cao
+        </h3>
+        <button
+          onClick={onClose}
+          type="button"
+          className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 text-xs font-bold transition-all"
+        >
+          ✕
+        </button>
+      </div>
 
-      <h3 className="text-[10px] font-black uppercase text-[#1A237E] mb-4">
-        Bộ lọc nâng cao
-      </h3>
-
-      <div className="space-y-4">
+      {/* Body Panel */}
+      <div className="flex flex-col gap-4 overflow-y-auto flex-1 pr-1">
         {/* Sắp xếp */}
-        <div>
-          <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">
+        <div className="flex flex-col gap-2">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
             Sắp xếp
           </p>
           <RadioButtonGroup
@@ -131,8 +153,8 @@ export default function OpportunityFilterPanel({ filters, onChange, onClose }) {
         </div>
 
         {/* Giai đoạn */}
-        <div>
-          <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">
+        <div className="flex flex-col gap-2">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
             Giai đoạn
           </p>
           <CheckboxButtonGroup
@@ -144,8 +166,8 @@ export default function OpportunityFilterPanel({ filters, onChange, onClose }) {
         </div>
 
         {/* Trạng thái */}
-        <div>
-          <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">
+        <div className="flex flex-col gap-2">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
             Trạng thái
           </p>
           <CheckboxButtonGroup
@@ -157,8 +179,8 @@ export default function OpportunityFilterPanel({ filters, onChange, onClose }) {
         </div>
 
         {/* Lý do thất bại */}
-        <div>
-          <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">
+        <div className="flex flex-col gap-2">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
             Lý do thất bại
           </p>
           <CheckboxButtonGroup
@@ -168,11 +190,14 @@ export default function OpportunityFilterPanel({ filters, onChange, onClose }) {
             cols={2}
           />
         </div>
+      </div>
 
-        {/* Reset */}
+      {/* Footer Panel */}
+      <div className="pt-2 border-t border-slate-100">
         <button
           onClick={handleReset}
-          className="w-full py-2 text-[11px] font-bold text-red-500 bg-red-50 rounded-lg hover:bg-red-100 transition-all"
+          type="button"
+          className="w-full py-2.5 text-[11px] font-bold text-red-500 bg-red-50 rounded-xl hover:bg-red-100 transition-all"
         >
           Xóa tất cả bộ lọc
         </button>

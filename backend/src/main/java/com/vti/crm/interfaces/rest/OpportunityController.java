@@ -1,6 +1,7 @@
 package com.vti.crm.interfaces.rest;
 
 import com.vti.crm.application.usecases.opportunity.*;
+import com.vti.crm.domain.model.OpportunityFilter;
 import com.vti.crm.interfaces.dto.request.OpportunityRequest;
 import com.vti.crm.interfaces.dto.response.OpportunityDashboardStatsResponse;
 import com.vti.crm.interfaces.dto.response.OpportunityResponse;
@@ -11,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
@@ -21,16 +24,32 @@ public class OpportunityController {
 
     private final CreateOpportunityUseCase createUseCase;
     private final GetOpportunityByIdUseCase getByIdUseCase;
-    private final GetAllOpportunitiesUseCase getAllUseCase;
     private final UpdateOpportunityUseCase updateUseCase;
     private final DeleteOpportunityUseCase deleteUseCase;
-    private final GetDashboardStatsUseCase getDashboardStatsUseCase;
     private final OpportunityResponseEnricher enricher; // SỬA: đổi từ OpportunityWebMapper
+    private final GetOpportunitiesWithFilterUseCase getOpportunitiesWithFilterUseCase;
 
     @GetMapping
-    public ResponseEntity<List<OpportunityResponse>> getAll() {
+    public ResponseEntity<List<OpportunityResponse>> getAll(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String stageIds,
+            @RequestParam(required = false) String statusIds,
+            @RequestParam(required = false) String reasonIds,
+            @RequestParam(required = false) String sort) {
+
+        OpportunityFilter filter = new OpportunityFilter(
+                search,
+                parseIds(stageIds),
+                parseIds(statusIds),
+                parseIds(reasonIds),
+                sort
+        );
+
         return ResponseEntity.ok(
-                getAllUseCase.execute().stream().map(enricher::toResponse).toList()
+                getOpportunitiesWithFilterUseCase.execute(filter)
+                        .stream()
+                        .map(enricher::toResponse)
+                        .toList()
         );
     }
 
@@ -85,5 +104,12 @@ public class OpportunityController {
         deleteUseCase.execute(id);
         return ResponseEntity.noContent().build();
     }
-
+    private List<Integer> parseIds(String param) {
+        if (param == null || param.isBlank()) return List.of();
+        return Arrays.stream(param.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(Integer::parseInt)
+                .toList();
+    }
 }

@@ -1,13 +1,6 @@
 import React from "react";
 
-export default function ProductRow({
-  product,
-  isActive,
-  index,
-  onSelect,
-  onDelete,
-  onEdit,
-}) {
+function ProductRow({ product, isActive, index, onSelect, onDelete, onEdit }) {
   return (
     <tr
       data-index={index}
@@ -90,3 +83,5 @@ export default function ProductRow({
     </tr>
   );
 }
+
+export default React.memo(ProductRow);
