@@ -17,6 +17,14 @@ public class ProductSpecification {
             // Chỉ lấy record chưa bị xóa
             predicates.add(cb.equal(root.get("isDeleted"), false));
 
+            // Search theo name HOẶC productCode (case-insensitive)
+            if (filter.getSearch() != null && !filter.getSearch().isBlank()) {
+                String pattern = "%" + filter.getSearch().trim().toLowerCase() + "%";
+                predicates.add(cb.or(
+                        cb.like(cb.lower(root.get("name")), pattern),
+                        cb.like(cb.lower(root.get("productCode")), pattern)
+                ));
+            }
             // Filter categoryIds
             if (!filter.getCategoryIds().isEmpty()) {
                 predicates.add(root.get("categoryID").in(filter.getCategoryIds()));

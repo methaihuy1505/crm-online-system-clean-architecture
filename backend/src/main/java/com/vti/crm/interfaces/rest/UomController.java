@@ -17,7 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/uoms")
 @RequiredArgsConstructor
-public class UomController {
+public class  UomController {
 
     private final CreateUomUseCase createUomUseCase;
     private final UpdateUomUseCase updateUomUseCase;

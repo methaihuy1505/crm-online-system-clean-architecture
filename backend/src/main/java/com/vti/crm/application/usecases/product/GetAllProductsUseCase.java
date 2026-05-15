@@ -17,9 +17,6 @@ import java.util.List;
 public class GetAllProductsUseCase {
 
     private final ProductDomainService productDomainService;
-    private final IProductCategoryRepository categoryRepository;
-    private final IUomRepository uomRepository;
-    private final IProductImageRepository productImageRepository;
 
     public List<Product> execute() {
         return productDomainService.findAllActive();

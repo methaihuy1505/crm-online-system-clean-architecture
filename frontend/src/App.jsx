@@ -4,13 +4,13 @@ import LeadPage from "./pages/leads/LeadPage";
 import AddProduct from "./pages/product/ProductInput";
 import ProductInventory from "./pages/product/ProductPage";
 import ProductEdit from "./pages/product/ProductEdit";
-import MetadataManagement from "./pages/opportunity/MetadataManagement";
+import MetadataPage from "./pages/opportunity/metadata/MetadataPage";
 import SalesOpportunities from "./pages/opportunity/Opportunities";
-import EditOpportunityStatus from "./pages/opportunity/StatusAdd";
-import EditStage from "./pages/opportunity/StageAdd";
-import LostReasons from "./pages/opportunity/LostReasons";
-import OpportunityLineItems from "./pages/opportunity/OppotunityItem";
-import OpportunityItemAdd from "./pages/opportunity/OpportunityItemAdd";
+import EditOpportunityStatus from "./pages/opportunity/metadata/StatusInput";
+// import EditStage from "./pages/opportunity/metadata/StageInput";
+// import LostReasons from "./pages/opportunity/metadata/ReasonInput";
+import OpportunityLineItems from "./pages/opportunity/opportunityitem/OppotunityItem";
+import OpportunityItemAdd from "./pages/opportunity/opportunityitem/OpportunityItemAdd";
 function App() {
   return (
     <BrowserRouter>
@@ -21,14 +21,14 @@ function App() {
           <Route path="/productimport" element={<AddProduct />} />
           <Route path="/productpage" element={<ProductInventory />} />
           <Route path="/productedit/:id" element={<ProductEdit />} />{" "}
-          <Route path="/metadatamanagement" element={<MetadataManagement />} />
+          <Route path="/metadatapage" element={<MetadataPage />} />
           <Route path="/opportunities" element={<SalesOpportunities />} />
           <Route
             path="/editopportunitystatus/:id?"
             element={<EditOpportunityStatus />}
           />{" "}
-          <Route path="/editstage/:id?" element={<EditStage />} />{" "}
-          <Route path="/lostreason/:id?" element={<LostReasons />} />{" "}
+          {/* <Route path="/editstage/:id?" element={<EditStage />} />{" "}
+          <Route path="/lostreason/:id?" element={<LostReasons />} />{" "} */}
           <Route
             path="/opportunities/:id/items"
             element={<OpportunityLineItems />}

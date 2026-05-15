@@ -52,7 +52,7 @@ public class OpportunityStageController {
                                 id,
                                 request.getName(),
                                 request.getProbabilityDefault(),
-                                request.getSortOrder(),
+                                -1,
                                 request.getIsClosed()
                         )
                 )

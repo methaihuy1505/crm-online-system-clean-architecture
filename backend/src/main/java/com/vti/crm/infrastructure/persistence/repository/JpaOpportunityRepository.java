@@ -3,6 +3,7 @@ package com.vti.crm.infrastructure.persistence.repository;
 import com.vti.crm.infrastructure.persistence.entity.OpportunityDbEntity;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,7 +14,8 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface JpaOpportunityRepository extends JpaRepository<OpportunityDbEntity, Integer> {
+public interface JpaOpportunityRepository extends JpaRepository<OpportunityDbEntity, Integer>,
+        JpaSpecificationExecutor<OpportunityDbEntity> {
 
     Optional<OpportunityDbEntity> findByOpportunityCode(String opportunityCode);
 

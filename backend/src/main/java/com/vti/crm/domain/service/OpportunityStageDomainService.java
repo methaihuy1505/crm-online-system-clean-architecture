@@ -14,7 +14,10 @@ public class OpportunityStageDomainService {
 
     public OpportunityStage create(String name, Integer probabilityDefault,
                                    Integer sortOrder, Boolean isClosed) {
-        OpportunityStage stage = new OpportunityStage(name, probabilityDefault, sortOrder);
+        // Tự động cấp sortOrder = max + 1, bỏ qua giá trị FE gửi lên
+        int nextSortOrder = repository.findMaxSortOrder() + 1;
+
+        OpportunityStage stage = new OpportunityStage(name, probabilityDefault, nextSortOrder);
         applyClosedState(stage, isClosed);
         return repository.save(stage);
     }
@@ -32,7 +35,11 @@ public class OpportunityStageDomainService {
     public OpportunityStage update(Integer id, String name, Integer probabilityDefault,
                                    Integer sortOrder, Boolean isClosed) {
         OpportunityStage stage = findById(id);
-        stage.update(name, probabilityDefault, sortOrder);
+
+        // Giữ nguyên sortOrder cũ nếu FE không gửi
+        Integer resolvedSortOrder = sortOrder != null ? sortOrder : stage.getSortOrder();
+
+        stage.update(name, probabilityDefault, resolvedSortOrder);
         applyClosedState(stage, isClosed);
         return repository.save(stage);
     }

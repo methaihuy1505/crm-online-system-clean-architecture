@@ -7,6 +7,7 @@ import com.vti.crm.domain.repository.IProductRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 
 public class OpportunityItemDomainService {
 
@@ -29,11 +30,13 @@ public class OpportunityItemDomainService {
         validateOpportunityExists(opportunityId);
         var product = validateProductExists(productId);
 
-        // Lấy snapshot data từ Product
         String productName = product.getName();
         String uomName     = resolveUomName(product);
         BigDecimal price   = unitPrice != null ? unitPrice : product.getBasePrice();
         BigDecimal vat     = vatRate != null ? vatRate : product.getVatRate();
+
+        // Tự động cấp lineItemNumber, bỏ qua giá trị FE gửi lên
+        int nextLineItemNumber = resolveNextLineItemNumber(opportunityId);
 
         OpportunityItem item = new OpportunityItem.OpportunityItemBuilder()
                 .opportunityId(opportunityId)
@@ -44,16 +47,24 @@ public class OpportunityItemDomainService {
                 .unitPrice(price)
                 .vatRate(vat)
                 .discountRate(discountRate)
-                .lineItemNumber(lineItemNumber)
+                .lineItemNumber(nextLineItemNumber) // dùng số tự động
                 .note(note)
                 .build();
 
         OpportunityItem saved = itemRepository.save(item);
-
-        // Tính lại tổng Opportunity sau khi thêm item
         recalculateOpportunityTotal(opportunityId);
-
         return saved;
+    }
+
+    // Tính lineItemNumber tiếp theo = max hiện có + 1, bắt đầu từ 1
+    private int resolveNextLineItemNumber(Integer opportunityId) {
+        List<OpportunityItem> existing = itemRepository.findByOpportunityId(opportunityId);
+        return existing.stream()
+                .map(OpportunityItem::getLineItemNumber)
+                .filter(Objects::nonNull)
+                .mapToInt(Integer::intValue)
+                .max()
+                .orElse(0) + 1;
     }
 
     public OpportunityItem findById(Integer id) {

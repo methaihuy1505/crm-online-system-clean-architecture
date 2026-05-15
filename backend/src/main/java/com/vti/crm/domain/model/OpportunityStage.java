@@ -16,14 +16,14 @@ public class OpportunityStage {
         this.id = id;
         this.name = validateInput(name,"Tên khong được để trống");
         this.probabilityDefault = (probabilityDefault<0)?0:probabilityDefault;
-        this.sortOrder = (sortOrder<0)?0:sortOrder;
+        this.sortOrder = (sortOrder != null && sortOrder < 0) ? 0 : sortOrder;
         this.isClosed=isClosed;
     }
 
     public void update(String name, Integer probabilityDefault, Integer sortOrder){
         this.name = validateInput(name,"Tên khong được để trống");
         this.probabilityDefault = (probabilityDefault<0)?0:probabilityDefault;
-        this.sortOrder = (sortOrder<0)?0:sortOrder;
+        this.sortOrder = (sortOrder != null && sortOrder < 0) ? 0 : sortOrder;
     }
 
 
@@ -60,4 +60,7 @@ public class OpportunityStage {
     public Boolean getClosed() {
         return isClosed;
     }
+
+
+    public void setSortOrder(Integer sortOrder) { this.sortOrder = sortOrder; }
 }

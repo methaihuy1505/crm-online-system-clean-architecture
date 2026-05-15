@@ -19,7 +19,7 @@ const iconStyle = {
 
 export default function ProductInventory() {
   const [products, setProducts] = useState([]);
-  const [search, setSearch] = useState("");
+  const [searchTerm, setSearchTerm] = useState(""); // State tạm hiển thị ở ô input để gõ mượt
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
@@ -34,18 +34,25 @@ export default function ProductInventory() {
   const tableContainerRef = useRef(null);
 
   const [rightPanel, setRightPanel] = useState("inspection"); // "inspection" | "filter"
+
+  // 1. GỘP SEARCH VÀO TRONG FILTERS STATE
   const [filters, setFilters] = useState({
+    search: "",
     sort: "",
     productType: "",
     categoryIds: [],
     uomIds: [],
   });
 
-  // Hàm fetch data gốc
+  // Hàm fetch data gốc - nhận params từ filters state và gửi lên BE
   const fetchProducts = async (activeFilters = filters) => {
     try {
       setLoading(true);
       const params = {};
+
+      // Đẩy param search lên Backend (nếu không có thì truyền chuỗi rỗng hoặc null)
+      params.search = activeFilters.search || "";
+
       if (activeFilters.sort) params.sort = activeFilters.sort;
       if (activeFilters.productType)
         params.productType = activeFilters.productType;
@@ -96,20 +103,15 @@ export default function ProductInventory() {
     }
   };
 
-  const handleSearch = (val) => {
-    setSearch(val);
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
     setPage(1);
     setSelectedIndex(-1);
   };
 
-  const filtered = products.filter(
-    (p) =>
-      p.name?.toLowerCase().includes(search.toLowerCase()) ||
-      p.productCode?.toLowerCase().includes(search.toLowerCase()),
-  );
-
-  const handleFilterChange = (newFilters) => {
-    setFilters(newFilters);
+  // Hàm xử lý khi user gõ vào ô search: Cập nhật text ngay lập tức & nhảy về page 1
+  const handleSearchChange = (val) => {
+    setSearchTerm(val);
     setPage(1);
     setSelectedIndex(-1);
   };
@@ -121,9 +123,10 @@ export default function ProductInventory() {
     filters.uomIds.length > 0,
   ].filter(Boolean).length;
 
-  const totalFiltered = filtered.length;
+  // FE BÂY GIỜ CHỈ LÀM NHIỆM VỤ PHÂN TRANG (PAGINATION) TRÊN MẢNG BE ĐÃ LỌC
+  const totalFiltered = products.length;
   const startIdx = (page - 1) * pageSize;
-  const paginated = filtered.slice(startIdx, startIdx + pageSize);
+  const paginated = products.slice(startIdx, startIdx + pageSize);
 
   const colWidths = ["25%", "15%", "15%", "10%", "15%", "8%", "12%"];
   const COLS = [
@@ -136,16 +139,25 @@ export default function ProductInventory() {
     "",
   ];
 
-  // --- EFFECT 1: CHỈ ĐỒNG BỘ DỮ LIỆU KHI BỘ LỌC THAY ĐỔI ---
-  // Tách biệt hoàn toàn khỏi logic phím tắt để chặn Infinite Loop
+  // --- EFFECT 1: CHỈ ĐỒNG BỘ DỮ LIỆU KHI BỘ LỌC (BAO GỒM CẢ SEARCH DEBOUNCED) THAY ĐỔI ---
   useEffect(() => {
     fetchProducts(filters);
   }, [filters]);
 
+  // --- EFFECT MỚI: DEBOUNCE SEARCH TERM ĐỂ CẬP NHẬT VÀO FILTERS ---
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setFilters((prev) => ({ ...prev, search: searchTerm }));
+    }, 300); // Trì hoãn 300ms trước khi kích hoạt gọi API
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchTerm]);
+
   // --- EFFECT 2: XỬ LÝ LẮNG NGHE BÀN PHÍM TOÀN CỤC ---
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Nếu đang focus gõ chữ ở ô tìm kiếm hoặc các select modal thì bỏ qua hotkey điều hướng
       if (
         ["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement.tagName)
       ) {
@@ -162,7 +174,6 @@ export default function ProductInventory() {
         return;
       }
 
-      // Nếu bất kỳ modal/sidebar nào đang mở thì khóa các phím tắt quản lý danh sách bên dưới
       if (showAddModal || editProductId !== null || rightPanel === "filter")
         return;
 
@@ -206,7 +217,6 @@ export default function ProductInventory() {
           break;
       }
 
-      // Phím tắt tổ hợp Alt + ...
       if (e.altKey) {
         switch (e.key.toLowerCase()) {
           case "e":
@@ -245,7 +255,6 @@ export default function ProductInventory() {
         }
       }
 
-      // Di chuyển trang nhanh bằng mũi tên Trái / Phải độc lập
       if (e.key === "ArrowLeft" && page > 1) setPage(page - 1);
       if (e.key === "ArrowRight" && page < Math.ceil(totalFiltered / pageSize))
         setPage(page + 1);
@@ -325,8 +334,8 @@ export default function ProductInventory() {
                   className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400 text-[#191c1d] ml-2 outline-none"
                   placeholder="Tìm kiếm..."
                   ref={searchInputRef}
-                  value={search}
-                  onChange={(e) => handleSearch(e.target.value)}
+                  value={searchTerm}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                 />
               </div>
 
@@ -426,6 +435,7 @@ export default function ProductInventory() {
                           onSelect={() => {
                             setSelectedProduct(p);
                             setSelectedIndex(index);
+                            setRightPanel("inspection");
                           }}
                           onDelete={handleDelete}
                           onEdit={setEditProductId}

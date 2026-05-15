@@ -57,8 +57,7 @@ public class OpportunityItemController {
                                 request.getUnitPrice(),
                                 request.getVatRate(),
                                 request.getDiscountRate(),
-                                request.getLineItemNumber(),
-                                request.getNote()
+                                request.getNote()  // bỏ lineItemNumber
                         )
                 )
         );

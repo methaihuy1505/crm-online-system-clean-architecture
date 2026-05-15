@@ -36,28 +36,31 @@ export default function StatusModal({ open, statusId, onClose, onSaved }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name || !code) return alert("Vui lòng điền đủ Tên và Mã!");
+    const trimmedName = name.trim();
+    const trimmedCode = code.trim();
+
+    if (!trimmedName || !trimmedCode)
+      return alert("Vui lòng điền đủ Tên và Mã trạng thái!");
+
+    setLoading(true);
     try {
-      setLoading(true);
-      const payload = { name, code, isFinal };
       if (statusId) {
-        // Khi cập nhật trạng thái, chỉ gửi name và isFinal theo đúng hàm update của Controller
         await api.put(`/opportunity-statuses/${statusId}`, {
-          name: payload.name,
-          isFinal: payload.isFinal,
+          name: trimmedName,
+          code: trimmedCode,
+          isFinal,
         });
       } else {
-        // Khi tạo mới thì gửi đủ cả 3 trường
         await api.post("/opportunity-statuses", {
-          code: payload.code,
-          name: payload.name,
-          isFinal: payload.isFinal,
+          name: trimmedName,
+          code: trimmedCode,
+          isFinal,
         });
       }
       onSaved();
       onClose();
     } catch (err) {
-      alert("Lỗi khi lưu dữ liệu!" + err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -66,45 +69,45 @@ export default function StatusModal({ open, statusId, onClose, onSaved }) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center px-4">
-      <div
-        className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <div className="relative bg-white w-full max-w-2xl rounded-2xl p-6 shadow-2xl animate-fadeIn">
-        <h3 className="text-lg font-bold text-[#1A237E] mb-4">
-          {statusId ? "Cập nhật Trạng thái" : "Thêm mới Trạng thái"}
-        </h3>
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white rounded-3xl w-full max-w-sm p-6 flex flex-col gap-4 shadow-2xl animate-scale-up"
+      >
+        <div className="border-b border-slate-100 pb-2">
+          <h3 className="text-sm font-black text-slate-800 uppercase tracking-tight">
+            {statusId ? "Cập nhật trạng thái" : "Thêm trạng thái mới"}
+          </h3>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
-                Tên trạng thái
-              </label>
-              <input
-                ref={focusRef}
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-blue-600 bg-slate-50"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
-                Mã hệ thống
-              </label>
-              <input
-                type="text"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                disabled={!!statusId}
-                className="w-full border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-blue-600 bg-slate-50 disabled:opacity-50"
-              />
-            </div>
+        <div className="flex flex-col gap-3">
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+              Tên trạng thái *
+            </label>
+            <input
+              ref={focusRef}
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-blue-600 bg-slate-50"
+            />
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+              Mã trạng thái *
+            </label>
+            <input
+              type="text"
+              value={code}
+              disabled={!!statusId}
+              onChange={(e) => setCode(e.target.value)}
+              className="w-full border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:border-blue-600 bg-slate-50 disabled:opacity-60"
+            />
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl mt-2 border border-slate-100">
             <div>
               <div className="text-xs font-bold text-slate-700">
                 Trạng thái cuối cùng (Is Final)
@@ -137,11 +140,11 @@ export default function StatusModal({ open, statusId, onClose, onSaved }) {
               disabled={loading}
               className="px-6 py-2 bg-[#1A237E] text-white text-xs font-bold rounded-xl shadow-md hover:bg-blue-900 transition-all disabled:opacity-50"
             >
-              {loading ? "Đang xử lý..." : statusId ? "Cập nhật" : "Tạo mới"}
+              {loading ? "Đang xử lý..." : "Xác nhận"}
             </button>
           </div>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   );
 }

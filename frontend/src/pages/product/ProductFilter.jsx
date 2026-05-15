@@ -101,8 +101,15 @@ export default function ProductFilterPanel({ filters, onChange, onClose }) {
     );
   }, []);
 
+  // CẬP NHẬT HÀM RESET: Giữ lại cấu trúc key `search`
   const handleReset = () =>
-    onChange({ sort: "", productType: "", categoryIds: [], uomIds: [] });
+    onChange({
+      search: "",
+      sort: "",
+      productType: "",
+      categoryIds: [],
+      uomIds: [],
+    });
 
   return (
     <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs p-4 animate-fade-in relative">
