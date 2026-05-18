@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 
 const MainLayout = () => {
-  // Trạng thái thu/phóng của Sidebar
+  // Giữ lại trạng thái thu/phóng của bạn để đồng bộ với file Sidebar
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const toggleSidebar = () => {

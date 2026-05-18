@@ -1,0 +1,527 @@
+{
+	"info": {
+		"_postman_id": "8e36e656-e910-419b-ab05-3e28406757b1",
+		"name": "Clean Architecture CRM",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Activity Management",
+			"item": [
+				{
+					"name": "1. Create New Activity (Meeting)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"taskId\": 1,\n    \"parentId\": 10,\n    \"parentType\": \"LEAD\",\n    \"contactId\": 5,\n    \"activityType\": \"MEETING\",\n    \"subject\": \"Thảo luận chốt hợp đồng dự án CRM\",\n    \"description\": \"Gặp mặt trực tiếp khách hàng để chốt các điều khoản về tính năng và báo giá\",\n    \"startDate\": \"2024-11-20T09:00:00\",\n    \"endDate\": \"2024-11-20T11:00:00\",\n    \"location\": \"Tầng 2, Tòa nhà Sông Đà, Hà Nội\",\n    \"duration\": 120,\n    \"isPriority\": true,\n    \"isCompleted\": false,\n    \"createdBy\": 101\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/activities",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"activities"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2. Create New Activity (Call)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"parentId\": 12,\n    \"parentType\": \"CUSTOMER\",\n    \"activityType\": \"CALL\",\n    \"subject\": \"Gọi tư vấn bảo hành\",\n    \"description\": \"Gọi tư vấn gia hạn gói bảo hành 1 năm\",\n    \"callType\": \"OUTBOUND\",\n    \"duration\": 15,\n    \"activityDate\": \"2024-10-15T15:30:00\",\n    \"isPriority\": false,\n    \"isCompleted\": true,\n    \"createdBy\": 101\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/activities",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"activities"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3. Get All Activities (Paged)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/activities?page=0&size=10",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"activities"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4. Get Activity By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/activities/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"activities",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "5. Update Activity",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"activityType\": \"MEETING\",\n    \"subject\": \"(Cập nhật) Thảo luận chốt hợp đồng dự án CRM\",\n    \"description\": \"Đã dời lịch cuộc họp sang buổi chiều do khách bận\",\n    \"startDate\": \"2024-11-20T14:00:00\",\n    \"endDate\": \"2024-11-20T16:00:00\",\n    \"location\": \"Phòng họp số 3, Trụ sở VTI\",\n    \"duration\": 120,\n    \"isCompleted\": true,\n    \"isPriority\": true\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/activities/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"activities",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "6. Delete Activity",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/activities/2",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"activities",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "7. Get Activities By Activity Type (Paged)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/activities/activity-type/MEETING?page=0&size=10",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"activities",
+								"activity-type",
+								"MEETING"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "8. Get Activities By Type & Parent (Paged)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/activities/activity-type/CALL/parent-type/CUSTOMER?page=0&size=10",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"activities",
+								"activity-type",
+								"CALL",
+								"parent-type",
+								"CUSTOMER"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "9. Get Activities By Call Type (Paged)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/activities/activity-type/callType/INBOUND?page=0&size=10",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"activities",
+								"activity-type",
+								"callType",
+								"INBOUND"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Task Management",
+			"item": [
+				{
+					"name": "1. Create New Task",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Thiết kế API cho Module Task\",\n    \"description\": \"Viết tài liệu thiết kế và định nghĩa Swagger cho các API CRUD Task\",\n    \"priority\": \"HIGH\",\n    \"startDate\": \"2024-12-01T08:00:00\",\n    \"endDate\": \"2024-12-05T17:00:00\",\n    \"status\": \"NOT_STARTED\",\n    \"assignedTo\": 205,\n    \"relateType\": \"OPPORTUNITY\",\n    \"relateId\": 50,\n    \"createdBy\": 101\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/tasks",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"tasks"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2. Get All Tasks (Paged)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/tasks?page=0&size=10",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"tasks"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3. Get Task By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/tasks/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"tasks",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4. Update Task",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"(Cập nhật) Thiết kế API cho Module Task\",\n    \"description\": \"Viết tài liệu thiết kế và định nghĩa Swagger cho các API CRUD Task. Cần review gấp.\",\n    \"priority\": \"URGENT\",\n    \"startDate\": \"2024-12-01T08:00:00\",\n    \"endDate\": \"2024-12-10T17:00:00\",\n    \"status\": \"IN_PROGRESS\",\n    \"assignedTo\": 205,\n    \"relateType\": \"OPPORTUNITY\",\n    \"relateId\": 50\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/tasks/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"tasks",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "5. Delete Task",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/tasks/2",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"tasks",
+								"2"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Task Note Management",
+			"item": [
+				{
+					"name": "1. Create Task Note",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"taskId\": 1,\n    \"userId\": 205,\n    \"content\": \"Đã review xong tài liệu phần 1. Cần bổ sung thêm Response Codes cho API Get All.\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/task-notes/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"task-notes",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2. Get All Task Notes (Paged)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/task-notes?page=0&size=10",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"task-notes"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3. Get Task Note By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/task-notes/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"task-notes",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4. Update Task Note",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"content\": \"(Đã sửa) Đã review xong tài liệu phần 1 và 2. API cơ bản ổn, chỉ thiếu phần Authentication Header.\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:8080/task-notes/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"task-notes",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "5. Delete Task Note",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/task-notes/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"task-notes",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

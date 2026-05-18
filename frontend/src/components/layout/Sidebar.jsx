@@ -11,6 +11,8 @@ import {
   Bell,
   HelpCircle,
   Headphones,
+  ClipboardList, // Icon cho phần Task của Huy
+  History,       // Icon cho phần Activities của Huy
 } from "lucide-react";
 
 const Sidebar = ({ isCollapsed, toggleSidebar }) => {
@@ -35,7 +37,9 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
           className={`flex items-center ${isCollapsed ? "justify-center" : "justify-between"} py-2 mb-4`}
         >
           <div
-            className={`flex items-center gap-3 overflow-hidden transition-all duration-300 ${isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"}`}
+            className={`flex items-center gap-3 overflow-hidden transition-all duration-300 ${
+              isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+            }`}
           >
             <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shrink-0 shadow-sm text-white">
               <Database size={20} strokeWidth={2.5} />
@@ -60,13 +64,15 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
           <NavLink
             to="/dashboard"
             className={navLinkClass}
-            title={isCollapsed ? "Thống kê hệ thống" : ""}
+            title={isCollapsed ? "Bảng điều khiển" : ""}
           >
             <LayoutDashboard size={20} />
             <span
-              className={`text-sm whitespace-nowrap transition-all duration-300 ${isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"}`}
+              className={`text-sm whitespace-nowrap transition-all duration-300 ${
+                isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"
+              }`}
             >
-              Thống kê hệ thống
+              Bảng điều khiển
             </span>
           </NavLink>
 
@@ -77,7 +83,9 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
           >
             <Users size={20} />
             <span
-              className={`text-sm whitespace-nowrap transition-all duration-300 ${isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"}`}
+              className={`text-sm whitespace-nowrap transition-all duration-300 ${
+                isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"
+              }`}
             >
               Khách hàng
             </span>
@@ -90,9 +98,43 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
           >
             <Target size={20} />
             <span
-              className={`text-sm whitespace-nowrap transition-all duration-300 ${isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"}`}
+              className={`text-sm whitespace-nowrap transition-all duration-300 ${
+                isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"
+              }`}
             >
               Tiềm năng
+            </span>
+          </NavLink>
+
+          {/* --- Menu Task của ThanhHuy --- */}
+          <NavLink
+            to="/task"
+            className={navLinkClass}
+            title={isCollapsed ? "Công việc" : ""}
+          >
+            <ClipboardList size={20} />
+            <span
+              className={`text-sm whitespace-nowrap transition-all duration-300 ${
+                isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"
+              }`}
+            >
+              Công việc (Tasks)
+            </span>
+          </NavLink>
+
+          {/* --- Menu Activities của ThanhHuy --- */}
+          <NavLink
+            to="/activities"
+            className={navLinkClass}
+            title={isCollapsed ? "Lịch sử hoạt động" : ""}
+          >
+            <History size={20} />
+            <span
+              className={`text-sm whitespace-nowrap transition-all duration-300 ${
+                isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"
+              }`}
+            >
+              Lịch sử hoạt động
             </span>
           </NavLink>
 
@@ -103,7 +145,9 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
           >
             <Megaphone size={20} />
             <span
-              className={`text-sm whitespace-nowrap transition-all duration-300 ${isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"}`}
+              className={`text-sm whitespace-nowrap transition-all duration-300 ${
+                isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"
+              }`}
             >
               Chiến dịch
             </span>
@@ -116,7 +160,9 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
           >
             <Settings size={20} />
             <span
-              className={`text-sm whitespace-nowrap transition-all duration-300 ${isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"}`}
+              className={`text-sm whitespace-nowrap transition-all duration-300 ${
+                isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"
+              }`}
             >
               Cài đặt
             </span>
@@ -128,7 +174,9 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
       <div className="p-4 border-t border-surface-variant/30 flex flex-col gap-3 overflow-x-hidden">
         {/* Nút Hỗ trợ & Thông báo */}
         <div
-          className={`flex items-center ${isCollapsed ? "flex-col gap-2" : "justify-around px-2"}`}
+          className={`flex items-center ${
+            isCollapsed ? "flex-col gap-2" : "justify-around px-2"
+          }`}
         >
           <button
             className="p-2 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors relative outline-none"
