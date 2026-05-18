@@ -1,0 +1,41 @@
+.user-modal-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(118, 118, 131, 0.45) transparent;
+}
+
+.user-modal-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.user-modal-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.user-modal-scroll::-webkit-scrollbar-thumb {
+  background: rgba(118, 118, 131, 0.45);
+  border-radius: 12px;
+}
+
+.user-filter-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  min-height: 42px;
+  line-height: 1.2;
+}
+
+.user-filter-select:focus {
+  outline: none;
+  border-color: rgba(10, 61, 177, 0.45);
+  box-shadow: 0 0 0 3px rgba(10, 61, 177, 0.12);
+}
+
+.user-filter-chevron {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 19px;
+  color: rgba(71, 85, 105, 0.9);
+}
