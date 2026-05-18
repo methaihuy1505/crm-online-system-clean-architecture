@@ -4,7 +4,23 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6fc55be1-d530-4937-af9f-f1db6d612b9a" name="Changes" comment="" />
+    <list default="true" id="6fc55be1-d530-4937-af9f-f1db6d612b9a" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/target/classes/com/vti/crm/application/usecases/activity/GetActivityUseCase.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/target/classes/com/vti/crm/application/usecases/activity/GetActivityUseCase.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/target/classes/com/vti/crm/domain/repository/Activity/IActivityRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/target/classes/com/vti/crm/domain/repository/Activity/IActivityRepository.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/target/classes/com/vti/crm/infrastructure/persistence/mapper/activity/ActivityInfraMapperImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/target/classes/com/vti/crm/infrastructure/persistence/mapper/activity/ActivityInfraMapperImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/target/classes/com/vti/crm/infrastructure/persistence/mapper/task/TaskInfraMapperImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/target/classes/com/vti/crm/infrastructure/persistence/mapper/task/TaskInfraMapperImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/target/classes/com/vti/crm/infrastructure/persistence/mapper/task/TaskNoteInfraMapperImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/target/classes/com/vti/crm/infrastructure/persistence/mapper/task/TaskNoteInfraMapperImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/target/classes/com/vti/crm/infrastructure/persistence/repository/activity/ActivityJpaRepository.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/target/classes/com/vti/crm/infrastructure/persistence/repository/activity/ActivityJpaRepository.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/target/classes/com/vti/crm/interfaces/dto/request/activity/ActivityAdvancedSearchRequest.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/target/classes/com/vti/crm/interfaces/dto/request/activity/ActivityAdvancedSearchRequest.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/target/classes/com/vti/crm/interfaces/mapper/Activity/ActivityWebMapperImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/target/classes/com/vti/crm/interfaces/mapper/Activity/ActivityWebMapperImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/target/classes/com/vti/crm/interfaces/mapper/Task/TaskNoteWebMapperImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/target/classes/com/vti/crm/interfaces/mapper/Task/TaskNoteWebMapperImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/target/classes/com/vti/crm/interfaces/mapper/Task/TaskWebMapperImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/target/classes/com/vti/crm/interfaces/mapper/Task/TaskWebMapperImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/target/classes/com/vti/crm/interfaces/rest/Activity/ActivityController.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend/target/classes/com/vti/crm/interfaces/rest/Activity/ActivityController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/components/activity/ActivityFormModal.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/activity/ActivityFormModal.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/mockdata/mockdata.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/mockdata/mockdata.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/pages/activites/ActivityFormModal.jsx" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -51,9 +67,10 @@
     "RunOnceActivity.MCP Project settings loaded": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
     "Spring Boot.CrmApplication.executor": "Run",
-    "com.google.cloudcode.ide_session_index": "20260515_0001",
-    "git-widget-placeholder": "master",
+    "com.google.cloudcode.ide_session_index": "20260518_0001",
+    "git-widget-placeholder": "ThanhHuy",
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "D:/VTI/crm-online-system-clean-architecture-poc-base-demo-clean-architecture"
