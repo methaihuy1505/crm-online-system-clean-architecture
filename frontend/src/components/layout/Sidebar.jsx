@@ -53,10 +53,10 @@ const Sidebar = ({ collapsed, onToggle }) => {
       ],
     },
     {
-      to: "/metadatamanagement",
+      to: "/metadatapage",
       icon: <Server size={20} />,
       label: "Metadata",
-      matchPaths: ["/metadatamanagement"],
+      matchPaths: ["/metadatapage"],
     },
     { to: "/settings", icon: <Settings size={20} />, label: "Cài đặt" },
   ];

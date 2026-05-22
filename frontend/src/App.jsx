@@ -19,8 +19,8 @@ import ProductEdit from "./pages/product/ProductEdit";
 import MetadataPage from "./pages/opportunity/metadata/MetadataPage";
 import SalesOpportunities from "./pages/opportunity/Opportunities";
 import EditOpportunityStatus from "./pages/opportunity/metadata/StatusInput";
-// import EditStage from "./pages/opportunity/metadata/StageInput";
-// import LostReasons from "./pages/opportunity/metadata/ReasonInput";
+import EditStage from "./pages/opportunity/metadata/StageInput";
+import LostReasons from "./pages/opportunity/metadata/ReasonInput";
 import OpportunityLineItems from "./pages/opportunity/opportunityitem/OppotunityItem";
 import OpportunityItemAdd from "./pages/opportunity/opportunityitem/OpportunityItemAdd";
 
@@ -60,8 +60,8 @@ function App() {
             path="/editopportunitystatus/:id?"
             element={<EditOpportunityStatus />}
           />
-          {/* <Route path="/editstage/:id?" element={<EditStage />} /> 
-          <Route path="/lostreason/:id?" element={<LostReasons />} /> */}
+          <Route path="/editstage/:id?" element={<EditStage />} /> 
+          <Route path="/lostreason/:id?" element={<LostReasons />} />
           <Route
             path="/opportunities/:id/items"
             element={<OpportunityLineItems />}

@@ -99,16 +99,20 @@ export default function MetadataPage() {
   }, [filteredData, selectedItem, showAddModal, editId]);
 
   return (
-    <div className="flex flex-col h-screen bg-[#f3f4f5] font-sans antialiased select-none text-[#191c1d]">
-      {/* Header điều hướng Tab */}
-      <header className="flex items-center justify-between px-8 py-3 bg-white border-b border-slate-200/60 shrink-0 shadow-xs">
+    
+    <div className="flex-1 flex flex-col h-full relative space-y-6 antialiased select-none text-slate-800">
+      
+      
+      <header className="flex items-center justify-between shrink-0">
         <div className="flex items-center gap-6">
-          <h1 className="text-lg font-black tracking-tight text-[#000666]">
-            QUẢN LÝ METADATA
-          </h1>
+          <div>
+                <h2 className="text-3xl font-headline font-extrabold text-primary tracking-tight">
+                  Quản lý Metadata
+                </h2>
+              </div>
 
-          {/* Nhóm nút chuyển Tab chuẩn M3 */}
-          <nav className="flex bg-slate-100 p-1 rounded-xl gap-1">
+          
+          <nav className="flex bg-white shadow-sm border border-slate-200/60 p-1 rounded-xl gap-1">
             {Object.keys(tabConfig).map((tab) => (
               <button
                 key={tab}
@@ -116,10 +120,10 @@ export default function MetadataPage() {
                   setActiveTab(tab);
                   setSearchTerm("");
                 }}
-                className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                className={`px-4 py-1.5 text-sm font-bold rounded-lg transition-all ${
                   activeTab === tab
                     ? "bg-[#1a237e] text-white shadow-sm"
-                    : "text-slate-500 hover:text-slate-800 hover:bg-slate-200/50"
+                    : "text-slate-500 hover:text-[#1a237e] hover:bg-slate-50"
                 }`}
               >
                 {tabConfig[tab].label}
@@ -130,10 +134,10 @@ export default function MetadataPage() {
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-1.5 px-4 py-2 bg-[#1a237e] text-white text-xs font-bold rounded-xl shadow-md hover:opacity-90 transition-all"
+          className="flex items-center gap-1.5 px-4 py-2 bg-[#1a237e] text-white text-sm font-bold rounded-xl shadow-md hover:opacity-90 transition-all"
         >
           <span
-            className="material-symbols-outlined text-[18px]"
+            className="material-symbols-outlined text-[20px]"
             style={iconStyle}
           >
             add
@@ -142,15 +146,16 @@ export default function MetadataPage() {
         </button>
       </header>
 
-      {/* Giao diện chính: Split-view */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Bên trái: Danh sách bảng dữ liệu Full màn hình */}
-        <main className="flex-1 flex flex-col bg-white overflow-hidden m-4 rounded-2xl border border-slate-200/50 shadow-xs">
+      
+      <div className="flex flex-1 overflow-hidden bg-white rounded-2xl shadow-sm border border-slate-200/50">
+        
+      
+        <main className="flex-1 flex flex-col overflow-hidden border-r border-slate-200/50">
           {/* Thanh tìm kiếm */}
-          <div className="px-8 py-3.5 border-b border-slate-100 flex items-center justify-between gap-4 shrink-0 bg-linear-to-b from-slate-50/50 to-white">
+          <div className="px-8 py-4 border-b border-slate-100 flex items-center justify-between gap-4 shrink-0 bg-slate-50/50">
             <div className="relative flex-1 max-w-md">
               <span
-                className="material-symbols-outlined absolute left-3 top-2 text-slate-400 text-[18px]"
+                className="material-symbols-outlined absolute left-3 top-2.5 text-slate-400 text-[18px]"
                 style={iconStyle}
               >
                 search
@@ -161,34 +166,34 @@ export default function MetadataPage() {
                 placeholder={`Tìm kiếm tên hoặc mã ${currentConfig.label.toLowerCase()}...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-4 py-1.5 text-xs font-medium bg-slate-100 hover:bg-slate-200/50 focus:bg-white border-none rounded-xl outline-none transition-all focus:ring-1 focus:ring-primary/20"
+                className="w-full pl-10 pr-4 py-2 text-sm font-medium bg-white border border-slate-200 rounded-xl outline-none transition-all focus:border-[#1a237e] focus:ring-1 focus:ring-[#1a237e]/20 shadow-sm"
               />
             </div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
               Tổng số: {filteredData.length} bản ghi
             </p>
           </div>
 
           {/* Bảng dữ liệu */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto custom-scrollbar">
             <table className="w-full text-left border-collapse table-fixed">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/70 text-[10px] font-black text-slate-400 uppercase tracking-widest sticky top-0 z-10 backdrop-blur-md">
-                  <th className="pl-8 py-3 w-1/3">Tên hiển thị</th>
-                  <th className="pl-4 py-3 w-1/4">Mã định danh</th>
+                <tr className="border-b border-slate-100 bg-slate-50/70 text-[11px] font-black text-slate-500 uppercase tracking-widest sticky top-0 z-10 backdrop-blur-md">
+                  <th className="pl-8 py-4 w-1/3">Tên hiển thị</th>
+                  <th className="pl-4 py-4 w-1/4">Mã định danh</th>
                   {activeTab === "stage" && (
-                    <th className="pl-4 py-3">Xác suất (%)</th>
+                    <th className="pl-4 py-4">Xác suất (%)</th>
                   )}
                   {activeTab === "stage" && (
-                    <th className="pl-4 py-3">Loại trạng thái</th>
+                    <th className="pl-4 py-4">Loại trạng thái</th>
                   )}
                   {activeTab === "status" && (
-                    <th className="pl-4 py-3">Bước kết thúc (Final)</th>
+                    <th className="pl-4 py-4">Bước kết thúc (Final)</th>
                   )}
                   {activeTab === "reason" && (
-                    <th className="pl-4 py-3">Mô tả</th>
+                    <th className="pl-4 py-4">Mô tả</th>
                   )}
-                  <th className="pr-8 py-3 text-right w-24">Hành động</th>
+                  <th className="pr-8 py-4 text-right w-24">Hành động</th>
                 </tr>
               </thead>
               <tbody>
@@ -196,7 +201,7 @@ export default function MetadataPage() {
                   <tr>
                     <td
                       colSpan="5"
-                      className="px-8 py-20 text-center text-xs font-semibold text-slate-400"
+                      className="px-8 py-20 text-center text-sm font-semibold text-slate-400"
                     >
                       Đang tải dữ liệu cấu hình...
                     </td>
@@ -210,26 +215,26 @@ export default function MetadataPage() {
                         className={`group border-b border-slate-50 transition-colors duration-150 cursor-pointer ${
                           isActive
                             ? "bg-blue-50/70 hover:bg-blue-50"
-                            : "hover:bg-[#f3f4f5]"
+                            : "hover:bg-slate-50/50"
                         }`}
                         onClick={() => setSelectedIndex(index)}
                       >
-                        <td className="pl-8 py-2 overflow-hidden truncate font-semibold text-sm text-[#191c1d]">
+                        <td className="pl-8 py-3 overflow-hidden truncate font-semibold text-sm text-slate-700">
                           {item.name || item.reasonName}
                         </td>
-                        <td className="pl-4 py-2 overflow-hidden truncate font-mono text-[12px] text-slate-500">
+                        <td className="pl-4 py-3 overflow-hidden truncate font-mono text-[12px] text-slate-500">
                           {item.code || item.reasonCode}
                         </td>
 
                         {/* Render các cột đặc thù theo Tab */}
                         {activeTab === "stage" && (
                           <>
-                            <td className="pl-4 py-2 text-sm font-bold text-indigo-600">
+                            <td className="pl-4 py-3 text-sm font-bold text-indigo-600">
                               {item.probabilityDefault}%
                             </td>
-                            <td className="pl-4 py-2">
+                            <td className="pl-4 py-3">
                               <span
-                                className={`px-2 py-0.5 text-[10px] font-bold rounded-md border ${
+                                className={`px-2 py-1 text-[10px] font-bold rounded-md border ${
                                   item.stageType === "CLOSED"
                                     ? "bg-red-50 text-red-700 border-red-100"
                                     : "bg-green-50 text-green-700 border-green-100"
@@ -243,7 +248,7 @@ export default function MetadataPage() {
                         )}
 
                         {activeTab === "status" && (
-                          <td className="pl-4 py-2">
+                          <td className="pl-4 py-3">
                             <span
                               className={`w-2 h-2 inline-block rounded-full mr-2 ${item.isFinal ? "bg-red-500" : "bg-slate-300"}`}
                             />
@@ -254,19 +259,19 @@ export default function MetadataPage() {
                         )}
 
                         {activeTab === "reason" && (
-                          <td className="pl-4 py-2 text-xs text-slate-400 overflow-hidden truncate italic">
+                          <td className="pl-4 py-3 text-xs text-slate-400 overflow-hidden truncate italic">
                             {item.description || "---"}
                           </td>
                         )}
 
                         {/* Nút hành động sửa nhanh */}
-                        <td className="pr-8 py-2 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+                        <td className="pr-8 py-3 text-right opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               setEditId(item.id);
                             }}
-                            className="p-1 text-slate-400 hover:text-blue-900 transition-colors"
+                            className="p-1.5 bg-white shadow-sm border border-slate-200 text-slate-500 hover:text-blue-700 hover:border-blue-200 rounded-lg transition-all"
                           >
                             <span
                               className="material-symbols-outlined text-[18px]"
@@ -283,7 +288,7 @@ export default function MetadataPage() {
                   <tr>
                     <td
                       colSpan="5"
-                      className="px-8 py-20 text-center text-slate-400 text-xs font-medium"
+                      className="px-8 py-20 text-center text-slate-400 text-sm font-medium"
                     >
                       Không có dữ liệu phù hợp trong danh mục này.
                     </td>
@@ -295,18 +300,18 @@ export default function MetadataPage() {
         </main>
 
         {/* Bên phải: Sidebar Inspection Panel hiển thị nhanh chi tiết bản ghi đang chọn */}
-        <aside className="hidden xl:block w-80 shrink-0 border-l border-slate-200/50 bg-[#f3f4f5]/50 overflow-y-auto p-6">
+        <aside className="hidden xl:block w-80 shrink-0 bg-slate-50/50 overflow-y-auto p-6">
           {selectedItem ? (
             <div className="flex flex-col gap-4">
               <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                 Xem nhanh thông tin
               </h3>
-              <div className="bg-white p-5 rounded-2xl border border-slate-200/40 shadow-xs flex flex-col gap-3">
+              <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-xs flex flex-col gap-3">
                 <div>
                   <label className="text-[10px] font-bold text-slate-400 uppercase">
                     Tên cấu hình
                   </label>
-                  <p className="text-sm font-bold text-[#191c1d] mt-0.5">
+                  <p className="text-sm font-bold text-slate-800 mt-0.5">
                     {selectedItem.name || selectedItem.reasonName}
                   </p>
                 </div>

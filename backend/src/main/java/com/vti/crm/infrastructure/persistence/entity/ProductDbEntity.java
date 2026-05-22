@@ -55,10 +55,10 @@ public class ProductDbEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(name = "created_by_id")
+    @Column(name = "created_by")
     private Integer createdByID;
 
-    @Column(name = "updated_by_id")
+    @Column(name = "updated_by")
     private Integer updatedByID;
 
     @Column(name = "is_deleted", nullable = false)

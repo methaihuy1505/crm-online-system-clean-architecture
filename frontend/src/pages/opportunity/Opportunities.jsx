@@ -288,14 +288,14 @@ export default function OpportunityDashboard() {
         <div className="flex flex-1 overflow-hidden">
           <div className="space-y-6 flex-1 relative">
             <div className="flex justify-between items-end shrink-0 gap-4">
-              <div>
-                <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">
-                  CRM System
-                </p>
-                <h2 className="text-3xl font-black text-[#1a237e]">
+              
+                
+                <div>
+                <h2 className="text-3xl font-headline font-extrabold text-primary tracking-tight">
                   Cơ hội bán hàng
                 </h2>
               </div>
+              
 
               <div className="hidden lg:flex items-center bg-[#e6e6e7] px-4 py-2.5 rounded-full w-80 lg:w-96 focus-within:bg-white border border-transparent focus-within:border-slate-200 transition-all">
                 <span

@@ -306,10 +306,7 @@ export default function ProductInventory() {
           <main className="space-y-6 flex-1 relative">
             <div className="flex justify-between items-end shrink-0 gap-4">
               <div>
-                <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">
-                  Catalog Manager
-                </p>
-                <h2 className="text-3xl font-black text-[#1a237e]">
+                <h2 className="text-3xl font-headline font-extrabold text-primary tracking-tight">
                   Danh mục sản phẩm
                 </h2>
               </div>
