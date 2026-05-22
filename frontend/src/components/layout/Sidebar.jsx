@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   Database,
   Menu,
@@ -11,34 +11,80 @@ import {
   Bell,
   HelpCircle,
   Headphones,
-  ClipboardList, // Icon cho phần Task của Huy
-  History,       // Icon cho phần Activities của Huy
+  ClipboardList,
+  History,
+  Box,        
+  TrendingUp, 
+  Server      
 } from "lucide-react";
 
-const Sidebar = ({ isCollapsed, toggleSidebar }) => {
-  // Style động cho các link menu
-  const navLinkClass = ({ isActive }) =>
-    `flex items-center px-3 py-3 rounded-xl transition-all duration-300 ${
-      isActive
+const Sidebar = ({ collapsed, onToggle }) => {
+  const location = useLocation();
+
+  // Logic kiểm tra xem menu cha có nên active khi đang ở route con hay không
+  const isGroupActive = (matchPaths) =>
+    matchPaths.some((p) => location.pathname.startsWith(p));
+
+  // --- MAP DANH SÁCH MENU  ---
+  const navItems = [
+    { to: "/dashboard", icon: <LayoutDashboard size={20} />, label: "Bảng điều khiển" },
+    { to: "/customers", icon: <Users size={20} />, label: "Khách hàng" },
+    { to: "/leads", icon: <Target size={20} />, label: "Tiềm năng" },
+    { to: "/task", icon: <ClipboardList size={20} />, label: "Công việc (Tasks)" },
+    { to: "/activities", icon: <History size={20} />, label: "Lịch sử hoạt động" },
+    { to: "/campaigns", icon: <Megaphone size={20} />, label: "Chiến dịch" },
+    {
+      to: "/productpage",
+      icon: <Box size={20} />,
+      label: "Sản phẩm",
+      matchPaths: ["/productpage", "/productimport", "/productedit"],
+    },
+    {
+      to: "/opportunities",
+      icon: <TrendingUp size={20} />,
+      label: "Cơ hội",
+      matchPaths: [
+        "/opportunities",
+        "/editopportunitystatus",
+        "/editstage",
+        "/lostreason",
+        "/opportunitylineitems",
+        "/addeditlineitem",
+      ],
+    },
+    {
+      to: "/metadatamanagement",
+      icon: <Server size={20} />,
+      label: "Metadata",
+      matchPaths: ["/metadatamanagement"],
+    },
+    { to: "/settings", icon: <Settings size={20} />, label: "Cài đặt" },
+  ];
+
+  // Logic gen CSS class cho từng item
+  const itemClass = (active) =>
+    `flex items-center rounded-xl transition-all duration-300 ${
+      collapsed ? "justify-center px-3 py-3" : "gap-3 px-3 py-3"
+    } ${
+      active
         ? "bg-[#f3f4f5] dark:bg-slate-800 text-[#1A237E] dark:text-white shadow-sm font-bold"
         : "text-slate-600 dark:text-slate-400 hover:bg-[#f3f4f5] dark:hover:bg-slate-800 font-medium"
-    } ${isCollapsed ? "justify-center" : "gap-3"}`;
+    }`;
 
   return (
     <aside
       className={`h-screen fixed left-0 top-0 border-r border-surface-variant/30 bg-white dark:bg-slate-900 shadow-[16px_0_32px_-4px_rgba(25,28,29,0.02)] z-50 transition-all duration-300 flex flex-col justify-between ${
-        isCollapsed ? "w-20" : "w-64"
+        collapsed ? "w-[68px]" : "w-64"
       }`}
     >
       {/* KHU VỰC MENU TRÊN */}
       <div className="flex flex-col p-4 gap-2 overflow-y-auto custom-scrollbar overflow-x-hidden">
+        
         {/* Logo và Nút Thu/Phóng */}
-        <div
-          className={`flex items-center ${isCollapsed ? "justify-center" : "justify-between"} py-2 mb-4`}
-        >
+        <div className={`flex items-center ${collapsed ? "justify-center" : "justify-between"} py-2 mb-4`}>
           <div
             className={`flex items-center gap-3 overflow-hidden transition-all duration-300 ${
-              isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+              collapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"
             }`}
           >
             <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shrink-0 shadow-sm text-white">
@@ -48,153 +94,62 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
               <h1 className="font-headline font-extrabold text-[#1A237E] text-lg leading-tight">
                 CRM Việt
               </h1>
+              <p className="text-xs text-slate-500 font-medium">Hệ thống quản lý</p>
             </div>
           </div>
 
           <button
-            onClick={toggleSidebar}
+            onClick={onToggle}
             className="p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors shrink-0 outline-none"
-            title={isCollapsed ? "Mở rộng" : "Thu gọn"}
+            title={collapsed ? "Mở rộng" : "Thu gọn"}
           >
             <Menu size={20} strokeWidth={2.5} />
           </button>
         </div>
 
+        {/* DANH SÁCH RENDER MENU */}
         <nav className="flex-1 space-y-1">
-          <NavLink
-            to="/dashboard"
-            className={navLinkClass}
-            title={isCollapsed ? "Bảng điều khiển" : ""}
-          >
-            <LayoutDashboard size={20} />
-            <span
-              className={`text-sm whitespace-nowrap transition-all duration-300 ${
-                isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"
-              }`}
-            >
-              Bảng điều khiển
-            </span>
-          </NavLink>
+          {navItems.map(({ to, icon, label, matchPaths }) => {
+            // Xác định xem thẻ này có đang được chọn (active) hay không
+            const active = matchPaths
+              ? isGroupActive(matchPaths)
+              : location.pathname.startsWith(to) && to !== "/dashboard" 
+                || (to === "/dashboard" && location.pathname === "/dashboard");
 
-          <NavLink
-            to="/customers"
-            className={navLinkClass}
-            title={isCollapsed ? "Khách hàng" : ""}
-          >
-            <Users size={20} />
-            <span
-              className={`text-sm whitespace-nowrap transition-all duration-300 ${
-                isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"
-              }`}
-            >
-              Khách hàng
-            </span>
-          </NavLink>
-
-          <NavLink
-            to="/leads"
-            className={navLinkClass}
-            title={isCollapsed ? "Tiềm năng" : ""}
-          >
-            <Target size={20} />
-            <span
-              className={`text-sm whitespace-nowrap transition-all duration-300 ${
-                isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"
-              }`}
-            >
-              Tiềm năng
-            </span>
-          </NavLink>
-
-          {/* --- Menu Task của ThanhHuy --- */}
-          <NavLink
-            to="/task"
-            className={navLinkClass}
-            title={isCollapsed ? "Công việc" : ""}
-          >
-            <ClipboardList size={20} />
-            <span
-              className={`text-sm whitespace-nowrap transition-all duration-300 ${
-                isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"
-              }`}
-            >
-              Công việc (Tasks)
-            </span>
-          </NavLink>
-
-          {/* --- Menu Activities của ThanhHuy --- */}
-          <NavLink
-            to="/activities"
-            className={navLinkClass}
-            title={isCollapsed ? "Lịch sử hoạt động" : ""}
-          >
-            <History size={20} />
-            <span
-              className={`text-sm whitespace-nowrap transition-all duration-300 ${
-                isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"
-              }`}
-            >
-              Lịch sử hoạt động
-            </span>
-          </NavLink>
-
-          <NavLink
-            to="/campaigns"
-            className={navLinkClass}
-            title={isCollapsed ? "Chiến dịch" : ""}
-          >
-            <Megaphone size={20} />
-            <span
-              className={`text-sm whitespace-nowrap transition-all duration-300 ${
-                isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"
-              }`}
-            >
-              Chiến dịch
-            </span>
-          </NavLink>
-
-          <NavLink
-            to="/settings"
-            className={navLinkClass}
-            title={isCollapsed ? "Cài đặt" : ""}
-          >
-            <Settings size={20} />
-            <span
-              className={`text-sm whitespace-nowrap transition-all duration-300 ${
-                isCollapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"
-              }`}
-            >
-              Cài đặt
-            </span>
-          </NavLink>
+            return (
+              <NavLink
+                key={to}
+                to={to}
+                className={() => itemClass(active)}
+                title={collapsed ? label : ""}
+              >
+                {/* Wrap icon trong thẻ div để shrink-0 tránh bị bóp méo khi thu nhỏ */}
+                <div className="shrink-0">{icon}</div>
+                <span
+                  className={`text-sm whitespace-nowrap transition-all duration-300 ${
+                    collapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"
+                  }`}
+                >
+                  {label}
+                </span>
+              </NavLink>
+            );
+          })}
         </nav>
       </div>
 
       {/* KHU VỰC THÔNG TIN CÁ NHÂN & CÔNG CỤ */}
       <div className="p-4 border-t border-surface-variant/30 flex flex-col gap-3 overflow-x-hidden">
         {/* Nút Hỗ trợ & Thông báo */}
-        <div
-          className={`flex items-center ${
-            isCollapsed ? "flex-col gap-2" : "justify-around px-2"
-          }`}
-        >
-          <button
-            className="p-2 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors relative outline-none"
-            title="Thông báo"
-          >
+        <div className={`flex items-center ${collapsed ? "flex-col gap-2" : "justify-around px-2"}`}>
+          <button className="p-2 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors relative outline-none" title="Thông báo">
             <Bell size={20} />
             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full ring-2 ring-white"></span>
           </button>
-          <button
-            className="p-2 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors outline-none"
-            title="Trợ giúp"
-          >
+          <button className="p-2 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors outline-none" title="Trợ giúp">
             <HelpCircle size={20} />
           </button>
-          <button
-            className="p-2 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors outline-none"
-            title="Liên hệ CSKH"
-          >
+          <button className="p-2 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors outline-none" title="Liên hệ CSKH">
             <Headphones size={20} />
           </button>
         </div>
@@ -202,7 +157,7 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
         {/* Thông tin User */}
         <button
           className={`w-full flex items-center gap-3 p-2 rounded-xl transition-all duration-300 hover:bg-[#f3f4f5] dark:hover:bg-slate-800 outline-none ${
-            isCollapsed ? "justify-center" : "px-3"
+            collapsed ? "justify-center" : "px-3"
           }`}
         >
           <img
@@ -212,7 +167,7 @@ const Sidebar = ({ isCollapsed, toggleSidebar }) => {
           />
           <div
             className={`overflow-hidden transition-all duration-300 text-left ${
-              isCollapsed ? "w-0 opacity-0" : "w-auto opacity-100"
+              collapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"
             }`}
           >
             <p className="text-sm font-bold text-slate-700 dark:text-white whitespace-nowrap">

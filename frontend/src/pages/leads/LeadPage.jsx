@@ -230,7 +230,7 @@ const LeadPage = () => {
   };
 
   return (
-    <div className="space-y-6 flex-1 relative">
+    <div className="space-y-6 flex-1 relative ">
       <Toaster
         position="top-right"
         toastOptions={{
