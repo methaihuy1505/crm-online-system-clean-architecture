@@ -1,10 +1,10 @@
 package com.vti.crm.infrastructure.persistence.repository.task;
 
 import com.vti.crm.domain.model.PagedResult;
-import com.vti.crm.domain.model.Task.Task;
-import com.vti.crm.domain.repository.Task.ITaskRepository;
-import com.vti.crm.infrastructure.persistence.entity.task.TaskEntity;
-import com.vti.crm.infrastructure.persistence.mapper.task.TaskInfraMapper;
+import com.vti.crm.domain.model.Task;
+import com.vti.crm.domain.repository.ITaskRepository;
+import com.vti.crm.infrastructure.persistence.entity.TaskEntity;
+import com.vti.crm.infrastructure.persistence.mapper.TaskInfraMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

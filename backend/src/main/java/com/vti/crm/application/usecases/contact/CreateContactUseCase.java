@@ -7,7 +7,7 @@ import com.vti.crm.domain.repository.IContactRepository;
 import com.vti.crm.domain.repository.ICustomerRepository;
 import com.vti.crm.domain.repository.ICommunicationRepository;
 import com.vti.crm.domain.service.CustomerContactDomainService;
-import com.vti.crm.interfaces.dto.request.ContactCreateRequest;
+import com.vti.crm.interfaces.dto.request.contact.ContactCreateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

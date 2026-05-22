@@ -1,6 +1,6 @@
 package com.vti.crm.interfaces.dto.response.activity;
 
-import com.vti.crm.domain.model.Activity.Activity;
+import com.vti.crm.domain.model.Activity;
 import lombok.Builder;
 import lombok.Data;
 

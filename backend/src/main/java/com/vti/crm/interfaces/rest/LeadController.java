@@ -1,9 +1,9 @@
 package com.vti.crm.interfaces.rest;
 
 import com.vti.crm.application.usecases.lead.*;
-import com.vti.crm.interfaces.dto.request.LeadCreateRequest;
-import com.vti.crm.interfaces.dto.request.LeadUpdateRequest;
-import com.vti.crm.interfaces.dto.response.LeadResponse;
+import com.vti.crm.interfaces.dto.request.lead.LeadCreateRequest;
+import com.vti.crm.interfaces.dto.request.lead.LeadUpdateRequest;
+import com.vti.crm.interfaces.dto.response.lead.LeadResponse;
 import com.vti.crm.interfaces.mapper.LeadWebMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

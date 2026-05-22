@@ -13,6 +13,6 @@ const CustomerHeader = ({ totalCustomers, onOpenAdd }) => {
       </button>
     </div>
   );
-};
+};  
 
 export default CustomerHeader;

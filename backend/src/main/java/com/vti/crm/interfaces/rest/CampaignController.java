@@ -1,9 +1,9 @@
 package com.vti.crm.interfaces.rest;
 
 import com.vti.crm.application.usecases.campaign.*;
-import com.vti.crm.interfaces.dto.request.CampaignRequest;
-import com.vti.crm.interfaces.dto.response.CampaignResponse;
-import com.vti.crm.interfaces.dto.response.CampaignStatsResponse;
+import com.vti.crm.interfaces.dto.request.campaign.CampaignRequest;
+import com.vti.crm.interfaces.dto.response.campaign.CampaignResponse;
+import com.vti.crm.interfaces.dto.response.campaign.CampaignStatsResponse;
 import com.vti.crm.interfaces.mapper.CampaignWebMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

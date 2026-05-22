@@ -1,9 +1,9 @@
 package com.vti.crm.interfaces.rest;
 
 import com.vti.crm.application.usecases.contact.*;
-import com.vti.crm.interfaces.dto.request.ContactCreateRequest;
-import com.vti.crm.interfaces.dto.request.ContactUpdateRequest;
-import com.vti.crm.interfaces.dto.response.ContactResponse;
+import com.vti.crm.interfaces.dto.request.contact.ContactCreateRequest;
+import com.vti.crm.interfaces.dto.request.contact.ContactUpdateRequest;
+import com.vti.crm.interfaces.dto.response.contact.ContactResponse;
 import com.vti.crm.interfaces.mapper.ContactWebMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

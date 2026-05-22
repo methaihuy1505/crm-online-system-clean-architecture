@@ -1,10 +1,10 @@
 package com.vti.crm.infrastructure.persistence.repository.task.tasknote;
 
 import com.vti.crm.domain.model.PagedResult;
-import com.vti.crm.domain.model.Task.TaskNote;
-import com.vti.crm.domain.repository.Task.ITaskNoteRepository;
-import com.vti.crm.infrastructure.persistence.entity.task.TaskNoteEntity;
-import com.vti.crm.infrastructure.persistence.mapper.task.TaskNoteInfraMapper;
+import com.vti.crm.domain.model.TaskNote;
+import com.vti.crm.domain.repository.ITaskNoteRepository;
+import com.vti.crm.infrastructure.persistence.entity.TaskNoteEntity;
+import com.vti.crm.infrastructure.persistence.mapper.TaskNoteInfraMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

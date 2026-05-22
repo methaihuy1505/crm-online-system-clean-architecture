@@ -1,7 +1,7 @@
 package com.vti.crm.interfaces.rest;
 
 import com.vti.crm.application.usecases.customerstatus.GetAllCustomerStatusesUseCase;
-import com.vti.crm.interfaces.dto.response.CustomerStatusResponse;
+import com.vti.crm.interfaces.dto.response.customer.CustomerStatusResponse;
 import com.vti.crm.interfaces.mapper.CustomerStatusWebMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

@@ -1,9 +1,9 @@
 package com.vti.crm.interfaces.rest;
 
 import com.vti.crm.application.usecases.customer.*;
-import com.vti.crm.interfaces.dto.request.CustomerCreateRequest;
-import com.vti.crm.interfaces.dto.request.CustomerUpdateRequest;
-import com.vti.crm.interfaces.dto.response.CustomerResponse;
+import com.vti.crm.interfaces.dto.request.customer.CustomerCreateRequest;
+import com.vti.crm.interfaces.dto.request.customer.CustomerUpdateRequest;
+import com.vti.crm.interfaces.dto.response.customer.CustomerResponse;
 import com.vti.crm.interfaces.mapper.CustomerWebMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

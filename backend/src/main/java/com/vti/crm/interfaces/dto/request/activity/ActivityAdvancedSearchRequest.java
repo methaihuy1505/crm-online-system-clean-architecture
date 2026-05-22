@@ -1,6 +1,6 @@
 package com.vti.crm.interfaces.dto.request.activity;
 
-import com.vti.crm.domain.model.Activity.Activity;
+import com.vti.crm.domain.model.Activity;
 import lombok.Data;
 
 import java.util.List;

@@ -5,7 +5,7 @@ import com.vti.crm.domain.model.Customer;
 import com.vti.crm.domain.model.CommunicationDetail;
 import com.vti.crm.domain.repository.*;
 import com.vti.crm.domain.service.CustomerContactDomainService;
-import com.vti.crm.interfaces.dto.request.CustomerCreateRequest;
+import com.vti.crm.interfaces.dto.request.customer.CustomerCreateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

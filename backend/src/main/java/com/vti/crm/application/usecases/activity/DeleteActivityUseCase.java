@@ -1,6 +1,6 @@
 package com.vti.crm.application.usecases.activity;
 
-import com.vti.crm.domain.repository.Activity.IActivityRepository;
+import com.vti.crm.domain.repository.IActivityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

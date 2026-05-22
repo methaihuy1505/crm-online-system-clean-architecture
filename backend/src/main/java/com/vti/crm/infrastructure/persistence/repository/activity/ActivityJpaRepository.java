@@ -1,6 +1,6 @@
 package com.vti.crm.infrastructure.persistence.repository.activity;
 
-import com.vti.crm.infrastructure.persistence.entity.activity.ActivityEntity;
+import com.vti.crm.infrastructure.persistence.entity.ActivityEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

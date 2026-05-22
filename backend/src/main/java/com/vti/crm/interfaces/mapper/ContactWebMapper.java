@@ -2,8 +2,8 @@ package com.vti.crm.interfaces.mapper;
 
 import com.vti.crm.domain.model.Contact;
 import com.vti.crm.infrastructure.persistence.entity.CustomerDbEntity;
-import com.vti.crm.infrastructure.persistence.repository.JpaCustomerRepository;
-import com.vti.crm.interfaces.dto.response.ContactResponse;
+import com.vti.crm.infrastructure.persistence.repository.customer.JpaCustomerRepository;
+import com.vti.crm.interfaces.dto.response.contact.ContactResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;

@@ -1,8 +1,8 @@
 package com.vti.crm.application.usecases.task.tasknote;
 
 import com.vti.crm.domain.model.PagedResult;
-import com.vti.crm.domain.model.Task.TaskNote;
-import com.vti.crm.domain.repository.Task.ITaskNoteRepository;
+import com.vti.crm.domain.model.TaskNote;
+import com.vti.crm.domain.repository.ITaskNoteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -1,6 +1,6 @@
 package com.vti.crm.infrastructure.persistence.repository.task.tasknote;
 
-import com.vti.crm.infrastructure.persistence.entity.task.TaskNoteEntity;
+import com.vti.crm.infrastructure.persistence.entity.TaskNoteEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

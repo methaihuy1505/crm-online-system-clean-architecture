@@ -1,6 +1,6 @@
 package com.vti.crm.interfaces.dto.response.task;
 
-import com.vti.crm.domain.model.Task.Task;
+import com.vti.crm.domain.model.Task;
 import lombok.Builder;
 import lombok.Data;
 

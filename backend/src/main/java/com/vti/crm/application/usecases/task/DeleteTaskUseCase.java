@@ -1,6 +1,6 @@
 package com.vti.crm.application.usecases.task;
 
-import com.vti.crm.domain.repository.Task.ITaskRepository;
+import com.vti.crm.domain.repository.ITaskRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

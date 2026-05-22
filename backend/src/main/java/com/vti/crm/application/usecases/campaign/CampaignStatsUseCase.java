@@ -1,8 +1,8 @@
 package com.vti.crm.application.usecases.campaign;
 
-import com.vti.crm.infrastructure.persistence.repository.JpaCampaignRepository;
-import com.vti.crm.infrastructure.persistence.repository.JpaLeadRepository;
-import com.vti.crm.interfaces.dto.response.CampaignStatsResponse;
+import com.vti.crm.infrastructure.persistence.repository.campaign.JpaCampaignRepository;
+import com.vti.crm.infrastructure.persistence.repository.lead.JpaLeadRepository;
+import com.vti.crm.interfaces.dto.response.campaign.CampaignStatsResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

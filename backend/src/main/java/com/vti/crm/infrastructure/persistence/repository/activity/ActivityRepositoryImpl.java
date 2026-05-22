@@ -1,15 +1,14 @@
 package com.vti.crm.infrastructure.persistence.repository.activity;
 
-import com.vti.crm.domain.model.Activity.Activity;
+import com.vti.crm.domain.model.Activity;
 import com.vti.crm.domain.model.PagedResult;
-import com.vti.crm.domain.repository.Activity.IActivityRepository;
-import com.vti.crm.infrastructure.persistence.entity.activity.ActivityEntity;
-import com.vti.crm.infrastructure.persistence.mapper.activity.ActivityInfraMapper;
+import com.vti.crm.domain.repository.IActivityRepository;
+import com.vti.crm.infrastructure.persistence.entity.ActivityEntity;
+import com.vti.crm.infrastructure.persistence.mapper.ActivityInfraMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;

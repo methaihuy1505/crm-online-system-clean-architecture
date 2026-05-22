@@ -1,7 +1,7 @@
 package com.vti.crm.interfaces.rest;
 
 import com.vti.crm.application.usecases.leadstatus.GetAllActiveStatusesUseCase;
-import com.vti.crm.interfaces.dto.response.LeadStatusResponse;
+import com.vti.crm.interfaces.dto.response.lead.LeadStatusResponse;
 import com.vti.crm.interfaces.mapper.LeadStatusWebMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;

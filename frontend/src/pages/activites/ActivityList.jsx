@@ -283,7 +283,7 @@ const fetchAdvanceSearch = async () => {
   // Logic Phím tắt
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "m") {
+      if ((e.altKey || e.metaKey) && e.key.toLowerCase() === "n") {
         e.preventDefault();
         openCreateModal();
       }
@@ -491,22 +491,25 @@ const fetchAdvanceSearch = async () => {
   };
 
   return (
-    <div className="p-6 bg-[#F9FAFB] min-h-screen flex flex-col">
+    <div className="space-y-6 flex-1 relative">
       {/* HEADER */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
-            Quản lý các hoạt động chăm sóc
-          </h1>
-        </div>
-        <button
-          onClick={openCreateModal}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-[5px] font-semibold flex items-center gap-2 shadow-sm text-[11px]"
-        >
-          <Plus className="w-4 h-4" />
-          Tạo hoạt động (Ctrl + M)
-        </button>
-      </div>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+  <div>
+    <h1 className="text-3xl font-headline font-extrabold text-primary tracking-tight mb-2">
+      Quản lý các hoạt động chăm sóc
+    </h1>
+    {/* Bạn có thể thay đổi biến số lượng nếu cần giống mẫu: {totalActivities || 0} */}
+    <p className="text-slate-500 font-medium mt-1">
+      Quản lý và theo dõi các hoạt động chăm sóc khách hàng.
+    </p>
+  </div>
+  <button
+    onClick={openCreateModal}
+    className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 outline-none transition-all"
+  >
+    <Plus size={18} strokeWidth={2.5} /> Tạo hoạt động (Alt + N)
+  </button>
+</div>
 
       {/* FILTERS & SEARCH */}
       <div className="mb-4 grid grid-cols-1 md:grid-cols-4 gap-4 items-center">

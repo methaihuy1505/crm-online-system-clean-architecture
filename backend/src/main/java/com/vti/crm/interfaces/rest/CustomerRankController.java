@@ -1,7 +1,7 @@
 package com.vti.crm.interfaces.rest;
 
 import com.vti.crm.application.usecases.customerrank.GetAllCustomerRanksUseCase;
-import com.vti.crm.interfaces.dto.response.CustomerRankResponse;
+import com.vti.crm.interfaces.dto.response.customer.CustomerRankResponse;
 import com.vti.crm.interfaces.mapper.CustomerRankWebMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

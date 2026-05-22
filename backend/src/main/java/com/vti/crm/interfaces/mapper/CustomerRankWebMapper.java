@@ -1,7 +1,7 @@
 package com.vti.crm.interfaces.mapper;
 
 import com.vti.crm.domain.model.CustomerRank;
-import com.vti.crm.interfaces.dto.response.CustomerRankResponse;
+import com.vti.crm.interfaces.dto.response.customer.CustomerRankResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 

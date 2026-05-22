@@ -1,7 +1,7 @@
 package com.vti.crm.interfaces.mapper;
 
 import com.vti.crm.domain.model.CustomerStatus;
-import com.vti.crm.interfaces.dto.response.CustomerStatusResponse;
+import com.vti.crm.interfaces.dto.response.customer.CustomerStatusResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 

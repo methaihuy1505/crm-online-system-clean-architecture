@@ -1,7 +1,7 @@
 package com.vti.crm.interfaces.mapper;
 
 import com.vti.crm.domain.model.LeadStatus;
-import com.vti.crm.interfaces.dto.response.LeadStatusResponse;
+import com.vti.crm.interfaces.dto.response.lead.LeadStatusResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 

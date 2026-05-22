@@ -1,6 +1,6 @@
 package com.vti.crm.interfaces.dto.request.task;
 
-import com.vti.crm.domain.model.Task.Task;
+import com.vti.crm.domain.model.Task;
 import lombok.Data;
 
 import java.time.LocalDateTime;

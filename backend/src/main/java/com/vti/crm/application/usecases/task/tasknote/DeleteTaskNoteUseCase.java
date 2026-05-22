@@ -1,6 +1,6 @@
 package com.vti.crm.application.usecases.task.tasknote;
 
-import com.vti.crm.domain.repository.Task.ITaskNoteRepository;
+import com.vti.crm.domain.repository.ITaskNoteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -3,7 +3,7 @@ package com.vti.crm.application.usecases.lead;
 import com.vti.crm.domain.model.Lead;
 import com.vti.crm.domain.model.CommunicationDetail;
 import com.vti.crm.domain.repository.*;
-import com.vti.crm.interfaces.dto.request.LeadCreateRequest;
+import com.vti.crm.interfaces.dto.request.lead.LeadCreateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

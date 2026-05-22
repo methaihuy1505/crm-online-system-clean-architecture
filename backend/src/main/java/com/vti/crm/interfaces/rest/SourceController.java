@@ -1,7 +1,7 @@
 package com.vti.crm.interfaces.rest;
 
 import com.vti.crm.application.usecases.source.GetAllActiveSourcesUseCase;
-import com.vti.crm.interfaces.dto.response.SourceResponse;
+import com.vti.crm.interfaces.dto.response.source.SourceResponse;
 import com.vti.crm.interfaces.mapper.SourceWebMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
