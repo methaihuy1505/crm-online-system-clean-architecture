@@ -35,6 +35,34 @@ api.interceptors.request.use(
 );
 // ==========================================
 
+// ==========================================
+// GIẢ LẬP ĐOẠN ĐÓN REQUEST /customers CHO DEMO
+// ==========================================
+api.interceptors.request.use(
+  (config) => {
+    if (config.url === "/customers") {
+      config.adapter = async () => {
+        return {
+          data: [
+            { id: 1, name: "Tập đoàn Vingroup" },
+            { id: 2, name: "Công ty Cổ phần FPT" },
+            { id: 3, name: "Tập đoàn Viettel" },
+            { id: 4, name: "Ngân hàng Vietcombank" },
+            { id: 5, name: "Công ty Sữa Vinamilk" },
+          ],
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config,
+        };
+      };
+    }
+    return config;
+  },
+  (error) => Promise.reject(error),
+);
+// ==========================================
+
 const iconStyle = {
   fontVariationSettings: "'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24",
 };
@@ -282,20 +310,27 @@ export default function OpportunityDashboard() {
 
   return (
     <>
-      
+      <link
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+      />
+      <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet"
+      />
 
-      <main className="bg-[#f8f9fa] text-[#191c1d] h-screen flex flex-col overflow-hidden">
+      <main className="bg-[#f8f9fa] text-[#191c1d] h-screen flex flex-col font-sans overflow-hidden">
         <div className="flex flex-1 overflow-hidden">
-          <div className="space-y-6 flex-1 relative">
+          <div className="flex-1 flex flex-col overflow-hidden p-8 gap-8">
             <div className="flex justify-between items-end shrink-0 gap-4">
-              
-                
-                <div>
-                <h2 className="text-3xl font-headline font-extrabold text-primary tracking-tight">
+              <div>
+                <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-1">
+                  CRM System
+                </p>
+                <h2 className="text-3xl font-black text-[#1a237e]">
                   Cơ hội bán hàng
                 </h2>
               </div>
-              
 
               <div className="hidden lg:flex items-center bg-[#e6e6e7] px-4 py-2.5 rounded-full w-80 lg:w-96 focus-within:bg-white border border-transparent focus-within:border-slate-200 transition-all">
                 <span

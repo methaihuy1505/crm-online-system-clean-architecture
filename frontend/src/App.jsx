@@ -30,9 +30,9 @@ function App() {
       <Toaster position="top-right" reverseOrder={false} />
       <Routes>
         <Route element={<MainLayout />}>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} /> 
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-          <Route path="/dashboard" element={<DashboardPage />} /> 
+          <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/customers" element={<CustomerPage />} />
           <Route path="/customers/:id" element={<CustomerDetailPage />} />
           <Route path="/leads" element={<LeadPage />} />
@@ -60,7 +60,7 @@ function App() {
             path="/editopportunitystatus/:id?"
             element={<EditOpportunityStatus />}
           />
-          <Route path="/editstage/:id?" element={<EditStage />} /> 
+          <Route path="/editstage/:id?" element={<EditStage />} />
           <Route path="/lostreason/:id?" element={<LostReasons />} />
           <Route
             path="/opportunities/:id/items"

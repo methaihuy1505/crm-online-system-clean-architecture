@@ -99,19 +99,15 @@ export default function MetadataPage() {
   }, [filteredData, selectedItem, showAddModal, editId]);
 
   return (
-    
     <div className="flex-1 flex flex-col h-full relative space-y-6 antialiased select-none text-slate-800">
-      
-      
       <header className="flex items-center justify-between shrink-0">
         <div className="flex items-center gap-6">
           <div>
-                <h2 className="text-3xl font-headline font-extrabold text-primary tracking-tight">
-                  Quản lý Metadata
-                </h2>
-              </div>
+            <h2 className="text-3xl font-headline font-extrabold text-primary tracking-tight">
+              Quản lý Metadata
+            </h2>
+          </div>
 
-          
           <nav className="flex bg-white shadow-sm border border-slate-200/60 p-1 rounded-xl gap-1">
             {Object.keys(tabConfig).map((tab) => (
               <button
@@ -146,10 +142,7 @@ export default function MetadataPage() {
         </button>
       </header>
 
-      
       <div className="flex flex-1 overflow-hidden bg-white rounded-2xl shadow-sm border border-slate-200/50">
-        
-      
         <main className="flex-1 flex flex-col overflow-hidden border-r border-slate-200/50">
           {/* Thanh tìm kiếm */}
           <div className="px-8 py-4 border-b border-slate-100 flex items-center justify-between gap-4 shrink-0 bg-slate-50/50">

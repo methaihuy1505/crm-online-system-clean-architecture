@@ -13,9 +13,9 @@ import {
   Headphones,
   ClipboardList,
   History,
-  Box,        
-  TrendingUp, 
-  Server      
+  Box,
+  TrendingUp,
+  Server,
 } from "lucide-react";
 
 const Sidebar = ({ collapsed, onToggle }) => {
@@ -27,11 +27,23 @@ const Sidebar = ({ collapsed, onToggle }) => {
 
   // --- MAP DANH SÁCH MENU  ---
   const navItems = [
-    { to: "/dashboard", icon: <LayoutDashboard size={20} />, label: "Bảng điều khiển" },
+    {
+      to: "/dashboard",
+      icon: <LayoutDashboard size={20} />,
+      label: "Bảng điều khiển",
+    },
     { to: "/customers", icon: <Users size={20} />, label: "Khách hàng" },
     { to: "/leads", icon: <Target size={20} />, label: "Tiềm năng" },
-    { to: "/task", icon: <ClipboardList size={20} />, label: "Công việc (Tasks)" },
-    { to: "/activities", icon: <History size={20} />, label: "Lịch sử hoạt động" },
+    {
+      to: "/task",
+      icon: <ClipboardList size={20} />,
+      label: "Công việc (Tasks)",
+    },
+    {
+      to: "/activities",
+      icon: <History size={20} />,
+      label: "Lịch sử hoạt động",
+    },
     { to: "/campaigns", icon: <Megaphone size={20} />, label: "Chiến dịch" },
     {
       to: "/productpage",
@@ -57,6 +69,7 @@ const Sidebar = ({ collapsed, onToggle }) => {
       icon: <Server size={20} />,
       label: "Metadata",
       matchPaths: ["/metadatapage"],
+      matchPaths: ["/metadatapage"],
     },
     { to: "/settings", icon: <Settings size={20} />, label: "Cài đặt" },
   ];
@@ -79,9 +92,10 @@ const Sidebar = ({ collapsed, onToggle }) => {
     >
       {/* KHU VỰC MENU TRÊN */}
       <div className="flex flex-col p-4 gap-2 overflow-y-auto custom-scrollbar overflow-x-hidden">
-        
         {/* Logo và Nút Thu/Phóng */}
-        <div className={`flex items-center ${collapsed ? "justify-center" : "justify-between"} py-2 mb-4`}>
+        <div
+          className={`flex items-center ${collapsed ? "justify-center" : "justify-between"} py-2 mb-4`}
+        >
           <div
             className={`flex items-center gap-3 overflow-hidden transition-all duration-300 ${
               collapsed ? "w-0 opacity-0 hidden" : "w-auto opacity-100"
@@ -94,7 +108,9 @@ const Sidebar = ({ collapsed, onToggle }) => {
               <h1 className="font-headline font-extrabold text-[#1A237E] text-lg leading-tight">
                 CRM Việt
               </h1>
-              <p className="text-xs text-slate-500 font-medium">Hệ thống quản lý</p>
+              <p className="text-xs text-slate-500 font-medium">
+                Hệ thống quản lý
+              </p>
             </div>
           </div>
 
@@ -113,8 +129,8 @@ const Sidebar = ({ collapsed, onToggle }) => {
             // Xác định xem thẻ này có đang được chọn (active) hay không
             const active = matchPaths
               ? isGroupActive(matchPaths)
-              : location.pathname.startsWith(to) && to !== "/dashboard" 
-                || (to === "/dashboard" && location.pathname === "/dashboard");
+              : (location.pathname.startsWith(to) && to !== "/dashboard") ||
+                (to === "/dashboard" && location.pathname === "/dashboard");
 
             return (
               <NavLink
@@ -141,15 +157,26 @@ const Sidebar = ({ collapsed, onToggle }) => {
       {/* KHU VỰC THÔNG TIN CÁ NHÂN & CÔNG CỤ */}
       <div className="p-4 border-t border-surface-variant/30 flex flex-col gap-3 overflow-x-hidden">
         {/* Nút Hỗ trợ & Thông báo */}
-        <div className={`flex items-center ${collapsed ? "flex-col gap-2" : "justify-around px-2"}`}>
-          <button className="p-2 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors relative outline-none" title="Thông báo">
+        <div
+          className={`flex items-center ${collapsed ? "flex-col gap-2" : "justify-around px-2"}`}
+        >
+          <button
+            className="p-2 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors relative outline-none"
+            title="Thông báo"
+          >
             <Bell size={20} />
             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full ring-2 ring-white"></span>
           </button>
-          <button className="p-2 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors outline-none" title="Trợ giúp">
+          <button
+            className="p-2 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors outline-none"
+            title="Trợ giúp"
+          >
             <HelpCircle size={20} />
           </button>
-          <button className="p-2 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors outline-none" title="Liên hệ CSKH">
+          <button
+            className="p-2 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors outline-none"
+            title="Liên hệ CSKH"
+          >
             <Headphones size={20} />
           </button>
         </div>

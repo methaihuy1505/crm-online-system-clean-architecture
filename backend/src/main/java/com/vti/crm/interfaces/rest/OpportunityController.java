@@ -2,10 +2,11 @@ package com.vti.crm.interfaces.rest;
 
 import com.vti.crm.application.usecases.opportunity.*;
 import com.vti.crm.domain.model.OpportunityFilter;
-import com.vti.crm.interfaces.dto.request.opportunity.OpportunityRequest;
-import com.vti.crm.interfaces.dto.response.opportunity.OpportunityResponse;
+import com.vti.crm.interfaces.dto.request.OpportunityRequest;
+import com.vti.crm.interfaces.dto.response.OpportunityDashboardStatsResponse;
+import com.vti.crm.interfaces.dto.response.OpportunityResponse;
 
-import com.vti.crm.interfaces.dto.response.opportunity.OpportunityResponseEnricher;
+import com.vti.crm.interfaces.dto.response.OpportunityResponseEnricher;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
