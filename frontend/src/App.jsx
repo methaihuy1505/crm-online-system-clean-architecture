@@ -48,7 +48,7 @@ function App() {
           />
           <Route path="/activities" element={<ActivityList />} />
           <Route path="/activities/:id" element={<ActivityDetail />} />
-          <Route path="/task" element={<TaskList />} />
+          <Route path="/tasks" element={<TaskList />} />
           <Route path="/tasks/:id" element={<DetailTask />} />
 
           <Route path="/productimport" element={<AddProduct />} />

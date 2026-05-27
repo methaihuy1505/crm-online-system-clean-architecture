@@ -6,8 +6,10 @@ import com.vti.crm.application.usecases.task.GetTaskUseCase;
 import com.vti.crm.application.usecases.task.UpdateTaskUseCase;
 import com.vti.crm.domain.model.PagedResult;
 import com.vti.crm.domain.model.Task;
+import com.vti.crm.interfaces.dto.request.task.TaskAdvancedSearchRequest;
 import com.vti.crm.interfaces.dto.request.task.TaskCreationRequest;
 import com.vti.crm.interfaces.dto.request.task.TaskUpdateRequest;
+import com.vti.crm.interfaces.dto.response.task.TaskDetailsResponseDTO;
 import com.vti.crm.interfaces.dto.response.task.TaskResponseDTO;
 import com.vti.crm.interfaces.mapper.TaskWebMapper;
 import lombok.RequiredArgsConstructor;
@@ -22,36 +24,42 @@ public class TaskController {
     private final UpdateTaskUseCase updateTaskUseCase;
     private final DeleteTaskUseCase deleteTaskUseCase;
 
-    // Inject MapStruct Mapper
     private final TaskWebMapper mapper;
 
     @GetMapping
-    PagedResult<TaskResponseDTO> getAllTask(@RequestParam(defaultValue = "0") int page,
-                                        @RequestParam(defaultValue = "10") int size)
-    {
-        PagedResult<Task> tasks = getTaskUseCase.excuteGetAll(page, size);
-        return mapper.toResponseList(tasks);
+    public PagedResult<TaskDetailsResponseDTO> getAllTask(@RequestParam(defaultValue = "0") int page,
+                                                          @RequestParam(defaultValue = "10") int size) {
+        return getTaskUseCase.excuteGetAll(page, size);
     }
+
     @GetMapping("/{id}")
-    public TaskResponseDTO getActivityById(@PathVariable Integer id) {
-        Task task = getTaskUseCase.excuteGetById(id);
-        return mapper.toResponse(task);
+    public TaskDetailsResponseDTO getTaskById(@PathVariable Integer id) {
+        return getTaskUseCase.excuteGetById(id);
     }
-    @PostMapping("/id")
-    public TaskResponseDTO createTask(@RequestBody TaskCreationRequest request,
-                                      @PathVariable Integer id)
-    {
+
+    @GetMapping("/advanced-search")
+    public PagedResult<TaskDetailsResponseDTO> advancedSearch(
+            @ModelAttribute TaskAdvancedSearchRequest request,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        return getTaskUseCase.executeAdvancedSearch(request, page, size);
+    }
+
+    @PostMapping
+    public TaskResponseDTO createTask(@RequestBody TaskCreationRequest request) {
         Task taskToCreate = mapper.toDomainCreate(request);
         Task createdTask = createTaskUseCase.execute(taskToCreate);
         return mapper.toResponse(createdTask);
     }
+
     @PutMapping("/{id}")
-    public TaskResponseDTO updateTask(@PathVariable Integer id, @RequestBody TaskUpdateRequest request)
-    {
+    public TaskResponseDTO updateTask(@PathVariable Integer id, @RequestBody TaskUpdateRequest request) {
         Task taskToUpdate = mapper.toDomainUpdate(request);
         Task updatedTask = updateTaskUseCase.execute(id, taskToUpdate);
         return mapper.toResponse(updatedTask);
     }
+
     @DeleteMapping("/{id}")
     public String deleteTask(@PathVariable Integer id) {
         deleteTaskUseCase.excute(id);

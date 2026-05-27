@@ -45,6 +45,23 @@ public class TaskNoteRepositoryImpl implements ITaskNoteRepository {
     }
 
     @Override
+    public PagedResult<TaskNote> findByTaskId(Integer taskId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<TaskNoteEntity> pageResult = taskNoteJpaRepository.findByTaskIdAndDeletedAtIsNull(taskId, pageable);
+        List<TaskNote> taskNotes = pageResult.stream()
+                .map(taskNoteInfraMapper::toDomain)
+                .collect(java.util.stream.Collectors.toList());
+
+        return PagedResult.<TaskNote>builder()
+                .data(taskNotes)
+                .currentPage(pageResult.getNumber())
+                .pageSize(pageResult.getSize())
+                .totalElements(pageResult.getTotalElements())
+                .totalPages(pageResult.getTotalPages())
+                .build();
+    }
+
+    @Override
     public TaskNote save(TaskNote taskNote) {
         TaskNoteEntity entity = taskNoteInfraMapper.toEntity(taskNote);
         return taskNoteInfraMapper.toDomain(taskNoteJpaRepository.save(entity));

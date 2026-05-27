@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
@@ -35,11 +35,43 @@ const CustomerPage = () => {
   const [filters, setFilters] = useState(initialFilters);
 
   const [selectedCustomerForRow, setSelectedCustomerForRow] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [customerToEdit, setCustomerToEdit] = useState(null);
 
+  const tableContainerRef = useRef(null);
+
+  // Reset lại selection khi dữ liệu đổi
+  useEffect(() => {
+    setSelectedIndex(-1);
+    setSelectedCustomerForRow(null);
+  }, [customers]);
+
+  // Xử lý phím tắt & mũi tên
   useEffect(() => {
     const handleKeyDown = (e) => {
+      if (["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement?.tagName)) return;
+      if (isFormOpen || isFilterSidebarOpen) return;
+
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          setSelectedIndex((prev) => {
+            const next = prev < customers.length - 1 ? prev + 1 : prev;
+            if (customers[next]) setSelectedCustomerForRow(customers[next]);
+            return next;
+          });
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          setSelectedIndex((prev) => {
+            const next = prev > 0 ? prev - 1 : 0;
+            if (customers[next]) setSelectedCustomerForRow(customers[next]);
+            return next;
+          });
+          break;
+      }
+
       if (e.altKey) {
         if (e.code === "KeyN" || e.key.toLowerCase() === "n") {
           e.preventDefault();
@@ -52,10 +84,7 @@ const CustomerPage = () => {
         if (e.code === "KeyD" || e.key.toLowerCase() === "d") {
           e.preventDefault();
           if (selectedCustomerForRow)
-            handleDelete(
-              selectedCustomerForRow.id,
-              selectedCustomerForRow.name,
-            );
+            handleDelete(selectedCustomerForRow.id, selectedCustomerForRow.name);
         }
         if (e.code === "KeyV" || e.key.toLowerCase() === "v") {
           e.preventDefault();
@@ -65,7 +94,31 @@ const CustomerPage = () => {
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [selectedCustomerForRow]);
+  }, [customers, selectedCustomerForRow, isFormOpen, isFilterSidebarOpen]);
+
+  // Auto-scroll khi dùng mũi tên
+  useEffect(() => {
+    if (selectedIndex === -1 || !tableContainerRef.current) return;
+    const activeRow = tableContainerRef.current.querySelector(
+      `tr[data-index="${selectedIndex}"]`
+    );
+    if (activeRow) {
+      const container = tableContainerRef.current;
+      const rowTop = activeRow.offsetTop;
+      const rowBottom = rowTop + activeRow.offsetHeight;
+      const containerTop = container.scrollTop;
+      const containerBottom = containerTop + container.clientHeight;
+
+      if (rowTop < containerTop) {
+        container.scrollTo({ top: rowTop, behavior: "smooth" });
+      } else if (rowBottom > containerBottom) {
+        container.scrollTo({
+          top: rowBottom - container.clientHeight,
+          behavior: "smooth",
+        });
+      }
+    }
+  }, [selectedIndex]);
 
   useEffect(() => {
     const fetchDictionaries = async () => {
@@ -103,17 +156,12 @@ const CustomerPage = () => {
         size: pageSize,
         keyword: filters.keyword || null,
         isOrganization: filters.isOrganization || null,
-        statusIds:
-          filters.statusIds.length > 0 ? filters.statusIds.join(",") : null,
+        statusIds: filters.statusIds.length > 0 ? filters.statusIds.join(",") : null,
         rankIds: filters.rankIds.length > 0 ? filters.rankIds.join(",") : null,
-        sourceIds:
-          filters.sourceIds.length > 0 ? filters.sourceIds.join(",") : null,
-        campaignIds:
-          filters.campaignIds.length > 0 ? filters.campaignIds.join(",") : null,
+        sourceIds: filters.sourceIds.length > 0 ? filters.sourceIds.join(",") : null,
+        campaignIds: filters.campaignIds.length > 0 ? filters.campaignIds.join(",") : null,
       };
-      const res = await axios.get("http://localhost:8080/api/v1/customers", {
-        params,
-      });
+      const res = await axios.get("http://localhost:8080/api/v1/customers", { params });
       setCustomers(res.data.content);
       setTotalPages(res.data.totalPages);
       setTotalElements(res.data.totalElements);
@@ -141,10 +189,9 @@ const CustomerPage = () => {
         await axios.delete(`http://localhost:8080/api/v1/customers/${id}`);
         toast.success(`Đã xóa Khách hàng ${name}`);
         fetchCustomers();
-        setSelectedCustomerForRow(null);
       } catch (error) {
         toast.error("Xóa thất bại!");
-        console.error("Lỗi khi xóa khách hàng!", error);
+        console.error("Lỗi khi xóa khách hàng:", error);
       }
     }
   };
@@ -170,63 +217,31 @@ const CustomerPage = () => {
   const renderActiveFilterTags = () => {
     const activeTags = [];
     if (filters.keyword)
-      activeTags.push({
-        type: "text",
-        key: "keyword",
-        label: `Tìm: ${filters.keyword}`,
-      });
+      activeTags.push({ type: "text", key: "keyword", label: `Tìm: ${filters.keyword}` });
     if (filters.isOrganization !== "")
-      activeTags.push({
-        type: "text",
-        key: "isOrganization",
-        label: `Loại: ${filters.isOrganization === "true" ? "Tổ chức" : "Cá nhân"}`,
-      });
+      activeTags.push({ type: "text", key: "isOrganization", label: `Loại: ${filters.isOrganization === "true" ? "Tổ chức" : "Cá nhân"}` });
 
     filters.statusIds.forEach((id) => {
       const obj = statuses.find((s) => s.id.toString() === id);
-      if (obj)
-        activeTags.push({
-          type: "array",
-          field: "statusIds",
-          id: id,
-          label: `Trạng thái: ${obj.name}`,
-        });
+      if (obj) activeTags.push({ type: "array", field: "statusIds", id: id, label: `Trạng thái: ${obj.name}` });
     });
     filters.rankIds.forEach((id) => {
       const obj = ranks.find((r) => r.id.toString() === id);
-      if (obj)
-        activeTags.push({
-          type: "array",
-          field: "rankIds",
-          id: id,
-          label: `Hạng: ${obj.name}`,
-        });
+      if (obj) activeTags.push({ type: "array", field: "rankIds", id: id, label: `Hạng: ${obj.name}` });
     });
     filters.sourceIds.forEach((id) => {
       const obj = sources.find((s) => s.id.toString() === id);
-      if (obj)
-        activeTags.push({
-          type: "array",
-          field: "sourceIds",
-          id: id,
-          label: `Nguồn: ${obj.name}`,
-        });
+      if (obj) activeTags.push({ type: "array", field: "sourceIds", id: id, label: `Nguồn: ${obj.name}` });
     });
     filters.campaignIds.forEach((id) => {
       const obj = campaigns.find((c) => c.id.toString() === id);
-      if (obj)
-        activeTags.push({
-          type: "array",
-          field: "campaignIds",
-          id: id,
-          label: `Chiến dịch: ${obj.name}`,
-        });
+      if (obj) activeTags.push({ type: "array", field: "campaignIds", id: id, label: `Chiến dịch: ${obj.name}` });
     });
 
     if (activeTags.length === 0) return null;
 
     return (
-      <div className="flex gap-2 mb-4 items-center flex-wrap">
+      <div className="flex gap-2 mb-4 items-center flex-wrap shrink-0">
         <span className="text-sm font-semibold text-slate-500">Đang lọc:</span>
         {activeTags.map((tag, index) => (
           <div
@@ -257,7 +272,8 @@ const CustomerPage = () => {
   };
 
   return (
-    <div className="space-y-6 relative flex-1">
+    // Layout bọc kín toàn màn hình giống LeadPage
+    <div className="flex flex-col h-[calc(100vh-2rem)] space-y-4 relative overflow-hidden">
       <Toaster
         position="top-right"
         toastOptions={{
@@ -271,10 +287,12 @@ const CustomerPage = () => {
           },
         }}
       />
-      <CustomerHeader
-        totalCustomers={totalElements}
-        onOpenAdd={handleOpenAdd}
-      />
+      <div className="shrink-0">
+        <CustomerHeader
+          totalCustomers={totalElements}
+          onOpenAdd={handleOpenAdd}
+        />
+      </div>
       {renderActiveFilterTags()}
 
       <CustomerTable
@@ -285,10 +303,15 @@ const CustomerPage = () => {
         onDelete={handleDelete}
         currentPage={currentPage}
         totalPages={totalPages}
+        totalElements={totalElements}
         setCurrentPage={setCurrentPage}
         pageSize={pageSize}
         setPageSize={setPageSize}
-        onRowClick={setSelectedCustomerForRow}
+        onRowClick={(customer, index) => {
+          setSelectedCustomerForRow(customer);
+          setSelectedIndex(index);
+        }}
+        tableContainerRef={tableContainerRef}
         selectedCustomerForRow={selectedCustomerForRow}
         onOpenFilter={() => setIsFilterSidebarOpen(true)}
       />

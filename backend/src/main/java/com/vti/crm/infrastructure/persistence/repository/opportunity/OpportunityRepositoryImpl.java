@@ -7,6 +7,8 @@ import com.vti.crm.infrastructure.persistence.mapper.OpportunityInfraMapper;
 import com.vti.crm.infrastructure.persistence.specification.OpportunitySpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -37,11 +39,6 @@ public class OpportunityRepositoryImpl implements IOpportunityRepository {
     @Override
     public boolean existsByOpportunityCode(String opportunityCode) {
         return jpaRepository.existsByOpportunityCode(opportunityCode);
-    }
-
-    @Override
-    public void delete(Opportunity opportunity) {
-        jpaRepository.deleteById(opportunity.getId());
     }
 
     @Override
@@ -79,7 +76,9 @@ public class OpportunityRepositoryImpl implements IOpportunityRepository {
     }
 
     @Override
-    public void updateFinancialsManual(Integer opportunityId, double totalAmount, double remainingAmount) {
+    public void updateFinancialsManual(Integer opportunityId, Double totalAmount, Double remainingAmount) {
         jpaRepository.updateFinancialsManual(opportunityId,totalAmount,remainingAmount);
+
     }
+    
 }

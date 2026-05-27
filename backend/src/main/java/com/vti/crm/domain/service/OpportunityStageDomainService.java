@@ -52,7 +52,9 @@ public class OpportunityStageDomainService {
     // ============ PRIVATE — Business Rules ============
 
     private void applyClosedState(OpportunityStage stage, Boolean isClosed) {
-        if (Boolean.TRUE.equals(isClosed)) {
+        System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++"+isClosed);
+
+        if (isClosed) {
             stage.closed();
         } else {
             stage.open();

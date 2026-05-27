@@ -18,4 +18,8 @@ public class GetTaskNoteUseCase {
         return iTaskNoteRepository.findById(id).
                 orElseThrow(() -> new IllegalArgumentException("Không tìm thấy Activity với ID: " + id));
     }
+
+    public PagedResult<TaskNote> executeGetByTaskId(Integer taskId, int page, int size) {
+        return iTaskNoteRepository.findByTaskId(taskId, page, size);
+    }
 }

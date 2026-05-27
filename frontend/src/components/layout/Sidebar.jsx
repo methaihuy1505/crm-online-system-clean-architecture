@@ -30,7 +30,7 @@ const Sidebar = ({ collapsed, onToggle }) => {
     { to: "/dashboard", icon: <LayoutDashboard size={20} />, label: "Bảng điều khiển" },
     { to: "/customers", icon: <Users size={20} />, label: "Khách hàng" },
     { to: "/leads", icon: <Target size={20} />, label: "Tiềm năng" },
-    { to: "/task", icon: <ClipboardList size={20} />, label: "Công việc (Tasks)" },
+    { to: "/tasks", icon: <ClipboardList size={20} />, label: "Công việc (Tasks)" },
     { to: "/activities", icon: <History size={20} />, label: "Lịch sử hoạt động" },
     { to: "/campaigns", icon: <Megaphone size={20} />, label: "Chiến dịch" },
     {

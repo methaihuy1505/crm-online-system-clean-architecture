@@ -1,6 +1,6 @@
 import React from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import Button from "../ui/Button";
+import Button from "../../../components/ui/Button";
 
 const ActivityFilter = ({
   isOpen,

@@ -20,15 +20,10 @@ const CampaignDetailPanel = ({ isOpen, onClose, campaign, onEdit }) => {
 
   return (
     <>
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-[105] transition-opacity"
-          onClick={onClose}
-        ></div>
-      )}
+      {/* Đã xóa lớp phủ bg-slate-900/30 và backdrop-blur-sm ở đây để không làm mờ bảng */}
 
       <div
-        className={`fixed right-0 top-0 h-full w-[450px] bg-white shadow-2xl transition-transform duration-300 z-[110] border-l ${isOpen ? "translate-x-0" : "translate-x-full"}`}
+        className={`fixed right-0 top-0 h-full w-[450px] bg-white shadow-2xl transition-transform duration-300 z-[110] border-l border-slate-200 ${isOpen ? "translate-x-0" : "translate-x-full"}`}
       >
         <div className="p-8 h-full flex flex-col">
           <div className="flex justify-between items-start mb-8">

@@ -22,7 +22,7 @@ public class OpportunitySpecification {
                         cb.like(cb.lower(root.get("opportunityCode")), pattern)
                 ));
             }
-
+            predicates.add(root.get("deletedAt").isNull());
             // Filter theo stageIds → field "stage" trong entity
             if (!filter.getStageIds().isEmpty()) {
                 predicates.add(root.get("stage").in(filter.getStageIds()));

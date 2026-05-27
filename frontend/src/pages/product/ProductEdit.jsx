@@ -1,5 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
+import toast from "react-hot-toast";
+import {
+  X,
+  Trash2,
+  Upload,
+  Image as ImageIcon,
+  Edit2,
+  AlertTriangle,
+} from "lucide-react";
 
 const api = axios.create({
   baseURL: "http://localhost:8080/api/v1",
@@ -34,16 +43,14 @@ function Field({ label, error, children }) {
 
 function DeleteConfirmModal({ productName, onConfirm, onCancel }) {
   return (
-    <div className="fixed inset-0 z-200 flex items-center justify-center px-4">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center px-4">
       <div
         className="absolute inset-0 bg-slate-950/40 backdrop-blur-md"
         onClick={onCancel}
       />
       <div className="relative bg-white w-full max-w-sm rounded-2xl p-8 shadow-2xl">
         <div className="flex items-center justify-center w-14 h-14 bg-red-50 rounded-full mb-5 mx-auto">
-          <span className="material-symbols-outlined text-red-600 text-2xl">
-            warning
-          </span>
+          <AlertTriangle size={24} className="text-red-600" />
         </div>
         <h2
           className="text-xl font-extrabold text-center mb-2"
@@ -58,13 +65,13 @@ function DeleteConfirmModal({ productName, onConfirm, onCancel }) {
         <div className="flex flex-col gap-3">
           <button
             onClick={onConfirm}
-            className="w-full py-2.5 bg-red-600 text-white rounded-lg font-bold text-sm"
+            className="w-full py-2.5 bg-red-600 text-white rounded-lg font-bold text-sm outline-none"
           >
             Xóa sản phẩm
           </button>
           <button
             onClick={onCancel}
-            className="w-full py-2.5 bg-surface-container-low text-on-surface font-semibold rounded-lg text-sm"
+            className="w-full py-2.5 bg-surface-container-low text-on-surface font-semibold rounded-lg text-sm outline-none"
           >
             Hủy
           </button>
@@ -76,18 +83,13 @@ function DeleteConfirmModal({ productName, onConfirm, onCancel }) {
 
 // ─── Component chính ─────────────────────────────────────────────────────────
 
-// Props:
-//   open      : boolean
-//   onClose   : () => void
-//   onSaved   : () => void — cha gọi fetchProducts sau khi lưu/xóa thành công
-//   productId : number | null
 export default function EditProductModal({
   open,
   onClose,
   onSaved,
   productId,
 }) {
-  const fileInputRef = useRef(null); // dùng ref thay vì document.getElementById
+  const fileInputRef = useRef(null);
 
   const [categories, setCategories] = useState([]);
   const [uoms, setUoms] = useState([]);
@@ -115,7 +117,6 @@ export default function EditProductModal({
   };
   const [form, setForm] = useState(defaultForm);
 
-  // useCallback để tránh warning exhaustive-deps
   const handleClose = useCallback(() => {
     setForm(defaultForm);
     setSelectedFile(null);
@@ -123,10 +124,8 @@ export default function EditProductModal({
     setShowDeleteConfirm(false);
     setErrors({});
     onClose();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onClose]);
 
-  // Fetch khi modal mở + productId thay đổi
   useEffect(() => {
     if (!open || !productId) return;
     (async () => {
@@ -145,15 +144,15 @@ export default function EditProductModal({
         setErrors({});
       } catch (err) {
         console.error("Lỗi khi lấy dữ liệu:", err);
-        alert("Không thể tải dữ liệu sản phẩm!");
+        toast.error("Không thể tải dữ liệu sản phẩm!");
         handleClose();
       } finally {
         setLoading(false);
       }
     })();
   }, [open, productId, handleClose]);
+
   useEffect(() => {
-    // Focus khi modal mở HOẶC khi productId thay đổi (dữ liệu mới nạp xong)
     if (open) {
       const timer = setTimeout(() => {
         editInputRef.current?.focus();
@@ -161,28 +160,24 @@ export default function EditProductModal({
       return () => clearTimeout(timer);
     }
   }, [open, productId]);
-  const change = (fieldName) => (e) => {
-    let value = parseFloat(e.target.value);
 
-    // Nếu ô nhập trống (người dùng đang xóa đi để nhập lại)
-    if (isNaN(value)) {
-      setForm((prev) => ({ ...prev, [fieldName]: "" }));
-      return;
+  const change = (fieldsName) => (e) => {
+    let value = e.target.value;
+    let finalValue = value;
+    let parsedValue = parseFloat(value);
+    // Nếu ô nhập trống, giữ nguyên để user xóa nhập lại, hoặc mặc định là 0
+    if (isNaN(parsedValue)) value = 0;
+    // Thực hiện validate dựa trên tên trường dữ liệu
+    else if (fieldsName === "basePrice") {
+      finalValue = Math.max(0, parsedValue); // Không cho âm
+    } else if (fieldsName === "vat" || fieldsName === "deposit") {
+      finalValue = Math.min(100, Math.max(0, parsedValue)); // Giới hạn nghiêm ngặt từ 0 đến 100
+    } else {
+      finalValue = value;
     }
-
-    // Chặn logic cho từng trường dữ liệu
-    if (fieldName === "basePrice") {
-      value = Math.max(0, value); // Giá tiền không được âm
-    }
-
-    if (fieldName === "vatRate" || fieldName === "depositOverride") {
-      value = Math.min(100, Math.max(0, value)); // Thuế và cọc chỉ được nằm trong khoảng 0 - 100
-    }
-
-    // Cập nhật lại state form của bạn (thay setForm bằng hàm update state thực tế bạn đang dùng)
     setForm((prev) => ({
       ...prev,
-      [fieldName]: value,
+      [fieldsName]: finalValue,
     }));
   };
 
@@ -194,7 +189,6 @@ export default function EditProductModal({
     }
   };
 
-  // Validate — trả về object lỗi, rỗng = hợp lệ
   const validate = () => {
     const e = {};
     if (!form.name?.toString().trim()) e.name = "Bắt buộc";
@@ -241,11 +235,12 @@ export default function EditProductModal({
       await api.put(`/products/${form.id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+      toast.success("Đã lưu thay đổi sản phẩm!");
       onSaved?.();
       handleClose();
     } catch (err) {
       console.error("Lỗi khi lưu:", err);
-      alert("Có lỗi xảy ra khi lưu!");
+      toast.error("Có lỗi xảy ra khi lưu!");
     } finally {
       setSaving(false);
     }
@@ -254,11 +249,12 @@ export default function EditProductModal({
   const handleDelete = async () => {
     try {
       await api.delete(`/products/${form.id}`);
+      toast.success("Đã xóa sản phẩm!");
       onSaved?.();
       handleClose();
     } catch (err) {
       console.error("Lỗi khi xóa:", err);
-      alert("Xóa thất bại!");
+      toast.error("Xóa sản phẩm thất bại!");
     }
   };
 
@@ -279,7 +275,7 @@ export default function EditProductModal({
       >
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl flex flex-col overflow-hidden">
           {/* ── Header ── */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0 bg-slate-50">
             <div>
               <p className="text-[0.6rem] font-bold text-blue-600 uppercase tracking-widest mb-0.5">
                 Catalog Manager
@@ -292,22 +288,17 @@ export default function EditProductModal({
               </h2>
             </div>
             <div className="flex items-center gap-1">
-              {/* Nút xóa trong header */}
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-red-500
-                           hover:bg-red-50 transition-all text-sm font-semibold"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-all text-sm font-semibold outline-none"
               >
-                <span className="material-symbols-outlined text-lg">
-                  delete
-                </span>
-                Xóa
+                <Trash2 size={16} /> Xóa
               </button>
               <button
                 onClick={handleClose}
-                className="p-1.5 rounded-lg text-slate-400 hover:bg-surface-container-low transition-all"
+                className="p-1.5 rounded-lg text-slate-400 hover:bg-surface-container-low transition-all outline-none"
               >
-                <span className="material-symbols-outlined text-xl">close</span>
+                <X size={20} />
               </button>
             </div>
           </div>
@@ -319,9 +310,8 @@ export default function EditProductModal({
             </div>
           ) : (
             <div className="grid grid-cols-12 divide-x divide-slate-100 flex-1">
-              {/* Cột trái — form chính (8/12) */}
+              {/* Cột trái */}
               <div className="col-span-8 px-6 py-4 flex flex-col gap-4">
-                {/* Hàng 1: Tên */}
                 <Field label="Tên sản phẩm *" error={errors.name}>
                   <input
                     type="text"
@@ -333,7 +323,6 @@ export default function EditProductModal({
                   />
                 </Field>
 
-                {/* Hàng 2: Mã + Loại */}
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="Mã sản phẩm *" error={errors.productCode}>
                     <input
@@ -360,7 +349,6 @@ export default function EditProductModal({
                   </Field>
                 </div>
 
-                {/* Hàng 3: Danh mục + Đơn vị */}
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="Danh mục *" error={errors.categoryId}>
                     <select
@@ -398,7 +386,6 @@ export default function EditProductModal({
                   </Field>
                 </div>
 
-                {/* Hàng 4: Mô tả */}
                 <Field label="Mô tả">
                   <textarea
                     className={inputCls(false) + " resize-none"}
@@ -409,22 +396,19 @@ export default function EditProductModal({
                   />
                 </Field>
 
-                {/* ── Tài chính ── */}
                 <div className="pt-3 border-t border-slate-100">
                   <p className="text-[0.6rem] font-bold text-on-surface-variant uppercase tracking-widest mb-3">
                     Thông số tài chính
                   </p>
                   <div className="grid grid-cols-3 gap-3">
-                    {/* Giá bán lẻ: Đã chuyển sang VND và cấu hình giới hạn >= 0 */}
                     <Field label="Giá bán lẻ (VND)">
                       <div className="relative">
                         <input
                           type="number"
-                          min="0" // Giới hạn giao diện không cho giảm xuống dưới 0
-                          className={inputCls(false) + " pr-10 font-mono"} // Đổi từ pl-6 sang pr-10 để nhường chỗ cho chữ "đ" bên phải
+                          min="0"
+                          className={inputCls(false) + " pr-10 font-mono"}
                           value={form.basePrice}
                           onChange={(e) => {
-                            // Bạn có thể xử lý validate trực tiếp tại đây hoặc xử lý tập trung trong hàm change() như hướng dẫn bên dưới
                             change("basePrice")(e);
                           }}
                         />
@@ -434,7 +418,6 @@ export default function EditProductModal({
                       </div>
                     </Field>
 
-                    {/* Thuế VAT: Giới hạn từ 0% đến 100% */}
                     <Field label="Thuế VAT (%)">
                       <div className="relative">
                         <input
@@ -453,7 +436,6 @@ export default function EditProductModal({
                       </div>
                     </Field>
 
-                    {/* Đặt cọc: Giới hạn từ 0% đến 100% */}
                     <Field label="Đặt cọc (%)">
                       <div className="relative">
                         <input
@@ -473,7 +455,6 @@ export default function EditProductModal({
                     </Field>
                   </div>
 
-                  {/* Tổng realtime */}
                   <div className="mt-3 flex items-center justify-between px-3 py-2 bg-surface-container-low rounded-lg">
                     <span className="text-xs text-on-surface-variant">
                       Tổng (bao gồm VAT)
@@ -484,7 +465,6 @@ export default function EditProductModal({
                   </div>
                 </div>
 
-                {/* Audit info — ngày tạo / cập nhật */}
                 {(form.createdAt || form.updatedAt) && (
                   <div className="flex gap-4 pt-2 border-t border-slate-100">
                     {form.createdAt && (
@@ -511,17 +491,13 @@ export default function EditProductModal({
                 )}
               </div>
 
-              {/* Cột phải — ảnh + mã SP (4/12) */}
+              {/* Cột phải */}
               <div className="col-span-4 px-5 py-4 flex flex-col gap-4 bg-[#fafafa]">
                 <div className="flex flex-col gap-2 flex-1">
                   <p className="text-[0.6rem] font-bold tracking-widest text-on-surface-variant uppercase">
                     Hình ảnh
                   </p>
 
-                  {/*
-                    Khung ảnh — flex-1 chiếm hết chiều cao còn lại
-                    Hover overlay để đổi ảnh
-                  */}
                   <div
                     className="relative group flex-1 min-h-0 bg-surface-container-low rounded-xl
                                border-2 border-dashed border-slate-200 overflow-hidden cursor-pointer"
@@ -542,26 +518,20 @@ export default function EditProductModal({
                             className="flex items-center gap-1.5 text-white text-xs font-semibold
                                           px-3 py-1.5 bg-white/20 rounded-full border border-white/30"
                           >
-                            <span className="material-symbols-outlined text-sm">
-                              edit
-                            </span>
-                            Đổi ảnh
+                            <Edit2 size={14} /> Đổi ảnh
                           </div>
                         </div>
                       </>
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-4">
-                        <span className="material-symbols-outlined text-4xl text-slate-300">
-                          image
-                        </span>
-                        <p className="text-[0.65rem] font-bold text-slate-300 uppercase text-center">
+                        <ImageIcon size={40} className="text-slate-300" />
+                        <p className="text-[0.65rem] font-bold text-slate-300 uppercase text-center mt-1">
                           Nhấn để tải ảnh lên
                         </p>
                       </div>
                     )}
                   </div>
 
-                  {/* Input file ẩn — dùng ref */}
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -574,18 +544,15 @@ export default function EditProductModal({
                     onClick={() => fileInputRef.current?.click()}
                     className="w-full py-2 border-2 border-primary/10 border-dashed rounded-lg
                                flex items-center justify-center gap-1.5
-                               hover:bg-surface-container-low transition-colors"
+                               hover:bg-surface-container-low transition-colors outline-none"
                   >
-                    <span className="material-symbols-outlined text-primary-container text-base">
-                      upload_file
-                    </span>
+                    <Upload size={16} className="text-primary-container" />
                     <span className="text-[0.65rem] font-bold text-primary-container uppercase">
                       Tải lên
                     </span>
                   </button>
                 </div>
 
-                {/* Mã sản phẩm badge */}
                 <div className="bg-primary-container p-4 rounded-xl text-white shrink-0">
                   <p className="text-[0.6rem] font-bold tracking-widest uppercase opacity-60 mb-2">
                     Mã sản phẩm
@@ -599,7 +566,7 @@ export default function EditProductModal({
           )}
 
           {/* ── Footer ── */}
-          <div className="flex items-center justify-between px-6 py-3 border-t border-slate-100 shrink-0">
+          <div className="flex items-center justify-between px-6 py-3 border-t border-slate-100 shrink-0 bg-white">
             <p className="text-[0.65rem] text-slate-400 italic">
               Các trường có dấu * là bắt buộc.
             </p>
@@ -608,7 +575,7 @@ export default function EditProductModal({
                 onClick={handleClose}
                 className="px-4 py-1.5 text-sm font-semibold text-on-surface
                            bg-surface-container-low hover:bg-surface-variant
-                           rounded-lg transition-all"
+                           rounded-lg transition-all outline-none"
               >
                 Hủy
               </button>
@@ -617,7 +584,7 @@ export default function EditProductModal({
                 disabled={saving || loading}
                 className="px-5 py-1.5 text-sm font-bold text-white rounded-lg
                            bg-linear-to-br from-primary to-primary-container
-                           shadow-lg hover:shadow-xl transition-all disabled:opacity-60"
+                           shadow-lg hover:shadow-xl transition-all disabled:opacity-60 outline-none"
               >
                 {saving ? "Đang lưu..." : "Lưu thay đổi"}
               </button>
@@ -626,7 +593,6 @@ export default function EditProductModal({
         </div>
       </div>
 
-      {/* Delete confirm — z cao hơn modal chính */}
       {showDeleteConfirm && (
         <DeleteConfirmModal
           productName={form.name}

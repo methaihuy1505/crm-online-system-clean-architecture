@@ -19,12 +19,14 @@ const LeadTable = ({
   onDelete,
   currentPage,
   totalPages,
+  totalElements,
   setCurrentPage,
   pageSize,
   setPageSize,
   onRowClick,
   selectedLeadForRow,
   onOpenFilter,
+  tableContainerRef,
 }) => {
   const getStatusStyle = (statusName) => {
     if (statusName === "Mới") return "bg-slate-100 text-slate-700";
@@ -33,7 +35,10 @@ const LeadTable = ({
     return "bg-slate-100 text-slate-600";
   };
 
-  const emptyRows = Math.max(0, pageSize - filteredLeads.length);
+  // LUÔN LUÔN hiển thị tối thiểu 10 dòng để giữ Layout bảng cố định
+  const MIN_VISIBLE_ROWS = 10;
+  const emptyRows = Math.max(0, MIN_VISIBLE_ROWS - filteredLeads.length);
+
   const getVisiblePages = (current, total) => {
     if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
     if (current <= 4) return [1, 2, 3, 4, 5, "...", total];
@@ -43,8 +48,10 @@ const LeadTable = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-200">
-      <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+    // Sử dụng h-full và flex-col để container tự co giãn theo chiều cao trang
+    <div className="bg-white rounded-2xl shadow-sm flex flex-col border border-slate-200 h-full overflow-hidden">
+      {/* HEADER BẢNG - Bị đẩy lên trên cùng (shrink-0) */}
+      <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
         <h3 className="font-bold text-slate-800 text-xs uppercase tracking-widest">
           Danh sách Tiềm năng
         </h3>
@@ -56,33 +63,40 @@ const LeadTable = ({
         </button>
       </div>
 
-      <div className="overflow-x-auto custom-scrollbar min-h-[400px]">
+      {/* VÙNG CHỨA DỮ LIỆU - flex-1 giúp khu vực này tự động chiếm hết không gian còn lại và sinh ra thanh cuộn */}
+      {/* VÙNG CHỨA DỮ LIỆU */}
+      <div
+        ref={tableContainerRef}
+        className="flex-1 overflow-y-auto custom-scrollbar relative"
+      >
         <table className="w-full text-left border-collapse">
-          <thead>
+          {/* STICKY HEADER - Ghim dòng tiêu đề lại */}
+          <thead className="sticky top-0 z-20 shadow-sm ring-1 ring-slate-100">
             <tr className="bg-white">
-              <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b w-1/4">
+              <th className="sticky top-0 bg-white px-6 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b w-1/4">
                 Liên hệ
               </th>
-              <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b">
+              <th className="sticky top-0 bg-white px-6 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b">
                 Loại hình KD
               </th>
-              <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b">
+              <th className="sticky top-0 bg-white px-6 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b">
                 Thông tin
               </th>
-              <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b">
+              <th className="sticky top-0 bg-white px-6 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b">
                 Dự kiến thu
               </th>
-              <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b">
+              <th className="sticky top-0 bg-white px-6 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b">
                 Mã/Nguồn
               </th>
-              <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b text-center">
+              <th className="sticky top-0 bg-white px-6 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b text-center">
                 Trạng thái
               </th>
-              <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b text-right">
+              <th className="sticky top-0 bg-white px-6 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b text-right">
                 Thao tác
               </th>
             </tr>
           </thead>
+
           <tbody className="divide-y divide-slate-50">
             {isLoading ? (
               <tr>
@@ -103,14 +117,17 @@ const LeadTable = ({
                 </td>
               </tr>
             ) : (
-              filteredLeads.map((lead) => (
+              filteredLeads.map((lead,index) => (
                 <tr
                   key={lead.id}
-                  onClick={() => onRowClick(lead)}
+                  data-index={index} // <-- Bắt buộc để querySelector tìm thấy dòng
+                  onClick={() => onRowClick(lead, index)} // <-- Truyền thêm index khi click chuột
                   onDoubleClick={() => onOpenDetail(lead)}
-                  className={`hover:bg-slate-50 transition-colors group cursor-pointer ${selectedLeadForRow?.id === lead.id ? "bg-primary/5" : ""}`}
+                  className={`hover:bg-slate-50 transition-colors group cursor-pointer ${
+                    selectedLeadForRow?.id === lead.id ? "bg-primary/5" : ""
+                  }`}
                 >
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-2">
                     <div className="flex items-center gap-3">
                       <div
                         className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${lead.companyName ? "bg-indigo-50 text-indigo-600" : "bg-emerald-50 text-emerald-600"}`}
@@ -131,7 +148,7 @@ const LeadTable = ({
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-2">
                     {lead.companyName ? (
                       <span className="inline-flex px-2 py-1 rounded bg-indigo-50 border border-indigo-100 text-indigo-700 text-[10px] font-bold">
                         Tổ chức
@@ -142,7 +159,7 @@ const LeadTable = ({
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-2">
                     <div className="space-y-1">
                       <div className="text-xs text-slate-800 font-medium truncate max-w-[150px]">
                         {lead.phone || "---"}
@@ -152,14 +169,14 @@ const LeadTable = ({
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-2">
                     <p
                       className={`text-xs font-bold ${lead.expectedRevenue ? "text-primary" : "text-slate-400"}`}
                     >
                       {formatCurrency(lead.expectedRevenue)}
                     </p>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-2">
                     <p className="text-[10px] font-medium text-slate-800">
                       MST: {lead.taxCode || "---"}
                     </p>
@@ -167,15 +184,14 @@ const LeadTable = ({
                       {lead.sourceName || "Tự nhiên"}
                     </p>
                   </td>
-                  <td className="px-6 py-4 text-center">
+                  <td className="px-6 py-2 text-center">
                     <span
                       className={`inline-flex items-center px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-widest border border-slate-200 ${getStatusStyle(lead.statusName)}`}
                     >
                       {lead.statusName || "Chưa rõ"}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    {/* BỎ LÀM MỜ, THÊM MÀU MẶC ĐỊNH CHO TỪNG NÚT */}
+                  <td className="px-6 py-2 text-right">
                     <div className="flex items-center justify-end gap-1.5">
                       <button
                         onClick={(e) => {
@@ -212,9 +228,11 @@ const LeadTable = ({
                 </tr>
               ))
             )}
+
+            {/* Các dòng trống đảm bảo hiển thị đúng form UI (10 dòng) */}
             {Array.from({ length: emptyRows }).map((_, idx) => (
               <tr key={`empty-${idx}`}>
-                <td className="px-6 py-4 select-none text-transparent">
+                <td className="px-6 py-2 select-none text-transparent">
                   <div className="h-9">_</div>
                 </td>
                 <td></td>
@@ -229,26 +247,33 @@ const LeadTable = ({
         </table>
       </div>
 
-      <div className="px-6 py-4 bg-slate-50 flex items-center justify-between border-t border-slate-100">
-        <select
-          value={pageSize}
-          onChange={(e) => {
-            setPageSize(Number(e.target.value));
-            setCurrentPage(1);
-          }}
-          className="text-xs bg-white border border-slate-200 rounded px-2 py-1 outline-none cursor-pointer"
-        >
-          <option value={10}>10 dòng / trang</option>
-          <option value={20}>20 dòng / trang</option>
-          <option value={50}>50 dòng / trang</option>
-        </select>
+      {/* FOOTER BẢNG */}
+      <div className="px-6 py-3 bg-slate-50 flex items-center justify-between border-t border-slate-100 shrink-0 z-10 relative">
+        <div className="flex items-center gap-3">
+          <p className="text-xs text-slate-500 font-medium">
+            Hiển thị <span className="font-bold text-slate-800">{filteredLeads.length}</span> / <span className="font-bold text-slate-800">{totalElements || 0}</span> leads
+          </p>
+          <select
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="text-xs bg-white border border-slate-200 rounded-lg px-2 py-1 outline-none cursor-pointer hover:border-slate-300 transition-colors font-semibold text-slate-700"
+          >
+            <option value={10}>10 / trang</option>
+            <option value={50}>50 / trang</option>
+            <option value={100}>100 / trang</option>
+            <option value={250}>250 / trang</option>
+          </select>
+        </div>
 
         {totalPages > 1 && (
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+              className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50 outline-none"
             >
               <ChevronLeft size={16} />
             </button>
@@ -256,7 +281,7 @@ const LeadTable = ({
               page === "..." ? (
                 <span
                   key={`ell-${idx}`}
-                  className="w-8 h-8 flex items-center justify-center text-slate-400 text-xs"
+                  className="w-8 h-8 flex items-center justify-center text-slate-400 text-xs select-none"
                 >
                   ...
                 </span>
@@ -264,7 +289,11 @@ const LeadTable = ({
                 <button
                   key={`page-${page}`}
                   onClick={() => setCurrentPage(page)}
-                  className={`w-8 h-8 rounded-lg text-xs font-bold ${currentPage === page ? "bg-primary text-white border-primary" : "bg-white border text-slate-600 hover:bg-slate-50"}`}
+                  className={`w-8 h-8 rounded-lg text-xs font-bold outline-none ${
+                    currentPage === page
+                      ? "bg-primary text-white border-primary"
+                      : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                  }`}
                 >
                   {page}
                 </button>
@@ -273,7 +302,7 @@ const LeadTable = ({
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage >= totalPages}
-              className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+              className="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50 outline-none"
             >
               <ChevronRight size={16} />
             </button>

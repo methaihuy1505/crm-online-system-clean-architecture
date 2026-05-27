@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
@@ -11,6 +11,7 @@ import LeadFormModal from "./LeadFormModal";
 const LeadPage = () => {
   const navigate = useNavigate();
   const [leads, setLeads] = useState([]);
+  const [totalElements, setTotalElements] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -32,9 +33,44 @@ const LeadPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLead, setEditingLead] = useState(null);
   const [selectedLeadForRow, setSelectedLeadForRow] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const tableContainerRef = useRef(null);
+
+  useEffect(() => {
+    setSelectedIndex(-1);
+    setSelectedLeadForRow(null);
+  }, [leads]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
+      if (
+        ["INPUT", "SELECT", "TEXTAREA"].includes(
+          document.activeElement?.tagName,
+        )
+      )
+        return;
+      if (isModalOpen || isFilterSidebarOpen) return;
+
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          setSelectedIndex((prev) => {
+            const next = prev < leads.length - 1 ? prev + 1 : prev;
+            if (leads[next]) setSelectedLeadForRow(leads[next]);
+            return next;
+          });
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          setSelectedIndex((prev) => {
+            const next = prev > 0 ? prev - 1 : 0;
+            if (leads[next]) setSelectedLeadForRow(leads[next]);
+            return next;
+          });
+          break;
+      }
+
+      // Các phím tắt Alt hiện tại
       if (e.altKey) {
         if (e.code === "KeyN" || e.key.toLowerCase() === "n") {
           e.preventDefault();
@@ -58,10 +94,35 @@ const LeadPage = () => {
         }
       }
     };
+
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [selectedLeadForRow]);
+  }, [leads, selectedLeadForRow, isModalOpen, isFilterSidebarOpen]);
+  // Tự động cuộn bảng khi dùng phím mũi tên vượt khỏi khung nhìn
+  useEffect(() => {
+    if (selectedIndex === -1 || !tableContainerRef.current) return;
 
+    const activeRow = tableContainerRef.current.querySelector(
+      `tr[data-index="${selectedIndex}"]`,
+    );
+
+    if (activeRow) {
+      const container = tableContainerRef.current;
+      const rowTop = activeRow.offsetTop;
+      const rowBottom = rowTop + activeRow.offsetHeight;
+      const containerTop = container.scrollTop;
+      const containerBottom = containerTop + container.clientHeight;
+
+      if (rowTop < containerTop) {
+        container.scrollTo({ top: rowTop, behavior: "smooth" });
+      } else if (rowBottom > containerBottom) {
+        container.scrollTo({
+          top: rowBottom - container.clientHeight,
+          behavior: "smooth",
+        });
+      }
+    }
+  }, [selectedIndex]);
   useEffect(() => {
     const fetchDictionaries = async () => {
       try {
@@ -107,6 +168,7 @@ const LeadPage = () => {
       });
       setLeads(response.data.content);
       setTotalPages(response.data.totalPages);
+      setTotalElements(response.data.totalElements);
     } catch (error) {
       toast.error("Lỗi khi tải danh sách Tiềm năng!");
       console.error("Lỗi khi tải danh sách Tiềm năng!", error);
@@ -230,7 +292,7 @@ const LeadPage = () => {
   };
 
   return (
-    <div className="space-y-6 flex-1 relative ">
+    <div className="flex flex-col h-[calc(100vh-2rem)] space-y-4 relative overflow-hidden">
       <Toaster
         position="top-right"
         toastOptions={{
@@ -255,10 +317,15 @@ const LeadPage = () => {
         onDelete={handleDeleteLead}
         currentPage={currentPage}
         totalPages={totalPages}
+        totalElements={totalElements}
         setCurrentPage={setCurrentPage}
         pageSize={pageSize}
         setPageSize={setPageSize}
-        onRowClick={setSelectedLeadForRow}
+        onRowClick={(lead, index) => {
+          setSelectedLeadForRow(lead);
+          setSelectedIndex(index);
+        }}
+        tableContainerRef={tableContainerRef}
         selectedLeadForRow={selectedLeadForRow}
         onOpenFilter={() => setIsFilterSidebarOpen(true)}
       />

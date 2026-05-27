@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import toast, { Toaster } from "react-hot-toast";
+import { Search, Filter, Download, Plus } from "lucide-react";
+
 import AddProductModal from "./ProductInput";
 import EditProductModal from "./ProductEdit";
 import ProductFilterPanel from "./ProductFilter";
@@ -13,13 +16,9 @@ const api = axios.create({
   baseURL: "http://localhost:8080/api/v1",
 });
 
-const iconStyle = {
-  fontVariationSettings: "'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24",
-};
-
 export default function ProductInventory() {
   const [products, setProducts] = useState([]);
-  const [searchTerm, setSearchTerm] = useState(""); // State tạm hiển thị ở ô input để gõ mượt
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
@@ -33,9 +32,8 @@ export default function ProductInventory() {
   const pageSizeRef = useRef(null);
   const tableContainerRef = useRef(null);
 
-  const [rightPanel, setRightPanel] = useState("inspection"); // "inspection" | "filter"
+  const [rightPanel, setRightPanel] = useState("inspection");
 
-  // 1. GỘP SEARCH VÀO TRONG FILTERS STATE
   const [filters, setFilters] = useState({
     search: "",
     sort: "",
@@ -44,15 +42,12 @@ export default function ProductInventory() {
     uomIds: [],
   });
 
-  // Hàm fetch data gốc - nhận params từ filters state và gửi lên BE
   const fetchProducts = async (activeFilters = filters) => {
     try {
       setLoading(true);
       const params = {};
 
-      // Đẩy param search lên Backend (nếu không có thì truyền chuỗi rỗng hoặc null)
       params.search = activeFilters.search || "";
-
       if (activeFilters.sort) params.sort = activeFilters.sort;
       if (activeFilters.productType)
         params.productType = activeFilters.productType;
@@ -83,7 +78,9 @@ export default function ProductInventory() {
       setProducts(merged);
       setError(null);
     } catch (err) {
-      setError("Không thể tải danh sách sản phẩm." + err);
+      toast.error("Không thể tải danh sách sản phẩm!");
+      console.error("Lỗi khi tải danh sách sản phẩm!", err);
+      setError("Lỗi kết nối.");
     } finally {
       setLoading(false);
     }
@@ -96,10 +93,10 @@ export default function ProductInventory() {
       setProducts((prev) => prev.filter((p) => p.id !== id));
       setSelectedProduct(null);
       setSelectedIndex(-1);
-      alert("Xóa thành công!");
+      toast.success("Xóa thành công!");
     } catch (error) {
-      console.error("Lỗi khi xóa:", error);
-      alert("Không thể xóa sản phẩm!");
+      toast.error("Không thể xóa sản phẩm!");
+      console.error("Lỗi khi xóa sản phẩm!", error);
     }
   };
 
@@ -109,7 +106,6 @@ export default function ProductInventory() {
     setSelectedIndex(-1);
   };
 
-  // Hàm xử lý khi user gõ vào ô search: Cập nhật text ngay lập tức & nhảy về page 1
   const handleSearchChange = (val) => {
     setSearchTerm(val);
     setPage(1);
@@ -123,10 +119,13 @@ export default function ProductInventory() {
     filters.uomIds.length > 0,
   ].filter(Boolean).length;
 
-  // FE BÂY GIỜ CHỈ LÀM NHIỆM VỤ PHÂN TRANG (PAGINATION) TRÊN MẢNG BE ĐÃ LỌC
   const totalFiltered = products.length;
   const startIdx = (page - 1) * pageSize;
   const paginated = products.slice(startIdx, startIdx + pageSize);
+
+  // Tính toán số dòng trống để giữ giao diện bảng cố định (ít nhất 10 dòng)
+  const MIN_VISIBLE_ROWS = 10;
+  const emptyRows = Math.max(0, MIN_VISIBLE_ROWS - paginated.length);
 
   const colWidths = ["25%", "15%", "15%", "10%", "15%", "8%", "12%"];
   const COLS = [
@@ -139,45 +138,53 @@ export default function ProductInventory() {
     "",
   ];
 
-  // --- EFFECT 1: CHỈ ĐỒNG BỘ DỮ LIỆU KHI BỘ LỌC (BAO GỒM CẢ SEARCH DEBOUNCED) THAY ĐỔI ---
   useEffect(() => {
     fetchProducts(filters);
   }, [filters]);
 
-  // --- EFFECT MỚI: DEBOUNCE SEARCH TERM ĐỂ CẬP NHẬT VÀO FILTERS ---
   useEffect(() => {
     const handler = setTimeout(() => {
       setFilters((prev) => ({ ...prev, search: searchTerm }));
-    }, 300); // Trì hoãn 300ms trước khi kích hoạt gọi API
-
-    return () => {
-      clearTimeout(handler);
-    };
+    }, 300);
+    return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  // --- EFFECT 2: XỬ LÝ LẮNG NGHE BÀN PHÍM TOÀN CỤC ---
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (
         ["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement.tagName)
       ) {
-        if (e.key === "Escape") {
-          document.activeElement.blur();
-        }
+        if (e.key === "Escape") document.activeElement.blur();
         return;
       }
-
       if (e.key === "Escape") {
         setShowAddModal(false);
         setEditProductId(null);
         setRightPanel("inspection");
         return;
       }
-
       if (showAddModal || editProductId !== null || rightPanel === "filter")
         return;
 
       switch (e.key) {
+        case "ArrowRight": {
+          e.preventDefault();
+          if (page < Math.ceil(totalFiltered / pageSize)) {
+            setPage((p) => p + 1);
+            setSelectedIndex(0); // Đặt tiêu điểm vào dòng đầu tiên của trang mới
+          }
+          break;
+        }
+
+        // 🛠️ PHÍM MŨI TÊN TRÁI: QUAY LẠI TRANG TRƯỚC
+        case "ArrowLeft": {
+          e.preventDefault();
+          if (page > 1) {
+            setPage((p) => p - 1);
+            setSelectedIndex(0); // Đặt tiêu điểm vào dòng đầu tiên của trang trước
+          }
+          break;
+        }
         case "ArrowDown":
           e.preventDefault();
           setSelectedIndex((prevIndex) => {
@@ -187,7 +194,6 @@ export default function ProductInventory() {
             return nextIndex;
           });
           break;
-
         case "ArrowUp":
           e.preventDefault();
           setSelectedIndex((prevIndex) => {
@@ -196,7 +202,6 @@ export default function ProductInventory() {
             return nextIndex;
           });
           break;
-
         case "e":
         case "E":
           if (selectedProduct) {
@@ -204,7 +209,6 @@ export default function ProductInventory() {
             setEditProductId(selectedProduct.id);
           }
           break;
-
         case "Delete":
         case "Backspace":
           if (selectedProduct) {
@@ -212,54 +216,17 @@ export default function ProductInventory() {
             handleDelete(selectedProduct.id);
           }
           break;
-
-        default:
-          break;
       }
 
       if (e.altKey) {
         switch (e.key.toLowerCase()) {
-          case "e":
-            if (selectedProduct) {
-              e.preventDefault();
-              setEditProductId(selectedProduct.id);
-            }
-            break;
-          case "delete":
-          case "backspace":
-            if (selectedProduct) {
-              e.preventDefault();
-              handleDelete(selectedProduct.id);
-            }
-            break;
           case "n":
             e.preventDefault();
             setShowAddModal(true);
             break;
-          case "s":
-            e.preventDefault();
-            searchInputRef.current?.focus();
-            break;
-          case "p":
-            e.preventDefault();
-            pageSizeRef.current?.focus();
-            break;
-          case ",":
-            e.preventDefault();
-            setPage(1);
-            break;
-          case ".":
-            e.preventDefault();
-            setPage(Math.ceil(totalFiltered / pageSize) || 1);
-            break;
         }
       }
-
-      if (e.key === "ArrowLeft" && page > 1) setPage(page - 1);
-      if (e.key === "ArrowRight" && page < Math.ceil(totalFiltered / pageSize))
-        setPage(page + 1);
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [
@@ -273,37 +240,24 @@ export default function ProductInventory() {
     selectedProduct,
   ]);
 
-  // --- EFFECT 3: TỰ ĐỘNG CUỘN THEO ĐIỀU HƯỚNG PHÍM ---
-  useEffect(() => {
-    if (selectedIndex === -1 || !tableContainerRef.current) return;
-
-    const activeRow = tableContainerRef.current.querySelector(
-      `tr[data-index="${selectedIndex}"]`,
-    );
-
-    if (activeRow) {
-      const container = tableContainerRef.current;
-      const rowTop = activeRow.offsetTop;
-      const rowBottom = rowTop + activeRow.offsetHeight;
-      const containerTop = container.scrollTop;
-      const containerBottom = containerTop + container.clientHeight;
-
-      if (rowTop < containerTop) {
-        container.scrollTo({ top: rowTop, behavior: "smooth" });
-      } else if (rowBottom > containerBottom) {
-        container.scrollTo({
-          top: rowBottom - container.clientHeight,
-          behavior: "smooth",
-        });
-      }
-    }
-  }, [selectedIndex]);
-
   return (
     <>
-      <div className="bg-[#f8f9fa] text-[#191c1d] h-screen flex flex-col">
-        <div className="flex flex-1 overflow-hidden">
-          <main className="space-y-6 flex-1 relative">
+      <div className="bg-[#f8f9fa] text-[#191c1d] h-screen flex flex-col p-4">
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 3000,
+            style: {
+              borderRadius: "12px",
+              background: "#1e293b",
+              color: "#fff",
+              fontSize: "14px",
+              fontWeight: "bold",
+            },
+          }}
+        />
+        <div className="flex flex-1 overflow-hidden gap-4">
+          <main className="flex-1 flex flex-col relative space-y-4 min-w-0">
             <div className="flex justify-between items-end shrink-0 gap-4">
               <div>
                 <h2 className="text-3xl font-headline font-extrabold text-primary tracking-tight">
@@ -312,12 +266,7 @@ export default function ProductInventory() {
               </div>
 
               <div className="hidden lg:flex items-center bg-[#e6e6e7] px-4 py-2.5 rounded-full w-80 lg:w-96 focus-within:bg-white border border-transparent focus-within:border-slate-200 transition-all">
-                <span
-                  className="material-symbols-outlined text-slate-400 text-xl"
-                  style={iconStyle}
-                >
-                  search
-                </span>
+                <Search size={18} className="text-slate-400 shrink-0" />
                 <input
                   className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400 text-[#191c1d] ml-2 outline-none"
                   placeholder="Tìm kiếm..."
@@ -334,59 +283,32 @@ export default function ProductInventory() {
                       rightPanel === "filter" ? "inspection" : "filter",
                     )
                   }
-                  className="relative bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-slate-50 transition-all"
+                  className="relative bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-slate-50 transition-all outline-none"
                 >
-                  <span className="material-symbols-outlined text-lg">
-                    tune
-                  </span>
-                  Lọc
+                  <Filter size={16} /> Lọc
                   {activeFilterCount > 0 && (
                     <span className="absolute -top-1.5 -right-1.5 bg-[#1a237e] text-white text-[0.6rem] font-bold rounded-full w-4 h-4 flex items-center justify-center">
                       {activeFilterCount}
                     </span>
                   )}
                 </button>
-                <button className="bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-slate-50 transition-all">
-                  <span className="material-symbols-outlined text-lg">
-                    file_download
-                  </span>
+                <button className="bg-white border border-slate-200 px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-slate-50 transition-all outline-none">
+                  <Download size={16} />
                 </button>
                 <button
                   onClick={() => setShowAddModal(true)}
-                  className="bg-[#1a237e] text-white px-6 py-2 rounded-xl text-sm font-bold shadow-lg shadow-blue-900/20 hover:bg-blue-800 transition-all flex items-center gap-2"
+                  className="bg-[#1a237e] text-white px-5 py-2 rounded-xl text-sm font-bold shadow-lg shadow-blue-900/20 hover:bg-blue-800 transition-all flex items-center gap-2 outline-none"
                 >
-                  <span className="material-symbols-outlined text-lg">add</span>
+                  <Plus size={18} strokeWidth={2.5} /> Thêm Mới
                 </button>
               </div>
             </div>
 
-            <section className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col flex-1 overflow-hidden min-h-0">
-              <div className="shrink-0 border-b border-slate-100">
-                <table className="w-full text-left border-collapse table-fixed">
-                  <colgroup>
-                    {colWidths.map((w, i) => (
-                      <col key={i} style={{ width: w }} />
-                    ))}
-                  </colgroup>
-                  <thead>
-                    <tr className="bg-[#f3f4f5]/50">
-                      {COLS.map((h, i) => (
-                        <th
-                          key={i}
-                          className={`px-2 py-4 text-[0.65rem] uppercase tracking-widest text-slate-400 font-black ${i === 0 ? "pl-8" : ""}`}
-                        >
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                </table>
-              </div>
-
+            {/* Container Bảng Dữ Liệu - Khóa chiều cao */}
+            <section className="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col flex-1 overflow-hidden min-h-0">
               <div
                 ref={tableContainerRef}
-                className="flex-1 overflow-y-auto min-h-0"
-                style={{ scrollbarWidth: "none" }}
+                className="flex-1 overflow-y-auto min-h-0 custom-scrollbar relative"
               >
                 <table className="w-full text-left border-collapse table-fixed">
                   <colgroup>
@@ -394,6 +316,19 @@ export default function ProductInventory() {
                       <col key={i} style={{ width: w }} />
                     ))}
                   </colgroup>
+                  {/* Ghim Header bảng */}
+                  <thead className="sticky top-0 z-20 shadow-sm ring-1 ring-slate-100">
+                    <tr className="bg-[#f3f4f5]/90 backdrop-blur-sm">
+                      {COLS.map((h, i) => (
+                        <th
+                          key={i}
+                          className={`px-2 py-4 text-[0.65rem] uppercase tracking-widest text-slate-500 font-black ${i === 0 ? "pl-8" : ""}`}
+                        >
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
                   <tbody className="divide-y divide-slate-50">
                     {loading ? (
                       <tr>
@@ -439,10 +374,25 @@ export default function ProductInventory() {
                         </td>
                       </tr>
                     )}
+                    {/* Dòng trống giữ Form Table */}
+                    {Array.from({ length: emptyRows }).map((_, idx) => (
+                      <tr key={`empty-${idx}`}>
+                        <td className="px-2 py-4 select-none text-transparent">
+                          <div className="h-6">_</div>
+                        </td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
 
+              {/* Phần Phân Trang Luôn Nằm Dưới Cùng */}
               <ProductPagination
                 current={page}
                 total={totalFiltered}
@@ -454,7 +404,7 @@ export default function ProductInventory() {
             </section>
           </main>
 
-          <aside className="hidden xl:block w-80 shrink-0 border-l border-slate-200/50 bg-[#f3f4f5]/50 overflow-y-auto p-6">
+          <aside className="hidden xl:block w-80 shrink-0 border border-slate-200 bg-white rounded-2xl overflow-y-auto p-6 shadow-sm">
             {rightPanel === "filter" ? (
               <ProductFilterPanel
                 filters={filters}
@@ -467,6 +417,7 @@ export default function ProductInventory() {
           </aside>
         </div>
       </div>
+
       <AddProductModal
         open={showAddModal}
         onClose={() => setShowAddModal(false)}

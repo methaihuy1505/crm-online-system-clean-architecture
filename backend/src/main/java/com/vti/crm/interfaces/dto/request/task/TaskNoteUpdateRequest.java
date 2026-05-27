@@ -6,7 +6,5 @@ import java.time.LocalDateTime;
 
 @Data
 public class TaskNoteUpdateRequest {
-    private Integer taskId;
-    private Integer userId;
     private String content;
 }

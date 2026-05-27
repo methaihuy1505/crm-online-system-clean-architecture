@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface TaskNoteJpaRepository extends JpaRepository<TaskNoteEntity, Integer> {
     Page<TaskNoteEntity> findByDeletedAtIsNull(Pageable pageable);
     Optional<TaskNoteEntity> findByIdAndDeletedAtIsNull(Integer id);
+    Page<TaskNoteEntity> findByTaskIdAndDeletedAtIsNull(Integer taskId, Pageable pageable);
 }

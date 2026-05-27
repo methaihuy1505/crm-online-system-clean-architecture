@@ -21,5 +21,6 @@ public class GetAllLeadsUseCase {
         List<Integer> safeCampaignIds = (campaignIds != null && campaignIds.isEmpty()) ? null : campaignIds;
 
         return leadRepository.searchLeads(keyword, safeStatusIds, safeSourceIds, safeCampaignIds, provinceId, branchId, pageable);
+
     }
 }

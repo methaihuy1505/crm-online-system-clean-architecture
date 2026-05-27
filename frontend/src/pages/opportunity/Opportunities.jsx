@@ -122,11 +122,31 @@ export default function OpportunityDashboard() {
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
     try {
-      await api.delete(`/opportunities/${deleteTarget.id}`);
+      // Giả sử bạn lưu ID người dùng hiện tại trong một biến, một state hoặc localStorage
+      const currentUserId = 1; // Thay bằng ID thực tế của user đang đăng nhập (ví dụ: auth.userId)
+
+      // Gửi qua Query Param: /api/v1/opportunities/1?deletedBy=1
+      await api.delete(`/opportunities/${deleteTarget.id}`, {
+        params: {
+          deletedBy: currentUserId,
+        },
+      });
+
+      /* Hoặc nếu Backend muốn nhận qua Headers, hãy mở comment đoạn này:
+    await api.delete(`/opportunities/${deleteTarget.id}`, {
+      headers: {
+        "X-Deleted-By": currentUserId
+      }
+    });
+    */
+
+      // Cập nhật State tại Client sau khi xóa thành công
       setOpportunities((prev) => prev.filter((o) => o.id !== deleteTarget.id));
       setSelectedOpp(null);
       setSelectedIndex(-1);
       setDeleteTarget(null);
+
+      alert("Xóa cơ hội bán hàng thành công!");
     } catch (error) {
       alert("Không thể xóa cơ hội này!");
       console.error(error);
@@ -180,10 +200,16 @@ export default function OpportunityDashboard() {
         setIsModalOpen(false);
         setEditId(null);
         setRightPanel("stats");
+        setDeleteTarget(null);
         return;
       }
-      if (isModalOpen || editId !== null || rightPanel === "filter") return;
-
+      if (
+        isModalOpen ||
+        editId !== null ||
+        !!deleteTarget ||
+        rightPanel === "filter"
+      )
+        return;
       switch (e.key) {
         case "ArrowDown":
           e.preventDefault();
@@ -238,6 +264,7 @@ export default function OpportunityDashboard() {
     totalFiltered,
     isModalOpen,
     editId,
+    deleteTarget,
     rightPanel,
     paginated,
     selectedOpp,
@@ -282,20 +309,15 @@ export default function OpportunityDashboard() {
 
   return (
     <>
-      
-
       <main className="bg-[#f8f9fa] text-[#191c1d] h-screen flex flex-col overflow-hidden">
         <div className="flex flex-1 overflow-hidden">
           <div className="space-y-6 flex-1 relative">
             <div className="flex justify-between items-end shrink-0 gap-4">
-              
-                
-                <div>
+              <div>
                 <h2 className="text-3xl font-headline font-extrabold text-primary tracking-tight">
                   Cơ hội bán hàng
                 </h2>
               </div>
-              
 
               <div className="hidden lg:flex items-center bg-[#e6e6e7] px-4 py-2.5 rounded-full w-80 lg:w-96 focus-within:bg-white border border-transparent focus-within:border-slate-200 transition-all">
                 <span
@@ -660,10 +682,11 @@ export default function OpportunityDashboard() {
           setEditId(null);
         }}
         opportunityId={editId}
-        onSaveSuccess={handleRefresh}
+        onSaved={handleRefresh}
       />
       <DeleteConfirmModal
         isOpen={!!deleteTarget}
+        title="Bạn có chắc muốn xóa cơ hội này?"
         targetName={deleteTarget?.name || ""}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleConfirmDelete}

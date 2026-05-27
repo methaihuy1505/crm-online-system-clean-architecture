@@ -15,6 +15,7 @@ public class UpdateOpportunityStageUseCase {
 
     public OpportunityStage execute(Integer id, String name, Integer probabilityDefault,
                                     Integer sortOrder, Boolean isClosed) {
+
         return domainService.update(id, name, probabilityDefault, sortOrder, isClosed);
     }
 }

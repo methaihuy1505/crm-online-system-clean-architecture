@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 
@@ -15,14 +15,17 @@ const CampaignPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalElements, setTotalElements] = useState(0);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState(null);
-  const [selectedCampaignForDetail, setSelectedCampaignForDetail] =
-    useState(null);
+  const [selectedCampaignForDetail, setSelectedCampaignForDetail] = useState(null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isFilterSidebarOpen, setIsFilterSidebarOpen] = useState(false);
+  
   const [selectedRow, setSelectedRow] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const tableContainerRef = useRef(null);
 
   const initialFilters = {
     keyword: "",
@@ -32,8 +35,37 @@ const CampaignPage = () => {
   };
   const [filters, setFilters] = useState(initialFilters);
 
+  // Reset lại selection khi dữ liệu đổi
+  useEffect(() => {
+    setSelectedIndex(-1);
+    setSelectedRow(null);
+  }, [campaigns]);
+
+  // Xử lý phím tắt & mũi tên
   useEffect(() => {
     const handleKeyDown = (e) => {
+      if (["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement?.tagName)) return;
+      if (isModalOpen || isFilterSidebarOpen || isPanelOpen) return;
+
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          setSelectedIndex((prev) => {
+            const next = prev < campaigns.length - 1 ? prev + 1 : prev;
+            if (campaigns[next]) setSelectedRow(campaigns[next]);
+            return next;
+          });
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          setSelectedIndex((prev) => {
+            const next = prev > 0 ? prev - 1 : 0;
+            if (campaigns[next]) setSelectedRow(campaigns[next]);
+            return next;
+          });
+          break;
+      }
+
       if (e.altKey) {
         if (e.code === "KeyN" || e.key.toLowerCase() === "n") {
           e.preventDefault();
@@ -56,7 +88,31 @@ const CampaignPage = () => {
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [selectedRow]);
+  }, [campaigns, selectedRow, isModalOpen, isFilterSidebarOpen, isPanelOpen]);
+
+  // Auto-scroll khi dùng mũi tên
+  useEffect(() => {
+    if (selectedIndex === -1 || !tableContainerRef.current) return;
+    const activeRow = tableContainerRef.current.querySelector(
+      `tr[data-index="${selectedIndex}"]`
+    );
+    if (activeRow) {
+      const container = tableContainerRef.current;
+      const rowTop = activeRow.offsetTop;
+      const rowBottom = rowTop + activeRow.offsetHeight;
+      const containerTop = container.scrollTop;
+      const containerBottom = containerTop + container.clientHeight;
+
+      if (rowTop < containerTop) {
+        container.scrollTo({ top: rowTop, behavior: "smooth" });
+      } else if (rowBottom > containerBottom) {
+        container.scrollTo({
+          top: rowBottom - container.clientHeight,
+          behavior: "smooth",
+        });
+      }
+    }
+  }, [selectedIndex]);
 
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
@@ -73,14 +129,14 @@ const CampaignPage = () => {
           page: currentPage - 1,
           size: pageSize,
           keyword: filters.keyword || null,
-          statuses:
-            filters.statuses.length > 0 ? filters.statuses.join(",") : null,
+          statuses: filters.statuses.length > 0 ? filters.statuses.join(",") : null,
           fromDate: filters.fromDate || null,
           toDate: filters.toDate || null,
         },
       });
       setCampaigns(res.data.content || res.data);
       setTotalPages(res.data.totalPages || 1);
+      setTotalElements(res.data.totalElements || 0);
     } catch (error) {
       toast.error("Lỗi tải danh sách chiến dịch!");
       console.error("Lỗi tải danh sách chiến dịch!", error);
@@ -120,7 +176,7 @@ const CampaignPage = () => {
         fetchCampaigns();
       } catch (error) {
         toast.error("Xóa thất bại!");
-        console.error("Lỗi khi xóa chiến dịch!", error);
+        console.error("Lỗi khi xóa chiến dịch:", error);
       }
     }
   };
@@ -177,7 +233,7 @@ const CampaignPage = () => {
 
     if (activeTags.length === 0) return null;
     return (
-      <div className="flex gap-2 mb-4 items-center flex-wrap">
+      <div className="flex gap-2 mb-4 items-center flex-wrap shrink-0">
         <span className="text-sm font-semibold text-slate-500">Đang lọc:</span>
         {activeTags.map((tag) => (
           <div
@@ -208,7 +264,8 @@ const CampaignPage = () => {
   };
 
   return (
-    <div className="space-y-6 relative flex-1">
+    // Layout bọc kín toàn màn hình giống Lead và Customer
+    <div className="flex flex-col h-[calc(100vh-2rem)] space-y-4 relative overflow-hidden">
       <Toaster
         position="top-right"
         toastOptions={{
@@ -222,7 +279,9 @@ const CampaignPage = () => {
           },
         }}
       />
-      <CampaignHeader onOpenAdd={handleOpenAdd} />
+      <div className="shrink-0">
+        <CampaignHeader onOpenAdd={handleOpenAdd} />
+      </div>
       {renderActiveFilterTags()}
 
       <CampaignTable
@@ -233,10 +292,15 @@ const CampaignPage = () => {
         onOpenDetail={handleOpenDetail}
         currentPage={currentPage}
         totalPages={totalPages}
+        totalElements={totalElements}
         setCurrentPage={setCurrentPage}
         pageSize={pageSize}
         setPageSize={setPageSize}
-        onRowClick={setSelectedRow}
+        onRowClick={(campaign, index) => {
+          setSelectedRow(campaign);
+          setSelectedIndex(index);
+        }}
+        tableContainerRef={tableContainerRef}
         selectedRow={selectedRow}
         onOpenFilter={() => setIsFilterSidebarOpen(true)}
       />

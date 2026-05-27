@@ -47,6 +47,7 @@ export default function OpportunityItemModal({
     quantity: 1,
     unitPrice: 0,
     discountRate: 0,
+    lineItemNumber: 0,
     vatRate: 10,
     note: "",
   });
@@ -89,6 +90,7 @@ export default function OpportunityItemModal({
         quantity: editItem.quantity,
         unitPrice: editItem.unitPrice,
         discountRate: editItem.discountRate,
+        lineItemNumber: editItem.lineItemNumber,
         vatRate: editItem.vatRate,
         note: editItem.note || "",
       });
@@ -100,6 +102,7 @@ export default function OpportunityItemModal({
         quantity: 1,
         unitPrice: 0,
         discountRate: 0,
+        lineItemNumber: 0,
         vatRate: 10,
         note: "",
       });
@@ -136,6 +139,10 @@ export default function OpportunityItemModal({
     if (Number(form.discountRate) < 0 || Number(form.discountRate) > 100)
       errs.discountRate = "Tỉ lệ chiết khấu từ 0 - 100%.";
     setErrors(errs);
+    if (Number(form.vatRate) < 0 || Number(form.vatRate) > 10)
+      errs.vatRate = "Tỉ lệ Vat từ 0 - 10%.";
+    setErrors(errs);
+
     return Object.keys(errs).length === 0;
   };
 
@@ -278,10 +285,10 @@ export default function OpportunityItemModal({
             </Field>
 
             {/* Tỷ lệ Thuế VAT */}
-            <Field label="Thuế VAT (%)">
+            <Field label="Thuế VAT (%)" error={errors.vatRate}>
               <input
                 type="number"
-                className={inputCls(false)}
+                className={inputCls(errors.vatRate)}
                 value={form.vatRate}
                 onChange={(e) =>
                   setForm({ ...form, vatRate: Number(e.target.value) })

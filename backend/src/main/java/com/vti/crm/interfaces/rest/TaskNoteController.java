@@ -36,23 +36,31 @@ public class TaskNoteController {
         TaskNote taskNotes = getTaskNoteUseCase.excuteGetById(id);
         return mapper.toResponse(taskNotes);
     }
-    @PostMapping("/id")
-    public TaskNoteReponseDTO createTask(@RequestBody TaskNoteCreationRequest request,
-                                      @PathVariable Integer id)
+
+    @GetMapping("/task/{taskId}")
+    public PagedResult<TaskNoteReponseDTO> getByTaskId(@PathVariable Integer taskId,
+                                                       @RequestParam(defaultValue = "0") int page,
+                                                       @RequestParam(defaultValue = "10") int size) {
+        PagedResult<TaskNote> taskNotes = getTaskNoteUseCase.executeGetByTaskId(taskId, page, size);
+        return mapper.toResponseList(taskNotes);
+    }
+
+    @PostMapping
+    public TaskNoteReponseDTO createTaskNote(@RequestBody TaskNoteCreationRequest request)
     {
         TaskNote taskNote = mapper.toDomainCreate(request);
         TaskNote createdTaskNote = createTaskNoteUseCase.execute(taskNote);
         return mapper.toResponse(createdTaskNote);
     }
     @PutMapping("/{id}")
-    public TaskNoteReponseDTO updateTask(@PathVariable Integer id, @RequestBody TaskNoteUpdateRequest request)
+    public TaskNoteReponseDTO updateTaskNote(@PathVariable Integer id, @RequestBody TaskNoteUpdateRequest request)
     {
         TaskNote taskNote = mapper.toDomainUpdate(request);
         TaskNote updatedTaskNote = updateTaskNoteUseCase.execute(id, taskNote);
         return mapper.toResponse(updatedTaskNote);
     }
     @DeleteMapping("/{id}")
-    public String deleteTask(@PathVariable Integer id) {
+    public String deleteTaskNote(@PathVariable Integer id) {
         deleteTaskNoteUseCase.excute(id);
         return "Delete completed";
     }

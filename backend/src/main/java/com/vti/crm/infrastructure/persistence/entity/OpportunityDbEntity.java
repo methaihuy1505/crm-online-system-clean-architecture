@@ -8,16 +8,15 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "opportunities")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class OpportunityDbEntity {
 
     @Id
@@ -33,7 +32,9 @@ public class OpportunityDbEntity {
     @Column(name = "customer_id", nullable = false)
     private Integer customerId;
 
-    // SỬA: bỏ @ManyToOne, dùng @Column với đúng tên cột
+    @Column(name = "campaign_id")
+    private Integer campaignId;          // thêm mới
+
     @Column(name = "stage_id")
     private Integer stage;
 
@@ -42,6 +43,9 @@ public class OpportunityDbEntity {
 
     @Column(name = "lost_reason_id")
     private Integer lostReason;
+
+    @Column(name = "next_follow_up_date")
+    private LocalDateTime nextFollowUpDate;   // thêm mới
 
     @Column(name = "total_amount")
     private Double totalAmount;
@@ -52,19 +56,36 @@ public class OpportunityDbEntity {
     @Column(name = "remaining_amount")
     private Double remainingAmount;
 
+    @Column(name = "currency_code", length = 10)
+    private String currencyCode;              // thêm mới
+
     private Integer probability;
 
+    @Column(name = "expected_close_date")
+    private LocalDate expectedCloseDate;  // thêm mới
+
+    @Column(name = "actual_close_date")
+    private LocalDate actualCloseDate;    // thêm mới
+
     private String description;
+
+    @Column(name = "assigned_to")
+    private Integer assignedTo;               // thêm mới
 
     @Column(name = "created_at", updatable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    @Column(name = "created_by", updatable = false)
+    private Integer createdBy;                // thêm mới
+
     @Column(name = "updated_at")
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-//    @OneToMany(cascade = CascadeType.ALL)
-//    @JoinColumn(name = "opportunity_id")
-//    private List<OpportunityItemDbEntity> items = new ArrayList<>();
+    @Column(name = "updated_by")
+    private Integer updatedBy;                // thêm mới
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;          // thêm mới (soft delete)
 }

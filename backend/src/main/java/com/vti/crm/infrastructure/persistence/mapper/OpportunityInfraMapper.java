@@ -17,6 +17,7 @@ public interface OpportunityInfraMapper {
                 .opportunityCode(db.getOpportunityCode())
                 .name(db.getName())
                 .customerId(db.getCustomerId())
+                .campaignId(db.getCampaignId())
                 .stage(db.getStage() != null ? db.getStage() : null)
                 .status(db.getStatus() != null ? db.getStatus() : null)
                 .lostReason(db.getLostReason() != null ? db.getLostReason() : null)
@@ -25,6 +26,9 @@ public interface OpportunityInfraMapper {
                 .remainingAmount(db.getRemainingAmount())
                 .probability(db.getProbability())
                 .description(db.getDescription())
+                .nextFollowUpDate(db.getNextFollowUpDate())
+                .expectedCloseDate(db.getExpectedCloseDate())
+                .actualCloseDate(db.getActualCloseDate())
                 .createdAt(db.getCreatedAt())
                 .updatedAt(db.getUpdatedAt())
                 .build();

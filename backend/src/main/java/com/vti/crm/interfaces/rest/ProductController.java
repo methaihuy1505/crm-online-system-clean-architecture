@@ -4,10 +4,11 @@ import com.vti.crm.application.usecases.product.*;
 import com.vti.crm.domain.model.ProductFilter;
 import com.vti.crm.interfaces.dto.request.product.ProductRequest;
 import com.vti.crm.interfaces.dto.response.product.ProductResponse;
-import com.vti.crm.interfaces.mapper.ProductWebMapper;
+import com.vti.crm.interfaces.dto.response.product.ProductResponseEnricher;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,17 +25,16 @@ public class ProductController {
     private final UpdateProductUseCase updateUseCase;
     private final DeleteProductUseCase deleteUseCase;
     private final GetProductsWithFilterUseCase getProductsWithFilterUseCase;
-    private final ProductWebMapper webMapper;
     private final SearchProductsUseCase searchProductsUseCase;
+    private final ProductResponseEnricher enricher;
 
     @PostMapping(consumes = {"multipart/form-data"})
     @ResponseStatus(HttpStatus.CREATED)
     public ProductResponse create(
             @Valid @RequestPart("product") ProductRequest request,
-            // Sửa: Chỉ nhận 1 MultipartFile, không phải File hay List
             @RequestPart(value = "image", required = false) MultipartFile image) {
 
-        return webMapper.toResponse(
+        return enricher.toResponse(
                 createUseCase.execute(
                         request.getProductCode(),
                         request.getName(),
@@ -44,14 +44,15 @@ public class ProductController {
                         request.getBasePrice(),
                         request.getVatRate(),
                         request.getDepositOverride(),
-                        image, // Truyền file đơn vào đây
+                        image,
                         request.getDescription()
                 )
         );
     }
+
     @GetMapping("/{id:\\d+}")
     public ProductResponse getById(@PathVariable Integer id) {
-        return webMapper.toResponse(getByIdUseCase.execute(id));
+        return enricher.toResponse(getByIdUseCase.execute(id));
     }
 
     @GetMapping
@@ -62,24 +63,16 @@ public class ProductController {
             @RequestParam(required = false) String productType,
             @RequestParam(required = false) String sort) {
 
-        List<Integer> categoryIds = parseIds(categoryId);
-        List<Integer> uomIds      = parseIds(uomId);
+        ProductFilter filter = new ProductFilter(
+                search,
+                parseIds(categoryId),
+                parseIds(uomId),
+                productType,
+                sort
+        );
 
-        ProductFilter filter = new ProductFilter(search, categoryIds, uomIds, productType, sort);
-
-        return getProductsWithFilterUseCase.execute(filter)
-                .stream()
-                .map(webMapper::toResponse)
-                .toList();
-    }
-
-    private List<Integer> parseIds(String param) {
-        if (param == null || param.isBlank()) return List.of();
-        return Arrays.stream(param.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .map(Integer::parseInt)
-                .toList();
+        // toResponses() — batch load, chỉ 2 query DB
+        return enricher.toResponses(getProductsWithFilterUseCase.execute(filter));
     }
 
     @PutMapping(value = "/{id:\\d+}", consumes = {"multipart/form-data"})
@@ -88,7 +81,7 @@ public class ProductController {
             @Valid @RequestPart("product") ProductRequest request,
             @RequestPart(value = "image", required = false) MultipartFile image) {
 
-        return webMapper.toResponse(
+        return enricher.toResponse(
                 updateUseCase.execute(
                         id,
                         request.getProductCode(),
@@ -99,7 +92,7 @@ public class ProductController {
                         request.getBasePrice(),
                         request.getVatRate(),
                         request.getDepositOverride(),
-                        image, // SỬA: truyền file thay vì imageUrl
+                        image,
                         request.getDescription()
                 )
         );
@@ -112,16 +105,25 @@ public class ProductController {
     }
 
     @GetMapping("/search")
-    public org.springframework.http.ResponseEntity<List<ProductResponse>> search(@RequestParam("keyword") String keyword) {
+    public ResponseEntity<List<ProductResponse>> search(@RequestParam("keyword") String keyword) {
         try {
-            List<ProductResponse> responses = searchProductsUseCase.execute(keyword)
-                    .stream()
-                    .map(webMapper::toResponse)
-                    .toList();
-            return org.springframework.http.ResponseEntity.ok(responses);
+            // toResponses() — batch load, chỉ 2 query DB
+            return ResponseEntity.ok(
+                    enricher.toResponses(searchProductsUseCase.execute(keyword))
+            );
         } catch (Exception e) {
-            e.printStackTrace(); // In log ra console backend để xem lỗi cụ thể ở dòng nào
-            return org.springframework.http.ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    // ── Helper ───────────────────────────────────────────────────────────────
+    private List<Integer> parseIds(String param) {
+        if (param == null || param.isBlank()) return List.of();
+        return Arrays.stream(param.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(Integer::parseInt)
+                .toList();
     }
 }

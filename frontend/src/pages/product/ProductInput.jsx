@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import toast from "react-hot-toast";
+import { X, Image as ImageIcon, Upload } from "lucide-react";
 
 const PRODUCT_TYPE_OPTIONS = {
   PHYSICAL: "Hàng hóa vật lý",
@@ -87,23 +89,22 @@ export default function AddProductModal({ open, onClose, onSaved }) {
     }
   }, [open]);
   const set = (fieldsName) => (e) => {
-    let value = parseFloat(e.target.value);
-
+    let value = e.target.value;
+    let finalValue = value;
+    let parsedValue = parseFloat(value);
     // Nếu ô nhập trống, giữ nguyên để user xóa nhập lại, hoặc mặc định là 0
-    if (isNaN(value)) value = 0;
-
+    if (isNaN(parsedValue)) value = 0;
     // Thực hiện validate dựa trên tên trường dữ liệu
-    if (fieldsName === "basePrice") {
-      value = Math.max(0, value); // Không cho âm
+    else if (fieldsName === "basePrice") {
+      finalValue = Math.max(0, parsedValue); // Không cho âm
+    } else if (fieldsName === "vat" || fieldsName === "deposit") {
+      finalValue = Math.min(100, Math.max(0, parsedValue)); // Giới hạn nghiêm ngặt từ 0 đến 100
+    } else {
+      finalValue = value;
     }
-
-    if (fieldsName === "vat" || fieldsName === "deposit") {
-      value = Math.min(100, Math.max(0, value)); // Giới hạn nghiêm ngặt từ 0 đến 100
-    }
-
     setForm((prev) => ({
       ...prev,
-      [fieldsName]: value,
+      [fieldsName]: finalValue,
     }));
   };
 
@@ -176,13 +177,14 @@ export default function AddProductModal({ open, onClose, onSaved }) {
 
       onSaved?.();
       handleClose();
+      toast.success("Thêm thành công!");
     } catch (err) {
       if (err.response) {
-        alert(
+        toast.error(
           `Lỗi ${err.response.status}: ${JSON.stringify(err.response.data)}`,
         );
       } else {
-        alert("Không thể kết nối đến server!");
+        toast.error("Không thể kết nối đến server!");
       }
     } finally {
       setSaving(false);
@@ -218,7 +220,7 @@ export default function AddProductModal({ open, onClose, onSaved }) {
             onClick={handleClose}
             className="p-1.5 rounded-lg text-slate-400 hover:bg-surface-container-low transition-all"
           >
-            <span className="material-symbols-outlined text-xl">close</span>
+            <X size={20} />
           </button>
         </div>
 
@@ -431,9 +433,7 @@ export default function AddProductModal({ open, onClose, onSaved }) {
                   </>
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-4">
-                    <span className="material-symbols-outlined text-4xl text-slate-300">
-                      image
-                    </span>
+                    <ImageIcon size={40} className="text-slate-300" />
                     <p className="text-[0.65rem] font-bold text-slate-300 uppercase text-center">
                       Nhấn để tải ảnh lên
                     </p>

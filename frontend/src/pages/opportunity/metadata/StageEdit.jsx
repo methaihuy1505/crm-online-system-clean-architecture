@@ -30,7 +30,7 @@ export default function StageEdit({ open, stageId, onClose, onSaved }) {
     name: "",
     code: "",
     probabilityDefault: "",
-    stageType: "OPEN",
+    isClosed: true,
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
@@ -50,7 +50,8 @@ export default function StageEdit({ open, stageId, onClose, onSaved }) {
               res.data.probabilityDefault !== undefined
                 ? res.data.probabilityDefault
                 : "",
-            stageType: res.data.stageType || "OPEN",
+            isClosed:
+              res.data.isClosed !== undefined ? res.data.isClosed : true,
           });
           setErrors({});
         })
@@ -89,6 +90,7 @@ export default function StageEdit({ open, stageId, onClose, onSaved }) {
         name: trimmedName,
         code: trimmedCode,
         probabilityDefault: parseInt(form.probabilityDefault, 10),
+        isClosed: form.isClosed,
       });
       onSaved();
       onClose();
@@ -173,14 +175,12 @@ export default function StageEdit({ open, stageId, onClose, onSaved }) {
             </Field>
             <Field label="Loại quy trình">
               <select
-                value={form.stageType}
-                onChange={(e) =>
-                  setForm({ ...form, stageType: e.target.value })
-                }
+                value={form.isClosed}
+                onChange={(e) => setForm({ ...form, isClosed: e.target.value })}
                 className={inputCls(false)}
               >
-                <option value="OPEN">Đang xử lý (OPEN)</option>
-                <option value="CLOSED">Kết thúc quy trình (CLOSED)</option>
+                <option value="false">Đang xử lý (OPEN)</option>
+                <option value="true">Kết thúc quy trình (CLOSED)</option>
               </select>
             </Field>
           </div>

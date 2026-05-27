@@ -12,7 +12,7 @@ public class DeleteOpportunityUseCase {
 
     private final OpportunityDomainService domainService;
 
-    public void execute(Integer id) {
-        domainService.delete(id);
+    public void execute(Integer id,Integer deleteBy) {
+        domainService.delete(id,deleteBy);
     }
 }

@@ -11,7 +11,7 @@
  Target Server Version : 90200
  File Encoding         : 65001
 
- Date: 22/05/2026 20:19:22
+ Date: 26/05/2026 17:36:12
 */
 
 SET NAMES utf8mb4;
@@ -55,7 +55,7 @@ CREATE TABLE `activities`  (
   CONSTRAINT `activities_ibfk_3` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `activities_ibfk_4` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_activities_task` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 10001 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of activities
@@ -70,12 +70,12 @@ INSERT INTO `activities` VALUES (7, 7, 5, 'CUSTOMER', 1, 'MEETING', 'Họp Demo 
 INSERT INTO `activities` VALUES (8, 8, 2, 'CUSTOMER', 4, 'CALL', 'Cuộc gọi CSKH #8', 'Kết quả: Busy', 15, '2026-04-20 19:26:59', '2026-05-26 19:26:59', '2026-05-22 19:26:59', 2, '2026-05-22 19:26:59', NULL, NULL, 'OUTBOUND', 'Busy', NULL, NULL, NULL, 1, 1);
 INSERT INTO `activities` VALUES (9, 9, 8005, 'LEAD', NULL, 'EMAIL_QUOTE', 'Báo giá Dịch Vụ - Lần 3', 'Gửi kèm bảng giá PDF tháng mới.', 0, '2026-05-01 19:26:59', '2026-05-26 19:26:59', '2026-05-22 19:26:59', 2, '2026-05-22 19:26:59', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, 1);
 INSERT INTO `activities` VALUES (10, 10, 8115, 'LEAD', NULL, 'MEETING', 'Họp Demo Sản phẩm #10', 'Buổi họp chốt specs dự án.', 82, '2026-04-04 19:26:59', '2026-05-29 19:26:59', '2026-05-22 19:26:59', 1, '2026-05-22 19:26:59', NULL, NULL, NULL, NULL, '2026-04-04 19:26:59', '2026-04-04 20:48:59', 'Trụ sở KH', 0, 0);
-INSERT INTO `activities` VALUES (11, 11, 10, 'CUSTOMER', 2, 'CALL', 'Cuộc gọi CSKH #11', 'Kết quả: No Answer', 19, '2026-05-09 19:26:59', '2026-05-27 19:26:59', '2026-05-22 19:26:59', 4, '2026-05-22 19:26:59', NULL, NULL, 'INBOUND', 'No Answer', NULL, NULL, NULL, 0, 1);
+INSERT INTO `activities` VALUES (11, 11, 10, 'CUSTOMER', 2, 'CALL', 'Cuộc gọi CSKH #11', 'Kết quả: No Answer', 19, '2026-05-09 19:26:59', '2026-05-27 19:26:59', '2026-05-22 19:26:59', 4, '2026-05-26 09:35:56', NULL, NULL, 'INBOUND', 'No Answer', NULL, NULL, NULL, 1, 1);
 INSERT INTO `activities` VALUES (12, 12, 8999, 'LEAD', NULL, 'NOTE', 'Ghi chú quan trọng #12', 'Cần kiểm tra kỹ hợp đồng trước khi gửi.', 0, '2026-04-14 19:26:59', NULL, '2026-05-22 19:26:59', 1, '2026-05-22 19:26:59', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0);
 INSERT INTO `activities` VALUES (13, 13, 2, 'CUSTOMER', 1, 'EMAIL_TRANSACTION', 'Xác nhận Thanh toán đợt 1', 'Hóa đơn VAT đã gửi thành công.', 0, '2026-05-08 19:26:59', NULL, '2026-05-22 19:26:59', 5, '2026-05-22 19:26:59', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 1);
 INSERT INTO `activities` VALUES (14, 14, 7383, 'LEAD', NULL, 'NOTE', 'Ghi chú quan trọng #14', 'Cần kiểm tra kỹ hợp đồng trước khi gửi.', 0, '2026-05-15 19:26:59', NULL, '2026-05-22 19:26:59', 2, '2026-05-22 19:26:59', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 1);
 INSERT INTO `activities` VALUES (15, 15, 1, 'CUSTOMER', 4, 'EMAIL_QUOTE', 'Báo giá Dịch Vụ - Lần 2', 'Gửi kèm bảng giá PDF tháng mới.', 0, '2026-04-24 19:26:59', '2026-05-23 19:26:59', '2026-05-22 19:26:59', 4, '2026-05-22 19:26:59', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0);
-INSERT INTO `activities` VALUES (16, 16, 1, 'CUSTOMER', 3, 'CALL', 'Cuộc gọi CSKH #16', 'Kết quả: Interested', 12, '2026-05-10 19:26:59', '2026-05-26 19:26:59', '2026-05-22 19:26:59', 2, '2026-05-22 19:26:59', NULL, NULL, 'INBOUND', 'Interested', NULL, NULL, NULL, 0, 0);
+INSERT INTO `activities` VALUES (16, 16, 1, 'CUSTOMER', 3, 'CALL', 'Cuộc gọi CSKH #16', 'Kết quả: Interested', 12, '2026-05-10 19:26:59', '2026-05-26 19:26:59', '2026-05-22 19:26:59', 2, '2026-05-26 09:35:45', NULL, NULL, 'INBOUND', 'Interested', NULL, NULL, NULL, 1, 0);
 INSERT INTO `activities` VALUES (17, 17, 4115, 'LEAD', NULL, 'CALL', 'Cuộc gọi CSKH #17', 'Kết quả: Busy', 20, '2026-04-23 19:26:59', '2026-05-23 19:26:59', '2026-05-22 19:26:59', 2, '2026-05-22 19:26:59', NULL, NULL, 'INBOUND', 'Busy', NULL, NULL, NULL, 1, 1);
 INSERT INTO `activities` VALUES (18, 18, 5, 'CUSTOMER', 3, 'MEETING', 'Họp Demo Sản phẩm #18', 'Buổi họp chốt specs dự án.', 44, '2026-03-29 19:26:59', '2026-05-27 19:26:59', '2026-05-22 19:26:59', 4, '2026-05-22 19:26:59', NULL, NULL, NULL, NULL, '2026-03-29 19:26:59', '2026-03-29 20:10:59', 'Zoom Meeting', 1, 0);
 INSERT INTO `activities` VALUES (19, 19, 1, 'CUSTOMER', 5, 'EMAIL_QUOTE', 'Báo giá Dịch Vụ - Lần 2', 'Gửi kèm bảng giá PDF tháng mới.', 0, '2026-04-04 19:26:59', '2026-05-29 19:26:59', '2026-05-22 19:26:59', 4, '2026-05-22 19:26:59', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 1);
@@ -10074,11 +10074,14 @@ CREATE TABLE `branch_provinces`  (
   INDEX `branch_provinces_ibfk_2`(`province_id`) USING BTREE,
   CONSTRAINT `branch_provinces_ibfk_1` FOREIGN KEY (`branch_id`) REFERENCES `branches` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `branch_provinces_ibfk_2` FOREIGN KEY (`province_id`) REFERENCES `provinces` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of branch_provinces
 -- ----------------------------
+INSERT INTO `branch_provinces` VALUES (1, 1, 1);
+INSERT INTO `branch_provinces` VALUES (2, 2, 2);
+INSERT INTO `branch_provinces` VALUES (3, 2, 3);
 
 -- ----------------------------
 -- Table structure for branches
@@ -10090,11 +10093,13 @@ CREATE TABLE `branches`  (
   `address` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
   `tax_code` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of branches
 -- ----------------------------
+INSERT INTO `branches` VALUES (1, 'Chi nhánh Hà Nội', 'Tòa nhà VTI, Quận Cầu Giấy, Hà Nội', '0101234567');
+INSERT INTO `branches` VALUES (2, 'Chi nhánh Hồ Chí Minh', 'Tòa nhà VTI, Quận 1, TP.HCM', '0301234567');
 
 -- ----------------------------
 -- Table structure for campaigns
@@ -10130,7 +10135,7 @@ CREATE TABLE `communication_details`  (
   `is_primary` tinyint(1) NULL DEFAULT 0,
   `status` enum('ACTIVE','INACTIVE') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT 'ACTIVE',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 8021 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 8022 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of communication_details
@@ -18295,7 +18300,7 @@ INSERT INTO `customers` VALUES (1, 'CUS-1775860842841', 'Công ty TNHH VinFast',
 INSERT INTO `customers` VALUES (2, 'CUS-1775860980706', 'Nguyễn Văn Hoàng', NULL, 0, '', '079090123456', NULL, NULL, 'hoang.nv@gmail.com', '0902334121', NULL, NULL, 'Quận 1, TP. HCM', NULL, NULL, 1, 2, NULL, NULL, NULL, NULL, '2026-04-11 05:43:01', NULL, '2026-04-11 05:47:14', NULL, '2026-04-11 05:47:14', NULL);
 INSERT INTO `customers` VALUES (5, 'CUS-1778042253037', 'Mè Thái Hòa', '', 0, '', '082204001244', NULL, NULL, 'hehe@gmail.com', '0772895118', NULL, '', NULL, '', 2, 1, 3, 6, NULL, NULL, NULL, '2026-05-06 11:37:33', NULL, '2026-05-06 11:38:28', NULL, NULL, 1);
 INSERT INTO `customers` VALUES (10, 'CUS-1778045171162', 'Mè Thái Hòa', '', 1, '', '', NULL, NULL, 'ma@gmail.com', '0772896523', NULL, '', NULL, '', 1, 1, 1, NULL, NULL, NULL, NULL, '2026-05-06 12:26:11', NULL, '2026-05-06 12:26:31', NULL, '2026-05-06 12:26:31', 1);
-INSERT INTO `customers` VALUES (11, 'CUS-1778045735767', 'Mè Thái Học', '', 1, '', '', NULL, NULL, 'hoc@gmail.com', '0772895000', NULL, '', NULL, '', NULL, 1, 3, NULL, NULL, NULL, NULL, '2026-05-06 12:35:36', NULL, '2026-05-06 12:35:50', NULL, NULL, NULL);
+INSERT INTO `customers` VALUES (11, 'CUS-1778045735767', 'Mè Thái Học', '', 1, '', '', NULL, NULL, 'hoc@gmail.com', '0772895000', NULL, '', NULL, '', NULL, 2, 3, NULL, NULL, NULL, NULL, '2026-05-06 12:35:36', NULL, '2026-05-26 09:43:35', NULL, NULL, NULL);
 
 -- ----------------------------
 -- Table structure for lead_interests
@@ -18310,7 +18315,7 @@ CREATE TABLE `lead_interests`  (
   INDEX `lead_interests_ibfk_2`(`product_id`) USING BTREE,
   CONSTRAINT `lead_interests_ibfk_1` FOREIGN KEY (`lead_id`) REFERENCES `leads` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `lead_interests_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of lead_interests
@@ -28403,7 +28408,7 @@ CREATE TABLE `lost_reasons`  (
   `is_active` tinyint(1) NULL DEFAULT 1,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `code`(`code`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of lost_reasons
@@ -28431,7 +28436,7 @@ CREATE TABLE `modules`  (
   UNIQUE INDEX `code`(`code`) USING BTREE,
   INDEX `parent_id`(`parent_id`) USING BTREE,
   CONSTRAINT `modules_ibfk_1` FOREIGN KEY (`parent_id`) REFERENCES `modules` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of modules
@@ -28483,7 +28488,7 @@ CREATE TABLE `opportunities`  (
   CONSTRAINT `opportunities_ibfk_4` FOREIGN KEY (`assigned_to`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `opportunities_ibfk_5` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `opportunities_ibfk_6` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of opportunities
@@ -28517,7 +28522,7 @@ CREATE TABLE `opportunity_items`  (
   INDEX `product_id`(`product_id`) USING BTREE,
   CONSTRAINT `opportunity_items_ibfk_1` FOREIGN KEY (`opportunity_id`) REFERENCES `opportunities` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `opportunity_items_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of opportunity_items
@@ -28537,7 +28542,7 @@ CREATE TABLE `opportunity_stages`  (
   `is_closed` tinyint(1) NOT NULL DEFAULT 0,
   `is_active` tinyint(1) NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of opportunity_stages
@@ -28560,7 +28565,7 @@ CREATE TABLE `opportunity_status`  (
   `is_final` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `code`(`code`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of opportunity_status
@@ -28587,7 +28592,7 @@ CREATE TABLE `permissions`  (
   UNIQUE INDEX `code`(`code`) USING BTREE,
   INDEX `module_id`(`module_id`) USING BTREE,
   CONSTRAINT `permissions_ibfk_1` FOREIGN KEY (`module_id`) REFERENCES `modules` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of permissions
@@ -38621,7 +38626,7 @@ CREATE TABLE `product_images`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `product_id`(`product_id`) USING BTREE,
   CONSTRAINT `product_images_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 10001 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of product_images
@@ -48659,7 +48664,7 @@ CREATE TABLE `products`  (
   CONSTRAINT `fk_products_uom` FOREIGN KEY (`uom_id`) REFERENCES `uoms` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_products_updated_by` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `products_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `product_categories` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 10001 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of products
@@ -58674,11 +58679,14 @@ CREATE TABLE `provinces`  (
   `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `is_active` tinyint(1) NULL DEFAULT 1,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of provinces
 -- ----------------------------
+INSERT INTO `provinces` VALUES (1, 'Hà Nội', 1);
+INSERT INTO `provinces` VALUES (2, 'Hồ Chí Minh', 1);
+INSERT INTO `provinces` VALUES (3, 'Đà Nẵng', 1);
 
 -- ----------------------------
 -- Table structure for role_permissions
@@ -58694,7 +58702,7 @@ CREATE TABLE `role_permissions`  (
   INDEX `role_permissions_ibfk_2`(`permission_id`) USING BTREE,
   CONSTRAINT `role_permissions_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `role_permissions_ibfk_2` FOREIGN KEY (`permission_id`) REFERENCES `permissions` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of role_permissions
@@ -58714,11 +58722,15 @@ CREATE TABLE `roles`  (
   `updated_at` timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0),
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `code`(`code`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of roles
 -- ----------------------------
+INSERT INTO `roles` VALUES (1, 'Quản trị viên', 'ADMIN', 'Quản trị toàn bộ hệ thống CRM', 1, '2026-05-26 17:26:41', '2026-05-26 17:26:41');
+INSERT INTO `roles` VALUES (2, 'Nhân viên Kinh doanh', 'SALE', 'Xử lý Leads, tạo Campaigns', 1, '2026-05-26 17:26:41', '2026-05-26 17:26:41');
+INSERT INTO `roles` VALUES (3, 'Chăm sóc khách hàng', 'CSKH', 'Chăm sóc khách hàng và giải đáp', 1, '2026-05-26 17:26:41', '2026-05-26 17:26:41');
+INSERT INTO `roles` VALUES (4, 'Trưởng phòng', 'MANAGER', 'Quản lý chi nhánh và đội nhóm', 1, '2026-05-26 17:26:41', '2026-05-26 17:26:41');
 
 -- ----------------------------
 -- Table structure for sources
@@ -58750,7 +58762,7 @@ CREATE TABLE `system_settings`  (
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `setting_key`(`setting_key`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of system_settings
@@ -58773,7 +58785,7 @@ CREATE TABLE `task_notes`  (
   INDEX `fk_notes_user`(`user_id`) USING BTREE,
   CONSTRAINT `fk_notes_task` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `fk_notes_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 10001 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of task_notes
@@ -68808,7 +68820,7 @@ CREATE TABLE `tasks`  (
   CONSTRAINT `tasks_ibfk_1` FOREIGN KEY (`assigned_to`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `tasks_ibfk_2` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `tasks_ibfk_3` FOREIGN KEY (`updated_by`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 10001 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of tasks
@@ -78827,11 +78839,17 @@ CREATE TABLE `teams`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `branch_id`(`branch_id`) USING BTREE,
   CONSTRAINT `teams_ibfk_1` FOREIGN KEY (`branch_id`) REFERENCES `branches` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of teams
 -- ----------------------------
+INSERT INTO `teams` VALUES (1, 1, 'Phòng Kinh doanh HN', NULL, 'Tổng phụ trách Sale khu vực miền Bắc');
+INSERT INTO `teams` VALUES (2, 1, 'Nhóm Sale HN 1', 1, 'Nhóm trực tiếp xử lý Lead tại Cầu Giấy');
+INSERT INTO `teams` VALUES (3, 1, 'Phòng CSKH HN', NULL, 'Chăm sóc khách hàng miền Bắc');
+INSERT INTO `teams` VALUES (4, 2, 'Phòng Kinh doanh HCM', NULL, 'Tổng phụ trách Sale khu vực miền Nam');
+INSERT INTO `teams` VALUES (5, 2, 'Nhóm Sale HCM 1', 4, 'Nhóm trực tiếp xử lý Lead tại Q1');
+INSERT INTO `teams` VALUES (6, 2, 'Phòng CSKH HCM', NULL, 'Chăm sóc khách hàng miền Nam');
 
 -- ----------------------------
 -- Table structure for uoms
@@ -78901,16 +78919,16 @@ CREATE TABLE `users`  (
   CONSTRAINT `users_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `users_ibfk_2` FOREIGN KEY (`branch_id`) REFERENCES `branches` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `users_ibfk_3` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of users
 -- ----------------------------
-INSERT INTO `users` VALUES (1, 'admin', '123456', 'Quản trị viên', 'admin@crm.com', '0901234567', NULL, NULL, NULL, 'ACTIVE', '2026-05-22 19:26:59');
-INSERT INTO `users` VALUES (2, 'sale1', '123456', 'Nhân viên Sale 1', 'sale1@crm.com', '0901234568', NULL, NULL, NULL, 'ACTIVE', '2026-05-22 19:26:59');
-INSERT INTO `users` VALUES (3, 'sale2', '123456', 'Nhân viên Sale 2', 'sale2@crm.com', '0901234569', NULL, NULL, NULL, 'ACTIVE', '2026-05-22 19:26:59');
-INSERT INTO `users` VALUES (4, 'cskh1', '123456', 'Nhân viên CSKH 1', 'cskh1@crm.com', '0901234570', NULL, NULL, NULL, 'ACTIVE', '2026-05-22 19:26:59');
-INSERT INTO `users` VALUES (5, 'cskh2', '123456', 'Nhân viên CSKH 2', 'cskh2@crm.com', '0901234571', NULL, NULL, NULL, 'ACTIVE', '2026-05-22 19:26:59');
+INSERT INTO `users` VALUES (1, 'admin', '123456', 'Quản trị viên', 'admin@crm.com', '0901234567', 1, 1, NULL, 'ACTIVE', '2026-05-22 19:26:59');
+INSERT INTO `users` VALUES (2, 'sale1', '123456', 'Nhân viên Sale 1', 'sale1@crm.com', '0901234568', 2, 1, 2, 'ACTIVE', '2026-05-22 19:26:59');
+INSERT INTO `users` VALUES (3, 'sale2', '123456', 'Nhân viên Sale 2', 'sale2@crm.com', '0901234569', 2, 2, 5, 'ACTIVE', '2026-05-22 19:26:59');
+INSERT INTO `users` VALUES (4, 'cskh1', '123456', 'Nhân viên CSKH 1', 'cskh1@crm.com', '0901234570', 3, 1, 3, 'ACTIVE', '2026-05-22 19:26:59');
+INSERT INTO `users` VALUES (5, 'cskh2', '123456', 'Nhân viên CSKH 2', 'cskh2@crm.com', '0901234571', 3, 2, 6, 'ACTIVE', '2026-05-22 19:26:59');
 
 -- ----------------------------
 -- Procedure structure for GenerateTasksAndActivities

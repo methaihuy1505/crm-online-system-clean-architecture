@@ -1,6 +1,7 @@
 // ProductFilter.jsx — inline right panel (giống Opportunities)
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { X } from "lucide-react";
 
 const api = axios.create({ baseURL: "http://localhost:8080/api/v1" });
 
@@ -31,7 +32,7 @@ function RadioButtonGroup({ options, selected, onChange, cols = 2 }) {
           <button
             key={opt.value}
             onClick={() => onChange(opt.value)}
-            className={`px-2 py-2 rounded-xl text-[10px] font-bold border transition-all text-center leading-tight ${
+            className={`px-2 py-2 rounded-xl text-[10px] font-bold border transition-all text-center leading-tight outline-none ${
               active
                 ? "bg-[#1a237e] text-white border-[#1a237e] shadow-sm"
                 : "bg-white text-slate-500 border-slate-200 hover:border-[#1a237e] hover:text-[#1a237e]"
@@ -68,7 +69,7 @@ function CheckboxButtonGroup({ items, selected, onChange, cols = 2 }) {
                     : [...selected, item.value],
                 )
               }
-              className={`px-2 py-2 rounded-xl text-[10px] font-bold border transition-all text-center truncate ${
+              className={`px-2 py-2 rounded-xl text-[10px] font-bold border transition-all text-center truncate outline-none ${
                 checked
                   ? "bg-[#1a237e] text-white border-[#1a237e] shadow-md"
                   : "bg-white text-slate-500 border-slate-200 hover:border-[#1a237e] hover:text-[#1a237e]"
@@ -101,7 +102,6 @@ export default function ProductFilterPanel({ filters, onChange, onClose }) {
     );
   }, []);
 
-  // CẬP NHẬT HÀM RESET: Giữ lại cấu trúc key `search`
   const handleReset = () =>
     onChange({
       search: "",
@@ -112,12 +112,12 @@ export default function ProductFilterPanel({ filters, onChange, onClose }) {
     });
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200/60 shadow-xs p-4 animate-fade-in relative">
+    <div className="bg-white rounded-xl border border-slate-200/60 shadow-sm p-4 animate-fade-in relative">
       <button
         onClick={onClose}
-        className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+        className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 outline-none"
       >
-        <span className="material-symbols-outlined text-md">close</span>
+        <X size={18} />
       </button>
 
       <h3 className="text-[10px] font-black uppercase text-[#1A237E] mb-4">
@@ -125,7 +125,6 @@ export default function ProductFilterPanel({ filters, onChange, onClose }) {
       </h3>
 
       <div className="space-y-4">
-        {/* Sắp xếp */}
         <div>
           <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">
             Sắp xếp
@@ -138,7 +137,6 @@ export default function ProductFilterPanel({ filters, onChange, onClose }) {
           />
         </div>
 
-        {/* Loại sản phẩm */}
         <div>
           <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">
             Loại sản phẩm
@@ -151,7 +149,6 @@ export default function ProductFilterPanel({ filters, onChange, onClose }) {
           />
         </div>
 
-        {/* Danh mục */}
         <div>
           <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">
             Danh mục
@@ -164,7 +161,6 @@ export default function ProductFilterPanel({ filters, onChange, onClose }) {
           />
         </div>
 
-        {/* Đơn vị tính */}
         <div>
           <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">
             Đơn vị tính
@@ -177,10 +173,9 @@ export default function ProductFilterPanel({ filters, onChange, onClose }) {
           />
         </div>
 
-        {/* Reset */}
         <button
           onClick={handleReset}
-          className="w-full py-2 text-[11px] font-bold text-red-500 bg-red-50 rounded-lg hover:bg-red-100 transition-all"
+          className="w-full py-2 text-[11px] font-bold text-red-500 bg-red-50 rounded-lg hover:bg-red-100 transition-all outline-none mt-2"
         >
           Xóa tất cả bộ lọc
         </button>

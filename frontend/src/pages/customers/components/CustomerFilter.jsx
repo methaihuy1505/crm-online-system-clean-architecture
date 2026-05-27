@@ -24,14 +24,8 @@ const CustomerFilter = ({
 
   return (
     <>
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-[100] transition-opacity"
-          onClick={onClose}
-        ></div>
-      )}
       <div
-        className={`fixed top-0 right-0 h-full w-[400px] bg-white shadow-2xl z-[110] transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"}`}
+        className={`fixed top-0 right-0 h-full w-[400px] bg-white shadow-2xl border-l border-slate-200 z-[110] transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"}`}
       >
         <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
           <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
