@@ -74,6 +74,7 @@ const ActivityList = () => {
   ];
 
   const isFilterActive = () => {
+    if (keyword && keyword.trim() !== "") return true;
     const { activityTypes, ...restFilters } = filters;
     return Object.values(restFilters).some(arr => Array.isArray(arr) && arr.length > 0);
   };

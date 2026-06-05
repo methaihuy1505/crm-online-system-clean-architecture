@@ -102,8 +102,7 @@ public class TaskRepositoryImpl implements ITaskRepository {
     }
 
     @Override
-    public PagedResult<Task> advancedSearchWithFilter(List<Task.RelateType> relateType, List<Task.Priority> priority, List<Task.Status> status, Boolean isOverdue, int page, int size, Integer filterUserId) {
-        // 🌟 ÉP SORT CỨNG LẤY MỚI NHẤT
+    public PagedResult<Task> advancedSearchWithFilter(String keyword,List<Task.RelateType> relateType, List<Task.Priority> priority, List<Task.Status> status, Boolean isOverdue, int page, int size, Integer filterUserId) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
 
         List<TaskEntity.RelateType> dbRelateTypes = (relateType == null || relateType.isEmpty()) ? null :
@@ -115,8 +114,9 @@ public class TaskRepositoryImpl implements ITaskRepository {
         List<TaskEntity.Status> dbStatuses = (status == null || status.isEmpty()) ? null :
                 status.stream().map(s -> TaskEntity.Status.valueOf(s.name())).collect(Collectors.toList());
 
+
         Page<TaskEntity> pageResult = taskJpaRepository.advancedSearchWithFilter(
-                dbRelateTypes, dbPriorities, dbStatuses, isOverdue, filterUserId, pageable
+                keyword, dbRelateTypes, dbPriorities, dbStatuses, isOverdue, filterUserId, pageable
         );
 
         List<Task> tasks = pageResult.stream()

@@ -59,6 +59,7 @@ public class GetTaskUseCase {
         Integer filterUserId = (roleId != null && roleId == 1) ? null : currentUserId;
 
         PagedResult<Task> tasksDomain = iTaskRepository.advancedSearchWithFilter(
+                request.getKeyword(),
                 request.getRelateType(),
                 request.getPriority(),
                 request.getStatus(),
@@ -77,9 +78,7 @@ public class GetTaskUseCase {
         return responsePage;
     }
 
-    // 🌟 GIỮ NGUYÊN 100% CODE ENRICH CỦA BẠN BÊN DƯỚI NÀY
     private void enrichResponseData(TaskDetailsResponseDTO response) {
-        // 1. 🌟 LUỒNG DATA THẬT: Vá tên người giao việc (createdBy)
         if (response.getCreatedBy() != null) {
             try {
                 String creatorName = getUserByIdUseCase.execute(response.getCreatedBy())

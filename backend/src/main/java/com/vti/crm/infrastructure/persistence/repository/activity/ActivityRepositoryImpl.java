@@ -96,7 +96,7 @@ public class ActivityRepositoryImpl implements IActivityRepository {
     }
 
     @Override
-    public PagedResult<Activity> advancedSearch(
+    public PagedResult<Activity> advancedSearch(String keyword,
             Activity.ActivityType activityType, List<Activity.ParentType> parentTypes,
             Integer parentId, Boolean isPriority, Boolean isCompleted,
             Activity.CallType callType, int page, int size, Integer filterUserId) {
@@ -110,7 +110,7 @@ public class ActivityRepositoryImpl implements IActivityRepository {
         }
         ActivityEntity.CallType dbCallType = (callType != null) ? ActivityEntity.CallType.valueOf(callType.name()) : null;
 
-        Page<ActivityEntity> pageResult = activityJpaRepository.advancedSearch(
+        Page<ActivityEntity> pageResult = activityJpaRepository.advancedSearch(keyword,
                 dbActivityType, dbParentTypes, parentId, isPriority, isCompleted, dbCallType, filterUserId, pageable);
 
         List<Activity> activities = pageResult.stream().map(activityInfraMapper::toDomain).collect(Collectors.toList());

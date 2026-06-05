@@ -20,7 +20,7 @@ public interface ITaskRepository {
     // Sửa hàm này:
     PagedResult<Task> findAllTasksWithFilter(int page, int size, String keyword, Integer filterUserId);
 
-    PagedResult<Task> advancedSearchWithFilter(List<Task.RelateType> relateType,
+    PagedResult<Task> advancedSearchWithFilter(String keyword,List<Task.RelateType> relateType,
                                                List<Task.Priority> priority,
                                                List<Task.Status> status,
                                                Boolean isOverdue,

@@ -37,6 +37,7 @@ public interface ActivityJpaRepository extends JpaRepository<ActivityEntity, Int
 
     // 🌟 5. Nâng cấp advancedSearch của bạn kia
     @Query("SELECT a FROM ActivityEntity a WHERE " +
+            "(:keyword IS NULL OR LOWER(a.subject) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
             "(:activityType IS NULL OR a.activityType = :activityType) AND " +
             "(:parentTypes IS NULL OR a.parentType IN :parentTypes) AND " +
             "(:parentId IS NULL OR a.parentId = :parentId) AND " +
@@ -46,6 +47,7 @@ public interface ActivityJpaRepository extends JpaRepository<ActivityEntity, Int
             "a.deletedAt IS NULL AND " +
             "(:filterUserId IS NULL OR a.createdBy = :filterUserId OR a.taskId IN (SELECT t.id FROM TaskEntity t WHERE t.assignedTo = :filterUserId))")
     Page<ActivityEntity> advancedSearch(
+            @Param("keyword") String keyword,
             @Param("activityType") ActivityEntity.ActivityType activityType,
             @Param("parentTypes") List<ActivityEntity.ParentType> parentTypes,
             @Param("parentId") Integer parentId,

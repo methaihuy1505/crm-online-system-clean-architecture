@@ -16,7 +16,7 @@ public interface IActivityRepository {
     PagedResult<Activity> findByActivityCallTypeAndCallType(Activity.CallType callType, int page, int size, Integer filterUserId);
 
     void deleteById(Integer id);
-    PagedResult<Activity> advancedSearch(
+    PagedResult<Activity> advancedSearch(String keyword,
             Activity.ActivityType activityType,
             List<Activity.ParentType> parentTypes,
             Integer parentId,

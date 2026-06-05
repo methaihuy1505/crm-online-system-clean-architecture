@@ -98,6 +98,7 @@ public class GetActivityUseCase {
 
         // Truyền thêm filterUserId vào hàm advancedSearch
         PagedResult<Activity> activitiesDomain = activityRepository.advancedSearch(
+                request.getKeyword(),
                 request.getActivityType(),
                 request.getParentTypes(),
                 request.getParentId(),

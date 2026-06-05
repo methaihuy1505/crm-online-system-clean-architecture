@@ -7,6 +7,7 @@ import java.util.List;
 
 @Data
 public class ActivityAdvancedSearchRequest {
+    private String keyword;
     private Activity.ActivityType activityType;
     private List<Activity.ParentType> parentTypes;
     private Boolean isPriority;

@@ -38,12 +38,14 @@ public interface TaskJpaRepository extends JpaRepository<TaskEntity, Integer> {
             Pageable pageable);
 
     @Query("SELECT t FROM TaskEntity t WHERE t.deletedAt IS NULL AND " +
+            "(:keyword IS NULL OR LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
             "(:relateType IS NULL OR t.relateType IN :relateType) AND " +
             "(:priority IS NULL OR t.priority IN :priority) AND " +
             "(:status IS NULL OR t.status IN :status) AND " +
             "(:isOverdue IS NULL OR t.isOverdue = :isOverdue) AND " +
             "(:filterUserId IS NULL OR t.assignedTo = :filterUserId OR t.createdBy = :filterUserId)")
     Page<TaskEntity> advancedSearchWithFilter(
+            @Param("keyword") String keyword,
             @Param("relateType") List<TaskEntity.RelateType> relateType,
             @Param("priority") List<TaskEntity.Priority> priority,
             @Param("status") List<TaskEntity.Status> status,
