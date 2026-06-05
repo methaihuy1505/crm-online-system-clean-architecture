@@ -44,11 +44,13 @@ public class LeadDbEntity {
     private String address;
 
     // --- Các khóa ngoại (Giữ kiểu Integer để không phụ thuộc module khác) ---
-    @Column(name = "province_id")
-    private Integer provinceId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "province_id")
+    private ProvinceDbEntity province;
 
-    @Column(name = "branch_id")
-    private Integer branchId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id")
+    private BranchDbEntity branch;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "source_id")
@@ -77,21 +79,25 @@ public class LeadDbEntity {
     @Column(name = "total_meetings")
     private Integer totalMeetings = 0;
 
-    @Column(name = "assigned_to")
-    private Integer assignedTo;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_to")
+    private UserDbEntity assignedToUser;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by")
+    private UserDbEntity createdByUser;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "updated_by")
+    private UserDbEntity updatedByUser;
+
 
     // --- Timestamps & Auditing ---
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "created_by")
-    private Integer createdBy;
-
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @Column(name = "updated_by")
-    private Integer updatedBy;
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;

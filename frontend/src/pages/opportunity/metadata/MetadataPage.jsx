@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
+import api from "../../../lib/api";
+
 
 // Import các Module Form đã bóc tách
 import StageInput from "./StageInput";
@@ -8,10 +9,7 @@ import StatusInput from "./StatusInput";
 import StatusEdit from "./StatusEdit";
 import ReasonInput from "./ReasonInput";
 import ReasonEdit from "./ReasonEdit";
-
-const api = axios.create({
-  baseURL: "http://localhost:8080/api/v1",
-});
+import toast from "react-hot-toast";
 
 const iconStyle = {
   fontVariationSettings: "'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24",
@@ -50,6 +48,8 @@ export default function MetadataPage() {
       setData(response.data || []);
       setSelectedIndex(-1);
     } catch (err) {
+      const errorMessage = err.response?.data?.message || "Lỗi khi tải dữ liệu cấu hình!";
+      toast.error(errorMessage);
       console.error("Lỗi khi tải dữ liệu cấu hình:", err);
     } finally {
       setLoading(false);
@@ -99,19 +99,15 @@ export default function MetadataPage() {
   }, [filteredData, selectedItem, showAddModal, editId]);
 
   return (
-    
     <div className="flex-1 flex flex-col h-full relative space-y-6 antialiased select-none text-slate-800">
-      
-      
       <header className="flex items-center justify-between shrink-0">
         <div className="flex items-center gap-6">
           <div>
-                <h2 className="text-3xl font-headline font-extrabold text-primary tracking-tight">
-                  Quản lý Metadata
-                </h2>
-              </div>
+            <h2 className="text-3xl font-headline font-extrabold text-primary tracking-tight">
+              Quản lý Metadata
+            </h2>
+          </div>
 
-          
           <nav className="flex bg-white shadow-sm border border-slate-200/60 p-1 rounded-xl gap-1">
             {Object.keys(tabConfig).map((tab) => (
               <button
@@ -146,10 +142,7 @@ export default function MetadataPage() {
         </button>
       </header>
 
-      
       <div className="flex flex-1 overflow-hidden bg-white rounded-2xl shadow-sm border border-slate-200/50">
-        
-      
         <main className="flex-1 flex flex-col overflow-hidden border-r border-slate-200/50">
           {/* Thanh tìm kiếm */}
           <div className="px-8 py-4 border-b border-slate-100 flex items-center justify-between gap-4 shrink-0 bg-slate-50/50">
@@ -235,7 +228,7 @@ export default function MetadataPage() {
                             <td className="pl-4 py-3">
                               <span
                                 className={`px-2 py-1 text-[10px] font-bold rounded-md border ${
-                                  item.stageType === "CLOSED"
+                                  item.isClosed === "false"
                                     ? "bg-red-50 text-red-700 border-red-100"
                                     : "bg-green-50 text-green-700 border-green-100"
                                 }`}

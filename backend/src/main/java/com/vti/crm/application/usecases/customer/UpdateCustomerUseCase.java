@@ -22,7 +22,7 @@ public class UpdateCustomerUseCase {
     private final CommunicationDomainService commDomainService = new CommunicationDomainService();
 
     @Transactional
-    public Customer execute(Integer id, CustomerUpdateRequest request) {
+    public Customer execute(Integer id, CustomerUpdateRequest request,Integer currentUserId) {
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Khách hàng với ID: " + id));
 
@@ -34,7 +34,7 @@ public class UpdateCustomerUseCase {
                 request.getWebsite(), request.getAddressCompany(), request.getAddressBilling(),
                 request.getDescription(), request.getSourceId(), request.getCampaignId(),
                 request.getStatusId(), request.getRankId(), request.getBranchId(),
-                request.getProvinceId(), request.getAssignedUserId()
+                request.getProvinceId(), request.getAssignedUserId(),currentUserId
         );
         Customer updatedCustomer = customerRepository.save(customer);
 

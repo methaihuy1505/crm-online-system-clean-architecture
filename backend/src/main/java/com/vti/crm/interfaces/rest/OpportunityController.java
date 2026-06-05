@@ -4,12 +4,12 @@ import com.vti.crm.application.usecases.opportunity.*;
 import com.vti.crm.domain.model.OpportunityFilter;
 import com.vti.crm.interfaces.dto.request.opportunity.OpportunityRequest;
 import com.vti.crm.interfaces.dto.response.opportunity.OpportunityResponse;
-
 import com.vti.crm.interfaces.dto.response.opportunity.OpportunityResponseEnricher;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
@@ -18,15 +18,15 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/opportunities")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+@PreAuthorize("hasAuthority('opportunities.view')")
 public class OpportunityController {
 
     private final CreateOpportunityUseCase createUseCase;
     private final GetOpportunityByIdUseCase getByIdUseCase;
     private final UpdateOpportunityUseCase updateUseCase;
     private final DeleteOpportunityUseCase deleteUseCase;
-    private final OpportunityResponseEnricher enricher; // SỬA: đổi từ OpportunityWebMapper
     private final GetOpportunitiesWithFilterUseCase getOpportunitiesWithFilterUseCase;
+    private final OpportunityResponseEnricher enricher;
 
     @GetMapping
     public ResponseEntity<List<OpportunityResponse>> getAll(
@@ -44,11 +44,9 @@ public class OpportunityController {
                 sort
         );
 
+        // toResponses() — batch load, chỉ 3 query DB
         return ResponseEntity.ok(
-                getOpportunitiesWithFilterUseCase.execute(filter)
-                        .stream()
-                        .map(enricher::toResponse)
-                        .toList()
+                enricher.toResponses(getOpportunitiesWithFilterUseCase.execute(filter))
         );
     }
 
@@ -58,6 +56,7 @@ public class OpportunityController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('opportunities.create')")
     public ResponseEntity<OpportunityResponse> create(
             @Valid @RequestBody OpportunityRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
@@ -66,18 +65,24 @@ public class OpportunityController {
                                 request.getOpportunityCode(),
                                 request.getName(),
                                 request.getCustomerId(),
+                                request.getCampaignId(),
                                 request.getStageId(),
                                 request.getStatusId(),
                                 request.getLostReasonId(),
                                 request.getDepositAmount(),
                                 request.getProbability(),
-                                request.getDescription()
+                                request.getDescription(),
+                                request.getNextFollowUpDate(),
+                                request.getExpectedCloseDate(),
+                                request.getCreatedBy(),
+                                request.getAssignedTo()
                         )
                 )
         );
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('opportunities.update')")
     public ResponseEntity<OpportunityResponse> update(
             @PathVariable Integer id,
             @Valid @RequestBody OpportunityRequest request) {
@@ -87,22 +92,34 @@ public class OpportunityController {
                                 id,
                                 request.getName(),
                                 request.getCustomerId(),
+                                request.getCampaignId(),
                                 request.getStageId(),
                                 request.getStatusId(),
                                 request.getLostReasonId(),
                                 request.getDepositAmount(),
                                 request.getProbability(),
-                                request.getDescription()
+                                request.getDescription(),
+                                request.getNextFollowUpDate(),
+                                request.getCurrencyCode(),
+                                request.getExpectedCloseDate(),
+                                request.getActualCloseDate(),
+                                request.getAssignedTo(),
+                                request.getUpdatedBy()
                         )
                 )
         );
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Integer id) {
-        deleteUseCase.execute(id);
+    @PreAuthorize("hasAuthority('opportunities.delete')")
+    public ResponseEntity<Void> delete(
+            @PathVariable Integer id,
+            @RequestParam(value = "deletedBy", required = false) Integer deletedBy) {
+        deleteUseCase.execute(id, deletedBy);
         return ResponseEntity.noContent().build();
     }
+
+    // ── Helper ───────────────────────────────────────────────────────────────
     private List<Integer> parseIds(String param) {
         if (param == null || param.isBlank()) return List.of();
         return Arrays.stream(param.split(","))

@@ -37,9 +37,9 @@ public class LeadRepositoryImpl implements ILeadRepository {
     }
 
     @Override
-    public Page<Lead> searchLeads(String keyword, List<Integer> statusIds, List<Integer> sourceIds, List<Integer> campaignIds, Integer provinceId, Integer branchId, Pageable pageable) {
+    public Page<Lead> searchLeads(String keyword, List<Integer> statusIds, List<Integer> sourceIds, List<Integer> campaignIds, Integer provinceId, Integer branchId,Integer assignedToFilter, Pageable pageable) {
         Page<LeadDbEntity> entityPage = jpaRepository.searchLeads(
-                keyword, statusIds, sourceIds, campaignIds, provinceId, branchId, pageable
+                keyword, statusIds, sourceIds, campaignIds, provinceId, branchId, assignedToFilter, pageable
         );
         return entityPage.map(mapper::toDomain);
     }

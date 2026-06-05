@@ -16,20 +16,30 @@ public class CreateLeadUseCase {
     private final ILeadInterestRepository interestRepository;
 
     @Transactional
-    public Lead execute(LeadCreateRequest request) {
-        // 1. Tạo Lead mới (Validate logic cũ: fullName không được trống)
+    public Lead execute(LeadCreateRequest request, Integer currentUserId) { // THÊM currentUserId
+
+        // 1. Validate logic
         if (request.getFullName() == null || request.getFullName().trim().isEmpty()) {
             throw new IllegalArgumentException("Họ và tên Lead không được để trống!");
         }
 
-        Lead lead = new Lead(null, request.getFullName(), request.getCompanyName(), request.getPhone(), request.getEmail(), request.getWebsite(), request.getTaxCode(), request.getCitizenId(), request.getAddress(), request.getProvinceId(), request.getBranchId(), request.getSourceId(), request.getCampaignId(), request.getStatusId(), request.getExpectedRevenue(), request.getDescription(), 0, 0, 0, request.getAssignedTo(), null, null);
+        // 2. Dùng Constructor tạo mới (Sạch sẽ và ngắn gọn hơn rất nhiều)
+        Lead lead = new Lead(
+                request.getFullName(), request.getCompanyName(), request.getPhone(),
+                request.getEmail(), request.getWebsite(), request.getTaxCode(),
+                request.getCitizenId(), request.getAddress(), request.getProvinceId(),
+                request.getBranchId(), request.getSourceId(), request.getCampaignId(),
+                request.getStatusId(), request.getExpectedRevenue(), request.getDescription(),
+                request.getAssignedTo(),
+                currentUserId
+        );
 
         Lead savedLead = leadRepository.save(lead);
 
-        // 2. Lưu Interests
+        // 3. Lưu Interests
         interestRepository.saveInterests(savedLead.getId(), request.getProductInterestIds());
 
-        // 3. Lưu Communications (Logic cũ: tạo số chính/email chính)
+        // 4. Lưu Communications
         saveDefaultComm(savedLead.getId(), request.getPhone(), "PHONE", "Số chính");
         saveDefaultComm(savedLead.getId(), request.getEmail(), "EMAIL", "Email chính");
 
@@ -41,5 +51,4 @@ public class CreateLeadUseCase {
             commRepository.save(CommunicationDetail.createNew(id, "LEAD", type, value, label, true));
         }
     }
-
 }

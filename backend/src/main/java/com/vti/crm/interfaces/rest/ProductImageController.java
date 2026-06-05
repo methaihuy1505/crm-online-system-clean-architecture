@@ -6,6 +6,7 @@ import com.vti.crm.infrastructure.external.CloudinaryService;
 import com.vti.crm.interfaces.mapper.ProductImageWebMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,6 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/product-images")
 @RequiredArgsConstructor
+@PreAuthorize("hasAuthority('products.view')")
 public class ProductImageController {
 
     private final UploadMultipleImagesUseCase uploadMultipleImagesUseCase;
@@ -25,6 +27,7 @@ public class ProductImageController {
 
     // ============ UPLOAD MULTIPLE ============
     @PostMapping("/upload-multiple/{productId}")
+    @PreAuthorize("hasAuthority('product_images.upload')")
     public ResponseEntity<List<ProductImageResponseDTO>> uploadMultiple(
             @PathVariable Integer productId,
             @RequestParam("files") List<MultipartFile> files) {
@@ -61,6 +64,7 @@ public class ProductImageController {
 
     // ============ DELETE IMAGE ============
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('product_images.delete')")
     public ResponseEntity<Void> deleteImage(@PathVariable Integer id) {
         deleteImageUseCase.execute(id);
         return ResponseEntity.noContent().build();
@@ -68,6 +72,7 @@ public class ProductImageController {
 
     // ============ REPLACE IMAGES ============
     @PutMapping("/replace/{productId}")
+    @PreAuthorize("hasAuthority('product_images.replace')")
     public ResponseEntity<List<ProductImageResponseDTO>> replaceImages(
             @PathVariable Integer productId,
             @RequestParam("files") List<MultipartFile> files) {

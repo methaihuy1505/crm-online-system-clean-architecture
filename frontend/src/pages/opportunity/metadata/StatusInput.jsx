@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import axios from "axios";
-
-const api = axios.create({ baseURL: "http://localhost:8080/api/v1" });
+import api from "../../../lib/api";
+import toast from "react-hot-toast";
 
 export default function StatusModal({ open, statusId, onClose, onSaved }) {
   const [name, setName] = useState("");
@@ -22,7 +21,11 @@ export default function StatusModal({ open, statusId, onClose, onSaved }) {
             setCode(res.data.code || "");
             setIsFinal(res.data.isFinal || false);
           })
-          .catch((err) => console.error(err))
+          .catch((err) => {
+            const errorMessage = err.response?.data?.message || "Lỗi khi tải dữ liệu trạng thái!";
+            toast.error(errorMessage);
+            console.error("Lỗi khi tải dữ liệu trạng thái:", err);
+          })
           .finally(() => setLoading(false));
       } else {
         setName("");
@@ -60,7 +63,9 @@ export default function StatusModal({ open, statusId, onClose, onSaved }) {
       onSaved();
       onClose();
     } catch (err) {
-      console.error(err);
+      const errorMessage = err.response?.data?.message || "Lỗi khi cập nhật trạng thái!";
+      toast.error(errorMessage);
+      console.error("Lỗi khi cập nhật trạng thái:", err);
     } finally {
       setLoading(false);
     }

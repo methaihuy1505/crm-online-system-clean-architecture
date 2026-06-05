@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../../lib/api";
+import toast from "react-hot-toast";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 
-const api = axios.create({ baseURL: "http://localhost:8080/api/v1" });
 
 export default function ReasonEdit({ open, reasonId, onClose, onSaved }) {
   const [form, setForm] = useState({
@@ -28,7 +28,11 @@ export default function ReasonEdit({ open, reasonId, onClose, onSaved }) {
           });
           setErrors({});
         })
-        .catch((err) => console.error(err))
+        .catch((err) => {
+          const errorMessage = err.response?.data?.message || "Lỗi khi tải dữ liệu lý do thất bại!";
+          toast.error(errorMessage);
+          console.error("Lỗi khi tải dữ liệu lý do thất bại:", err);
+        })
         .finally(() => setLoading(false));
     }
   }, [open, reasonId]);
@@ -55,7 +59,9 @@ export default function ReasonEdit({ open, reasonId, onClose, onSaved }) {
       onSaved();
       onClose();
     } catch (err) {
-      console.error(err);
+      const errorMessage = err.response?.data?.message || "Lỗi khi cập nhật lý do thất bại!";
+      toast.error(errorMessage);
+      console.error("Lỗi khi cập nhật lý do thất bại:", err);
     } finally {
       setSaving(false);
     }
@@ -67,7 +73,9 @@ export default function ReasonEdit({ open, reasonId, onClose, onSaved }) {
       onSaved();
       onClose();
     } catch (err) {
-      console.error(err);
+      const errorMessage = err.response?.data?.message || "Lỗi khi xóa lý do thất bại!";
+      toast.error(errorMessage);
+      console.error("Lỗi khi xóa lý do thất bại:", err);
     }
   };
 

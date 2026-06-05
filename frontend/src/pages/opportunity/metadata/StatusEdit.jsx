@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../../lib/api";
+import toast from "react-hot-toast";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 
-const api = axios.create({ baseURL: "http://localhost:8080/api/v1" });
+
 
 export default function StatusEdit({ open, statusId, onClose, onSaved }) {
   const [form, setForm] = useState({ name: "", code: "", isFinal: false });
@@ -24,7 +25,11 @@ export default function StatusEdit({ open, statusId, onClose, onSaved }) {
           });
           setErrors({});
         })
-        .catch((err) => console.error(err))
+        .catch((err) => {
+          const errorMessage = err.response?.data?.message || "Lỗi khi tải dữ liệu trạng thái!";
+          toast.error(errorMessage);
+          console.error("Lỗi khi tải dữ liệu trạng thái:", err);
+        })
         .finally(() => setLoading(false));
     }
   }, [open, statusId]);
@@ -47,7 +52,9 @@ export default function StatusEdit({ open, statusId, onClose, onSaved }) {
       onSaved();
       onClose();
     } catch (err) {
-      console.error(err);
+      const errorMessage = err.response?.data?.message || "Lỗi khi cập nhật trạng thái!";
+      toast.error(errorMessage);
+      console.error("Lỗi khi cập nhật trạng thái:", err);
     } finally {
       setSaving(false);
     }
@@ -59,7 +66,9 @@ export default function StatusEdit({ open, statusId, onClose, onSaved }) {
       onSaved();
       onClose();
     } catch (err) {
-      console.error(err);
+      const errorMessage = err.response?.data?.message || "Lỗi khi xóa trạng thái!";
+      toast.error(errorMessage);
+      console.error("Lỗi khi xóa trạng thái:", err);
     }
   };
 

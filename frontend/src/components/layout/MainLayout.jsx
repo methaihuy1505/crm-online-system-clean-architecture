@@ -14,7 +14,7 @@ const MainLayout = () => {
           collapsed ? "ml-[68px]" : "ml-64"
         }`}
       >
-        <div className="p-8 flex-1">
+        <div className="px-5 pt-8 flex-1">
           <Outlet />
         </div>
       </main>

@@ -5,6 +5,7 @@ import com.vti.crm.interfaces.dto.request.opportunity.LostReasonRequest;
 import com.vti.crm.interfaces.dto.response.opportunity.LostReasonResponse;
 import com.vti.crm.interfaces.mapper.LostReasonWebMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -35,6 +36,7 @@ public class LostReasonController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('metadata.manage')")
     public LostReasonResponse create(@RequestBody LostReasonRequest request) {
         return webMapper.toResponse(
                 createUseCase.execute(request.getCode(), request.getName(), request.getDescription())
@@ -42,6 +44,7 @@ public class LostReasonController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('metadata.manage')")
     public LostReasonResponse update(
             @PathVariable Integer id,
             @RequestBody LostReasonRequest request) {
@@ -51,6 +54,7 @@ public class LostReasonController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('metadata.manage')")
     public void delete(@PathVariable Integer id) {
         deleteUseCase.execute(id);
     }

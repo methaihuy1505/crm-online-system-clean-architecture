@@ -4,6 +4,8 @@ package com.vti.crm.application.usecases.productcategory;
 import com.vti.crm.domain.model.ProductCategory;
 import com.vti.crm.domain.service.ProductCategoryDomainService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -15,7 +17,7 @@ public class GetAllProductCategoriesUseCase {
 
     private final ProductCategoryDomainService domainService;
 
-    public List<ProductCategory> execute() {
-        return domainService.findAllActive();
+    public Page<ProductCategory> execute(String search, Pageable pageable) {
+        return domainService.searchCategories(search, pageable);
     }
 }

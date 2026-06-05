@@ -1,7 +1,8 @@
 import React from "react";
 import { UserPlus } from "lucide-react";
 
-const LeadHeader = ({ onOpenAdd }) => {
+// Nhận thêm props canCreate
+const LeadHeader = ({ onOpenAdd, canCreate }) => {
   return (
     <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
       <div>
@@ -12,12 +13,16 @@ const LeadHeader = ({ onOpenAdd }) => {
           Quản lý và theo dõi các cơ hội kinh doanh mới trong hệ thống.
         </p>
       </div>
-      <button
-        onClick={onOpenAdd}
-        className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 outline-none transition-all"
-      >
-        <UserPlus size={18} strokeWidth={2.5} /> Thêm Lead mới (Alt+N)
-      </button>
+      
+      {/* ẨN/HIỆN DỰA VÀO QUYỀN */}
+      {canCreate && (
+        <button
+          onClick={onOpenAdd}
+          className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 outline-none transition-all"
+        >
+          <UserPlus size={18} strokeWidth={2.5} /> Thêm Lead mới (Alt+N)
+        </button>
+      )}
     </div>
   );
 };

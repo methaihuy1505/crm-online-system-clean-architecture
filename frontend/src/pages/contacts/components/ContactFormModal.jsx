@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../../lib/api";
 import Button from "../../../components/ui/Button";
+import toast from "react-hot-toast";
 
 const ContactFormModal = ({
   isOpen,
@@ -103,7 +104,10 @@ const ContactFormModal = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      toast.error("Vui lòng sửa các lỗi trong form trước khi lưu.");
+      return};
+    
 
     // Tự động gán customerId từ Prop truyền vào
     const payload = {
@@ -116,18 +120,20 @@ const ContactFormModal = ({
     setIsSubmitting(true);
     try {
       if (isEditMode) {
-        await axios.put(
-          `http://localhost:8080/api/v1/contacts/${initialData.id}`,
+        await api.put(
+          `/contacts/${initialData.id}`,
           payload,
         );
       } else {
-        await axios.post("http://localhost:8080/api/v1/contacts", payload);
+        await api.post("/contacts", payload);
       }
       onSuccess(); // Sẽ kích hoạt refreshTrigger ở CustomerPage
       onClose();
     } catch (error) {
+      const errorMessage = error.response?.data?.message || "Có lỗi xảy ra khi lưu liên hệ!";
+      toast.error(errorMessage);
       console.error(error);
-      alert(error.response?.data?.message || "Có lỗi xảy ra khi lưu.");
+      
     } finally {
       setIsSubmitting(false);
     }

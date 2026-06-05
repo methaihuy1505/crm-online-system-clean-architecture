@@ -22,7 +22,10 @@ public class CreateCustomerUseCase {
     private final CustomerContactDomainService domainService = new CustomerContactDomainService();
 
     @Transactional
-    public Customer execute(CustomerCreateRequest request) {
+    public Customer execute(CustomerCreateRequest request,Integer currentUserId) {
+        Integer finalAssignedUserId = request.getAssignedUserId() != null
+                ? request.getAssignedUserId()
+                : currentUserId;
         // BƯỚC 1: Khởi tạo/Kéo data (Rich Entity sinh mã CUS-)
         Customer customer = Customer.create(
                 request.getName(), request.getShortName(), request.getIsOrganization(),
@@ -31,7 +34,9 @@ public class CreateCustomerUseCase {
                 request.getWebsite(), request.getAddressCompany(), request.getAddressBilling(),
                 request.getDescription(), request.getSourceId(), request.getCampaignId(),
                 request.getStatusId(), request.getRankId(), request.getBranchId(),
-                request.getProvinceId(), request.getAssignedUserId()
+                request.getProvinceId(),
+                finalAssignedUserId,
+                currentUserId
         );
         Customer savedCustomer = customerRepository.save(customer);
 

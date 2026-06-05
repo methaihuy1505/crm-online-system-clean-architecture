@@ -17,7 +17,6 @@ const DetailTask = () => {
         const response = await api.get(`/tasks/${id}`);
         const fetchedTask = response.data;
 
-        // Set default values if not present (mock/hardcode frontend)
         const defaultPriority = fetchedTask.priority || "HIGH";
         const defaultStartDate = fetchedTask.startDate || new Date().toISOString().slice(0, 16);
         const defaultEndDate = fetchedTask.endDate || new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().slice(0, 16);
@@ -32,82 +31,81 @@ const DetailTask = () => {
         });
       } catch (err) {
         console.error("Lỗi khi tải chi tiết Task:", err);
-        setError("Không tìm thấy công việc hoặc có lỗi xảy ra.");
+        setError("Không thể tải thông tin chi tiết của công việc này.");
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchTaskDetail();
+    if (id) fetchTaskDetail();
   }, [id]);
 
   if (isLoading) {
     return (
-      <div className="p-6 flex items-center justify-center min-h-screen bg-[#F9FAFB] text-[11px]">
-        <span className="material-symbols-outlined animate-spin text-gray-400 text-[40px]">sync</span>
-        <span className="ml-3 text-slate-500">Đang tải chi tiết công việc...</span>
+      <div className="p-6 flex items-center justify-center min-h-screen bg-[#F9FAFB] text-[11px] text-slate-500">
+        <span className="material-symbols-outlined animate-spin mr-2">sync</span> Đang tải chi tiết công việc...
       </div>
     );
   }
 
-  if (error) {
+  if (error || !task) {
     return (
-      <div className="p-6 text-red-500 text-center min-h-screen bg-[#F9FAFB] text-[11px]">
-        {error}
-        <button onClick={() => navigate('/task')} className="ml-4 px-4 py-2 bg-blue-600 text-white rounded-[5px] text-[11px]">Quay lại danh sách</button>
+      <div className="p-6 min-h-screen bg-[#F9FAFB] text-[11px] text-center">
+        <p className="text-red-500 font-semibold mb-4">{error || "Công việc không tồn tại."}</p>
+        <button onClick={() => navigate('/tasks')} className="inline-flex items-center gap-1 text-blue-600 hover:underline">
+          <ArrowLeft className="w-4 h-4" /> Quay lại danh sách
+        </button>
       </div>
     );
   }
 
-  if (!task) {
-    return (
-      <div className="p-6 text-slate-500 text-center min-h-screen bg-[#F9FAFB] text-[11px]">
-        Không tìm thấy thông tin công việc.
-        <button onClick={() => navigate('/task')} className="ml-4 px-4 py-2 bg-blue-600 text-white rounded-[5px] text-[11px]">Quay lại danh sách</button>
-      </div>
-    );
-  }
-
-  const renderFieldValue = (label, value, isDate = false, isRelated = false) => {
+  const renderFieldValue = (label, value, isDate = false, isRelate = false) => {
     let displayValue = value;
-    if (isDate) {
-      displayValue = value ? new Date(value).toLocaleString("vi-VN", { dateStyle: 'medium', timeStyle: 'short' }) : '-';
-    } else if (isRelated) {
-      displayValue = task.relateType && task.relateId ? `${task.relateType} #${task.relateId}` : '-';
-    } else if (value === null || value === undefined || value === '') {
-      displayValue = '-';
+    if (isDate && value) {
+      displayValue = new Date(value).toLocaleString();
     }
-
     return (
-      <div className="flex flex-col">
-        <span className="text-[10px] font-bold text-slate-500 uppercase">{label}</span>
-        <span className="text-[11px] text-slate-800 font-medium mt-0.5">{displayValue}</span>
+      <div className="flex border-b border-slate-100 py-3 text-[11px] items-center">
+        <span className="w-32 font-bold text-slate-500 uppercase tracking-tight">{label}:</span>
+        {isRelate && value ? (
+          <span className="bg-slate-100 text-slate-700 px-2 py-1 rounded-[5px] font-medium">
+            {value}
+          </span>
+        ) : (
+          <span className="text-slate-800 font-semibold">{displayValue || "-"}</span>
+        )}
       </div>
     );
   };
 
   return (
-    <div className="p-6 bg-[#F9FAFB] min-h-screen flex flex-col text-[11px]">
-      <div className="flex justify-between items-center mb-6 max-w-5xl mx-auto w-full">
-        <h1 className="text-2xl font-bold text-slate-800">Chi tiết Công việc #{task.id}</h1>
-        <button onClick={() => navigate('/task')} className="px-4 py-2 bg-blue-600 text-white rounded-[5px] text-[11px] flex items-center gap-2 shadow-sm transition-all hover:bg-blue-700">
-          <ArrowLeft className="w-4 h-4" /> Quay lại danh sách
+    <div className="p-6 bg-[#F9FAFB] min-h-screen text-[11px]">
+      <div className="max-w-4xl mx-auto space-y-4">
+        
+        <button 
+          onClick={() => navigate('/tasks')} 
+          className="flex items-center gap-1 text-slate-600 hover:text-blue-800 font-bold transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" /> QUAY LẠI DANH SÁCH
         </button>
-      </div>
 
-      <div className="bg-white rounded-[5px] shadow-sm border border-slate-200 p-6 space-y-6 flex-1 max-w-5xl mx-auto w-full">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {renderFieldValue('ID', task.id)}
-          {renderFieldValue('Tiêu đề', task.title)}
-          {renderFieldValue('Mức độ ưu tiên', task.priority || "HIGH")}
-          {renderFieldValue('Trạng thái', task.status || "IN_PROGRESS")}
-          {renderFieldValue('Ngày bắt đầu', task.startDate || new Date().toISOString().slice(0, 16), true)}
-          {renderFieldValue('Ngày kết thúc', task.endDate || new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().slice(0, 16), true)}
+        <div className="bg-white border border-slate-200 rounded-[5px] p-4 shadow-sm flex justify-between items-center">
+          <div>
+            <span className="bg-blue-100 text-blue-800 font-mono px-2 py-0.5 rounded text-[10px]">TASK #{task.id}</span>
+            <h2 className="text-lg font-bold text-slate-800 mt-1">{task.title}</h2>
+          </div>
+        </div>
+
+        <div className="bg-white border border-slate-200 rounded-[5px] p-6 shadow-sm space-y-1">
+          {renderFieldValue('Mức độ ưu tiên', task.priority)}
+          {renderFieldValue('Trạng thái', task.status)}
+          {renderFieldValue('Ngày bắt đầu', task.startDate, true)}
+          {renderFieldValue('Ngày kết thúc', task.endDate, true)}
           {renderFieldValue('Số lần gia hạn', task.extensionCount)}
           {renderFieldValue('Quá hạn', task.isOverdue ? 'Có' : 'Không')}
-          {renderFieldValue('Người giao việc', task.createdBy ? `User #${task.createdBy}` : '-')}
-          {renderFieldValue('Người phụ trách', task.assignedTo ? `User #${task.assignedTo}` : '-')}
-          {renderFieldValue('Liên kết', `${task.relateType || '-'}`, false, true)}
+          {renderFieldValue('Người giao việc', task.createdByName)}
+          {renderFieldValue('Người phụ trách', task.assignedToName)}
+          {renderFieldValue('Liên kết', task.relateName, false, true)}
           {renderFieldValue('Ngày tạo', task.createdAt, true)}
           {renderFieldValue('Ngày cập nhật', task.updatedAt, true)}
         </div>
@@ -115,9 +113,10 @@ const DetailTask = () => {
         <div className="border-t border-slate-200 pt-6 mt-6">
           <span className="text-[10px] font-bold text-slate-500 uppercase mb-2 block whitespace-nowrap">Mô tả chi tiết</span>
           <div className="bg-slate-50 border border-slate-200 rounded-[5px] p-4 text-[11px] text-slate-700 min-h-[120px] whitespace-pre-wrap">
-            {task.description || <span className="italic text-slate-400">Không có mô tả chi tiết...</span>}
+            {task.description || "Không có mô tả chi tiết cho công việc này."}
           </div>
         </div>
+
       </div>
     </div>
   );

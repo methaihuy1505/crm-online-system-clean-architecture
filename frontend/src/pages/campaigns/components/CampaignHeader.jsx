@@ -1,7 +1,8 @@
 import React from "react";
 import { Megaphone } from "lucide-react";
 
-const CampaignHeader = ({ onOpenAdd }) => {
+// Nhận thêm props canCreate
+const CampaignHeader = ({ onOpenAdd, canCreate }) => {
   return (
     <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
       <div>
@@ -12,12 +13,16 @@ const CampaignHeader = ({ onOpenAdd }) => {
           Theo dõi hiệu quả chuyển đổi từ các chương trình quảng bá.
         </p>
       </div>
-      <button
-        onClick={onOpenAdd}
-        className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 outline-none transition-all"
-      >
-        <Megaphone size={18} strokeWidth={2.5} /> Thêm chiến dịch (Alt+N)
-      </button>
+      
+      {/* ẨN/HIỆN DỰA VÀO QUYỀN */}
+      {canCreate && (
+        <button
+          onClick={onOpenAdd}
+          className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 font-bold text-sm shadow-lg shadow-primary/20 outline-none transition-all"
+        >
+          <Megaphone size={18} strokeWidth={2.5} /> Thêm chiến dịch (Alt+N)
+        </button>
+      )}
     </div>
   );
 };

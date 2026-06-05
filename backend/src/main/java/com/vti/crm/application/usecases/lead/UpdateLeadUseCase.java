@@ -15,15 +15,21 @@ public class UpdateLeadUseCase {
     private final ICommunicationRepository commRepository;
     private final ILeadInterestRepository interestRepository;
 
-    // Domain Service là Pure Java, ta có thể khởi tạo trực tiếp hoặc qua Bean
     private final CommunicationDomainService commDomainService = new CommunicationDomainService();
 
     @Transactional
-    public Lead execute(Integer id, LeadUpdateRequest request) {
+    public Lead execute(Integer id, LeadUpdateRequest request, Integer updatedBy) {
         Lead lead = leadRepository.findById(id).orElseThrow(() -> new RuntimeException("Not found"));
 
-        // 1. Cập nhật thông tin cơ bản
-        lead.updateInfo(request.getFullName(), request.getCompanyName(), request.getPhone(), request.getEmail(), request.getWebsite(), request.getAddress(), request.getTaxCode(), request.getCitizenId(), request.getExpectedRevenue(), request.getDescription(), request.getSourceId(), request.getCampaignId(), request.getStatusId(), request.getProvinceId(), request.getBranchId(), request.getAssignedTo());
+        // 1. Cập nhật thông tin cơ bản (Đã truyền thêm updatedBy ở tham số cuối cùng)
+        lead.updateInfo(
+                request.getFullName(), request.getCompanyName(), request.getPhone(),
+                request.getEmail(), request.getWebsite(), request.getAddress(),
+                request.getTaxCode(), request.getCitizenId(), request.getExpectedRevenue(),
+                request.getDescription(), request.getSourceId(), request.getCampaignId(),
+                request.getStatusId(), request.getProvinceId(), request.getBranchId(),
+                request.getAssignedTo(), updatedBy
+        );
 
         // 2. Xử lý Interests
         interestRepository.deleteByLeadId(id);
@@ -43,8 +49,8 @@ public class UpdateLeadUseCase {
         var result = commDomainService.processUpdate(currentPrimary, newValue, id, "LEAD", type, primaryLabel, secondaryLabel);
 
         result.ifPresent(newComm -> {
-            currentPrimary.ifPresent(commRepository::save); // Lưu cái cũ đã bị hạ cấp
-            commRepository.save(newComm); // Lưu cái mới làm chính
+            currentPrimary.ifPresent(commRepository::save);
+            commRepository.save(newComm);
         });
     }
 }

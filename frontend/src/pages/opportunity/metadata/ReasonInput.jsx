@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import axios from "axios";
-
-const api = axios.create({ baseURL: "http://localhost:8080/api/v1" });
+import api from "../../../lib/api";
+import toast from "react-hot-toast";
 
 export default function ReasonInput({ open, onClose, onSaved }) {
   const [form, setForm] = useState({
@@ -47,7 +46,10 @@ export default function ReasonInput({ open, onClose, onSaved }) {
       setForm({ code: "", name: "", description: "" });
       setErrors({});
     } catch (err) {
-      console.error(err);
+      const errorMessage = err.response?.data?.message || "Lỗi khi tạo lý do thất bại!";
+      toast.error(errorMessage);
+      console.error("Lỗi khi tạo lý do thất bại:", err);
+      
     } finally {
       setSaving(false);
     }

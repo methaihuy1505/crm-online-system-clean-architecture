@@ -5,6 +5,8 @@ import com.vti.crm.domain.repository.IProductCategoryRepository;
 import com.vti.crm.infrastructure.persistence.entity.ProductCategoryDbEntity;
 import com.vti.crm.infrastructure.persistence.mapper.ProductCategoryInfraMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
@@ -27,6 +29,12 @@ public class ProductCategoryRepositoryImpl implements IProductCategoryRepository
     @Override
     public Optional<ProductCategory> findById(Integer id) {
         return jpaRepository.findByIdAndIsDeletedFalse(id)
+                .map(mapper::toDomainEntity);
+    }
+
+    @Override
+    public Page<ProductCategory> searchCategories(String keyword, Pageable pageable) {
+        return jpaRepository.findByNameContainingIgnoreCaseAndIsDeletedFalse(keyword, pageable)
                 .map(mapper::toDomainEntity);
     }
 

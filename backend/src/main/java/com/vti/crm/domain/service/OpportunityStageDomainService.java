@@ -35,6 +35,7 @@ public class OpportunityStageDomainService {
     public OpportunityStage update(Integer id, String name, Integer probabilityDefault,
                                    Integer sortOrder, Boolean isClosed) {
         OpportunityStage stage = findById(id);
+        System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++"+isClosed);
 
         // Giữ nguyên sortOrder cũ nếu FE không gửi
         Integer resolvedSortOrder = sortOrder != null ? sortOrder : stage.getSortOrder();
@@ -52,7 +53,9 @@ public class OpportunityStageDomainService {
     // ============ PRIVATE — Business Rules ============
 
     private void applyClosedState(OpportunityStage stage, Boolean isClosed) {
-        if (Boolean.TRUE.equals(isClosed)) {
+        System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++"+isClosed);
+
+        if (isClosed) {
             stage.closed();
         } else {
             stage.open();

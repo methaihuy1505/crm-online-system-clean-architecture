@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
-
-const api = axios.create({ baseURL: "http://localhost:8080/api/v1" });
-
+import api from "../../lib/api";
+import toast from "react-hot-toast";
 const SORT_OPTIONS = [
   { label: "Tên A → Z", value: "name_asc" },
   { label: "Tên Z → A", value: "name_desc" },
@@ -108,7 +106,10 @@ export default function OpportunityFilterPanel({ filters, onChange, onClose }) {
           reasonRes.data.map((r) => ({ label: r.name, value: String(r.id) })),
         );
       })
-      .catch((err) => console.error("Lỗi tải danh mục bộ lọc", err));
+      .catch((err) => {
+        console.error("Lỗi tải danh mục bộ lọc", err);
+        toast.error("Lỗi khi tải danh mục bộ lọc!");
+      });
   }, []);
 
   const handleReset = () => {

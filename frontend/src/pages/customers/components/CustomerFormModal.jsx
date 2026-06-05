@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../../lib/api";
 import Button from "../../../components/ui/Button";
+import toast from "react-hot-toast";
+import { Building2, PhoneCall, Settings2 } from "lucide-react";
 
 const CustomerFormModal = ({
   isOpen,
@@ -11,435 +13,362 @@ const CustomerFormModal = ({
   ranks,
   sources,
   campaigns,
+  branchProvinces = [],
 }) => {
   const isEditMode = !!initialData;
 
+  const [currentUser] = useState(() => JSON.parse(localStorage.getItem("currentUser")) || { roleId: 3, id: 1, branchId: 1 });
+  const currentUserId = Number(currentUser.id);
+  const isAdminOrManager = [1, 4].includes(Number(currentUser.roleId));
+
+  const [users, setUsers] = useState([]);
+
+  const branches = Array.from(new Map(branchProvinces.map((bp) => [bp.branchId, { id: bp.branchId, name: bp.branchName }])).values());
+  const allProvinces = Array.from(new Map(branchProvinces.map((bp) => [bp.provinceId, { id: bp.provinceId, name: bp.provinceName }])).values());
+
+  const availableProvinces = isAdminOrManager
+    ? allProvinces
+    : allProvinces.filter((p) => branchProvinces.some((bp) => String(bp.branchId) === String(currentUser?.branchId) && String(bp.provinceId) === String(p.id)));
+
   const [formData, setFormData] = useState({
-    name: "",
-    shortName: "",
-    isOrganization: true,
-    taxCode: "",
-    citizenId: "",
-    mainPhone: "",
-    emailOfficial: "",
-    addressCompany: "",
-    description: "",
-    statusId: 1,
-    rankId: "",
-    sourceId: "",
-    campaignId: "",
-    provinceId: "",
-    branchId: "",
+    name: "", shortName: "", isOrganization: true, taxCode: "", citizenId: "",
+    foundedDate: "", website: "", emailOfficial: "", mainPhone: "", fax: "",
+    addressCompany: "", addressBilling: "", description: "",
+    statusId: 1, rankId: "", sourceId: "", campaignId: "", provinceId: "", branchId: "",
+    assignedUserId: currentUserId, 
   });
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // BẮT SỰ KIỆN PHÍM ESC ĐỂ ĐÓNG MODAL
+  const availableUsers = users.filter((u) => {
+    if (!formData.branchId) return false;
+    return String(u.branchId) === String(formData.branchId);
+  });
+
   useEffect(() => {
-    const handleEsc = (e) => {
-      if (e.key === "Escape" && isOpen) onClose();
-    };
+    if (isOpen && isAdminOrManager) {
+      api.get("/users", { params: { size: 1000 } })
+        .then(res => setUsers(res.data?.content || res.data || []))
+        .catch(err => console.error("Lỗi tải nhân viên:", err));
+    }
+  }, [isOpen, isAdminOrManager]);
+
+  useEffect(() => {
+    const handleEsc = (e) => { if (e.key === "Escape" && isOpen) onClose(); };
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
   }, [isOpen, onClose]);
 
   useEffect(() => {
-    setErrors({});
-    if (isOpen && initialData) {
-      setFormData({
-        ...initialData,
-        taxCode: initialData.taxCode || "",
-        citizenId: initialData.citizenId || "",
-        mainPhone: initialData.mainPhone || "",
-        emailOfficial: initialData.emailOfficial || "",
-        statusId: initialData.statusId || 1,
-        rankId: initialData.rankId || "",
-        sourceId: initialData.sourceId || "",
-        campaignId: initialData.campaignId || "",
-        provinceId: initialData.provinceId || "",
-        branchId: initialData.branchId || "",
-      });
-    } else if (isOpen && !initialData) {
-      setFormData({
-        name: "",
-        shortName: "",
-        isOrganization: true,
-        taxCode: "",
-        citizenId: "",
-        mainPhone: "",
-        emailOfficial: "",
-        addressCompany: "",
-        description: "",
-        statusId: 1,
-        rankId: "",
-        sourceId: "",
-        campaignId: "",
-        provinceId: "",
-        branchId: "",
+    if (isOpen) {
+      if (initialData) {
+        setFormData({
+          name: initialData.name || "", shortName: initialData.shortName || "",
+          isOrganization: initialData.isOrganization ?? true,
+          taxCode: initialData.taxCode || "", citizenId: initialData.citizenId || "",
+          foundedDate: initialData.foundedDate || "", website: initialData.website || "",
+          emailOfficial: initialData.emailOfficial || "", mainPhone: initialData.mainPhone || "",
+          fax: initialData.fax || "", addressCompany: initialData.addressCompany || "",
+          addressBilling: initialData.addressBilling || "", description: initialData.description || "",
+          statusId: initialData.statusId || 1, rankId: initialData.rankId || "",
+          sourceId: initialData.sourceId || "", campaignId: initialData.campaignId || "",
+          provinceId: initialData.provinceId || "", branchId: initialData.branchId || "",
+          assignedUserId: initialData.assignedUserId || currentUserId,
+        });
+      } else {
+        setFormData({
+          name: "", shortName: "", isOrganization: true, taxCode: "", citizenId: "",
+          foundedDate: "", website: "", emailOfficial: "", mainPhone: "", fax: "",
+          addressCompany: "", addressBilling: "", description: "",
+          statusId: 1, rankId: "", sourceId: "", campaignId: "", 
+          provinceId: "", branchId: currentUser.branchId || "", assignedUserId: "", // Mặc định bỏ trống nếu muốn
+        });
+      }
+      setErrors({});
+    }
+  }, [isOpen, initialData, currentUserId, currentUser.branchId]); 
+
+  useEffect(() => {
+    if (!isEditMode && isAdminOrManager && formData.provinceId) {
+      const mapping = branchProvinces.find((bp) => String(bp.provinceId) === String(formData.provinceId));
+      if (mapping) {
+        setFormData((prev) => {
+          if (String(prev.branchId) !== String(mapping.branchId)) {
+            return { ...prev, branchId: mapping.branchId, assignedUserId: "" };
+          }
+          return prev;
+        });
+      }
+    }
+  }, [formData.provinceId, isAdminOrManager, branchProvinces, isEditMode]);
+
+  useEffect(() => {
+    if (formData.branchId) {
+      setFormData(prev => {
+        if (!prev.assignedUserId) return prev;
+        const isUserInBranch = users.some(
+          (u) => String(u.id) === String(prev.assignedUserId) && String(u.branchId) === String(formData.branchId)
+        );
+        return isUserInBranch ? prev : { ...prev, assignedUserId: "" };
       });
     }
-  }, [isOpen, initialData]);
+  }, [formData.branchId, users]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    let newValue = type === "checkbox" ? checked : value;
+    setFormData((prev) => ({ ...prev, [name]: newValue }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: null }));
   };
 
-  const handleEnterToNext = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      const form = e.target.form;
-      const elements = Array.from(form.elements).filter((el) =>
-        ["INPUT", "SELECT", "TEXTAREA"].includes(el.tagName),
-      );
-      const index = elements.indexOf(e.target);
-      if (index > -1 && index < elements.length - 1)
-        elements[index + 1].focus();
-    }
-  };
-
-  const validateForm = () => {
+  const validate = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = "Bắt buộc";
-    if (
-      formData.emailOfficial &&
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.emailOfficial)
-    )
-      newErrors.emailOfficial = "Lỗi định dạng";
-    if (
-      formData.mainPhone &&
-      !/(84|0[3|5|7|8|9])+([0-9]{8})\b/.test(formData.mainPhone)
-    )
-      newErrors.mainPhone = "SĐT sai";
-    if (
-      formData.isOrganization &&
-      formData.taxCode &&
-      !/^[0-9-]{10,14}$/.test(formData.taxCode)
-    )
-      newErrors.taxCode = "Lỗi MST";
-    if (
-      !formData.isOrganization &&
-      formData.citizenId &&
-      !/^[0-9]{12}$/.test(formData.citizenId)
-    )
-      newErrors.citizenId = "Đúng 12 số";
+    if (!formData.mainPhone.trim()) newErrors.mainPhone = "Bắt buộc";
+    
+    // ĐÃ XÓA VALIDATE BẮT BUỘC NGƯỜI PHỤ TRÁCH CHO ADMIN/MANAGER
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    if (!validate()) return;
     setIsSubmitting(true);
     try {
+      // 🌟 ĐÃ SỬA: Nếu Admin bỏ trống -> null, Nếu là Sale -> currentUserId
       const payload = {
         ...formData,
-        statusId: formData.statusId ? parseInt(formData.statusId) : null,
-        rankId: formData.rankId ? parseInt(formData.rankId) : null,
-        sourceId: formData.sourceId ? parseInt(formData.sourceId) : null,
-        campaignId: formData.campaignId ? parseInt(formData.campaignId) : null,
-        provinceId: formData.provinceId ? parseInt(formData.provinceId) : null,
-        branchId: formData.branchId ? parseInt(formData.branchId) : null,
+        statusId: formData.statusId ? Number(formData.statusId) : null,
+        rankId: formData.rankId ? Number(formData.rankId) : null,
+        sourceId: formData.sourceId ? Number(formData.sourceId) : null,
+        campaignId: formData.campaignId ? Number(formData.campaignId) : null,
+        provinceId: formData.provinceId ? Number(formData.provinceId) : null,
+        branchId: formData.branchId ? Number(formData.branchId) : null,
+        assignedUserId: isAdminOrManager ? (formData.assignedUserId ? Number(formData.assignedUserId) : null) : currentUserId,
       };
 
-      if (isEditMode)
-        await axios.put(
-          `http://localhost:8080/api/v1/customers/${initialData.id}`,
-          payload,
-        );
-      else await axios.post("http://localhost:8080/api/v1/customers", payload);
-
-      onSuccess();
-      onClose();
-    } catch (error) {
-      alert(error.response?.data?.message || "Lỗi lưu dữ liệu.");
+      if (isEditMode) await api.put(`/customers/${initialData.id}`, payload);
+      else await api.post("/customers", payload);
+      
+      onSuccess(); onClose();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Lỗi khi lưu khách hàng!");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleEnterToNext = (e) => {
+    if (e.key === "Enter" && e.target.tagName !== "TEXTAREA") {
+      e.preventDefault();
+      const formElements = Array.from(e.target.form.elements);
+      const index = formElements.indexOf(e.target);
+      if (formElements[index + 1]) formElements[index + 1].focus();
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    // ĐÃ NÂNG Z-INDEX LÊN 120
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
-      <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
-      ></div>
-
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl flex flex-col overflow-hidden animate-fade-in-up">
-        <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+    <div className="fixed inset-0 z-[100] flex justify-center items-center bg-slate-900/60 backdrop-blur-sm p-4">
+      <div className="bg-white w-full max-w-[1100px] max-h-[95vh] rounded-2xl shadow-2xl flex flex-col animate-slide-up border border-slate-200">
+        
+        <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50 rounded-t-2xl shrink-0">
           <h2 className="text-lg font-bold text-slate-800">
-            {isEditMode ? "Sửa Khách hàng" : "Thêm Khách hàng mới"}
+            {isEditMode ? "Cập nhật Khách hàng" : "Thêm mới Khách hàng"}
           </h2>
-          <Button
-            variant="iconOnly"
-            icon="close"
-            onClick={onClose}
-            className="text-slate-400 hover:text-red-500"
-          />
+          <button onClick={onClose} className="p-2 text-slate-400 hover:bg-slate-200 hover:text-red-500 rounded-full transition-colors outline-none" title="Đóng (Esc)">
+            <span className="material-symbols-outlined text-[20px] block">close</span>
+          </button>
         </div>
 
-        <form id="customerForm" onSubmit={handleSubmit} className="p-6">
-          <div className="space-y-4">
-            <div className="grid grid-cols-4 gap-4 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
-              <div className="col-span-1 space-y-2">
-                <label className="block text-[10px] font-bold text-slate-500 uppercase">
-                  Loại hình
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
+          <form id="customerForm" onSubmit={handleSubmit} className="p-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            {/* CỘT 1: THÔNG TIN CƠ BẢN */}
+            <div className="space-y-4">
+              <h4 className="text-[12px] font-bold text-blue-800 border-b border-blue-100 pb-2 flex items-center gap-2 uppercase tracking-wider">
+                <Building2 size={16} /> Thông tin cơ bản
+              </h4>
+              
+              <div className="flex items-center gap-6 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                <label className="flex items-center gap-2 text-[11px] font-bold text-slate-700 cursor-pointer">
+                  <input type="radio" name="isOrganization" checked={formData.isOrganization === true} onChange={() => setFormData((p) => ({ ...p, isOrganization: true, citizenId: "" }))} className="w-3.5 h-3.5 text-primary" />
+                  Doanh nghiệp
                 </label>
-                <div className="flex flex-col gap-2 pt-1">
-                  <label className="flex items-center gap-2 cursor-pointer text-sm font-medium">
-                    <input
-                      type="radio"
-                      name="isOrganization"
-                      checked={formData.isOrganization}
-                      onChange={() => {
-                        setFormData({ ...formData, isOrganization: true });
-                        setErrors({});
-                      }}
-                      onKeyDown={handleEnterToNext}
-                      className="w-4 h-4 text-primary"
-                    />{" "}
-                    Tổ chức (B2B)
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer text-sm font-medium">
-                    <input
-                      type="radio"
-                      name="isOrganization"
-                      checked={!formData.isOrganization}
-                      onChange={() => {
-                        setFormData({ ...formData, isOrganization: false });
-                        setErrors({});
-                      }}
-                      onKeyDown={handleEnterToNext}
-                      className="w-4 h-4 text-primary"
-                    />{" "}
-                    Cá nhân (B2C)
-                  </label>
+                <label className="flex items-center gap-2 text-[11px] font-bold text-slate-700 cursor-pointer">
+                  <input type="radio" name="isOrganization" checked={formData.isOrganization === false} onChange={() => setFormData((p) => ({ ...p, isOrganization: false, taxCode: "" }))} className="w-3.5 h-3.5 text-primary" />
+                  Cá nhân
+                </label>
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex justify-between items-center">
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase">Tên khách hàng <span className="text-red-500">*</span></label>
+                </div>
+                <input type="text" name="name" value={formData.name} onChange={handleChange} onKeyDown={handleEnterToNext} autoFocus className={`w-full px-3 py-2 border rounded-lg outline-none text-[12px] transition-all ${errors.name ? "border-red-500 bg-red-50" : "border-slate-300 focus:border-blue-500"}`} placeholder="Ví dụ: Công ty TNHH VTI..." />
+                {errors.name && <p className="text-red-500 text-[10px] mt-0.5">{errors.name}</p>}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase">Tên viết tắt</label>
+                  <input type="text" name="shortName" value={formData.shortName} onChange={handleChange} onKeyDown={handleEnterToNext} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-[12px] focus:border-blue-500" placeholder="VD: VTI" />
+                </div>
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase">{formData.isOrganization ? "Mã số thuế" : "CCCD/CMND"}</label>
+                  {formData.isOrganization ? (
+                    <input type="text" name="taxCode" value={formData.taxCode} onChange={handleChange} onKeyDown={handleEnterToNext} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-[12px] focus:border-blue-500" placeholder="Nhập MST..." />
+                  ) : (
+                    <input type="text" name="citizenId" value={formData.citizenId} onChange={handleChange} onKeyDown={handleEnterToNext} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-[12px] focus:border-blue-500" placeholder="Nhập CCCD..." />
+                  )}
                 </div>
               </div>
-              <div className="col-span-2 relative">
-                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
-                  Tên khách hàng <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  onKeyDown={handleEnterToNext}
-                  className={`w-full px-4 py-2 bg-white border ${errors.name ? "border-red-500" : "border-slate-200"} rounded-lg focus:ring-2 outline-none`}
-                />
-                {errors.name && (
-                  <p className="text-red-500 text-[10px] absolute mt-0.5">
-                    {errors.name}
-                  </p>
-                )}
-              </div>
-              <div className="col-span-1 relative">
-                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
-                  {formData.isOrganization ? "Mã số thuế" : "CCCD"}
-                </label>
-                <input
-                  type="text"
-                  name={formData.isOrganization ? "taxCode" : "citizenId"}
-                  value={
-                    formData.isOrganization
-                      ? formData.taxCode
-                      : formData.citizenId
-                  }
-                  onChange={handleChange}
-                  onKeyDown={handleEnterToNext}
-                  className={`w-full px-4 py-2 bg-white border ${errors.taxCode || errors.citizenId ? "border-red-500" : "border-slate-200"} rounded-lg focus:ring-2 outline-none`}
-                />
-                {(errors.taxCode || errors.citizenId) && (
-                  <p className="text-red-500 text-[10px] absolute mt-0.5">
-                    {formData.isOrganization
-                      ? errors.taxCode
-                      : errors.citizenId}
-                  </p>
-                )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase">Ngày {formData.isOrganization ? "thành lập" : "sinh"}</label>
+                  <input type="date" name="foundedDate" value={formData.foundedDate} onChange={handleChange} onKeyDown={handleEnterToNext} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-[12px] focus:border-blue-500 bg-white" />
+                </div>
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase">Khu vực (Tỉnh/Thành)</label>
+                  <select name="provinceId" value={formData.provinceId || ""} onChange={handleChange} onKeyDown={handleEnterToNext} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white cursor-pointer focus:border-blue-500 text-[12px]">
+                    <option value="">-- Chọn tỉnh thành --</option>
+                    {availableProvinces?.map((p) => (<option key={p.id} value={p.id}>{p.name}</option>))}
+                  </select>
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-4">
-              <div className="col-span-1 relative">
-                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
-                  Điện thoại
+            {/* CỘT 2: THÔNG TIN LIÊN LẠC */}
+            <div className="space-y-4">
+              <h4 className="text-[12px] font-bold text-blue-800 border-b border-blue-100 pb-2 flex items-center gap-2 uppercase tracking-wider">
+                <PhoneCall size={16} /> Liên hệ & Địa chỉ
+              </h4>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase">SĐT chính <span className="text-red-500">*</span></label>
+                  <input type="text" name="mainPhone" value={formData.mainPhone} onChange={handleChange} onKeyDown={handleEnterToNext} className={`w-full px-3 py-2 border rounded-lg outline-none text-[12px] transition-all ${errors.mainPhone ? "border-red-500 bg-red-50" : "border-slate-300 focus:border-blue-500"}`} placeholder="090..." />
+                  {errors.mainPhone && <p className="text-red-500 text-[10px] mt-0.5">{errors.mainPhone}</p>}
+                </div>
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase">Email</label>
+                  <input type="email" name="emailOfficial" value={formData.emailOfficial} onChange={handleChange} onKeyDown={handleEnterToNext} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-[12px] focus:border-blue-500" placeholder="email@..." />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase">Website</label>
+                  <input type="text" name="website" value={formData.website} onChange={handleChange} onKeyDown={handleEnterToNext} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-[12px] focus:border-blue-500" placeholder="www..." />
+                </div>
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase">Số Fax</label>
+                  <input type="text" name="fax" value={formData.fax} onChange={handleChange} onKeyDown={handleEnterToNext} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-[12px] focus:border-blue-500" />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-[11px] font-bold text-slate-500 uppercase">Trụ sở chính</label>
+                <input type="text" name="addressCompany" value={formData.addressCompany} onChange={handleChange} onKeyDown={handleEnterToNext} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-[12px] focus:border-blue-500" placeholder="Số nhà, đường..." />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-[11px] font-bold text-slate-500 uppercase">Địa chỉ thanh toán</label>
+                <input type="text" name="addressBilling" value={formData.addressBilling} onChange={handleChange} onKeyDown={handleEnterToNext} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-[12px] focus:border-blue-500" placeholder="Bỏ trống nếu trùng trụ sở..." />
+              </div>
+            </div>
+
+            {/* CỘT 3: HỆ THỐNG */}
+            <div className="space-y-4 bg-slate-50 border border-slate-200 p-5 rounded-xl shadow-inner">
+              <h4 className="text-[12px] font-bold text-blue-800 border-b border-blue-100 pb-2 flex items-center gap-2 uppercase tracking-wider">
+                <Settings2 size={16} /> Hệ thống quản lý
+              </h4>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase">Trạng thái</label>
+                  <select name="statusId" value={formData.statusId || ""} onChange={handleChange} onKeyDown={handleEnterToNext} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-[12px] font-bold text-blue-700 bg-white focus:border-blue-500">
+                    {statuses?.map((s) => (<option key={s.id} value={s.id}>{s.name}</option>))}
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase">Xếp hạng</label>
+                  <select name="rankId" value={formData.rankId || ""} onChange={handleChange} onKeyDown={handleEnterToNext} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-[12px] bg-white focus:border-blue-500">
+                    <option value="">- Chọn -</option>
+                    {ranks?.map((r) => (<option key={r.id} value={r.id}>{r.name}</option>))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase">Nguồn gốc</label>
+                  <select name="sourceId" value={formData.sourceId || ""} onChange={handleChange} onKeyDown={handleEnterToNext} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-[12px] bg-white focus:border-blue-500">
+                    <option value="">- Tự nhiên -</option>
+                    {sources?.map((s) => (<option key={s.id} value={s.id}>{s.name}</option>))}
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase">Chiến dịch</label>
+                  <select name="campaignId" value={formData.campaignId || ""} onChange={handleChange} onKeyDown={handleEnterToNext} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-[12px] bg-white focus:border-blue-500">
+                    <option value="">- Không -</option>
+                    {campaigns?.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
+                  </select>
+                </div>
+              </div>
+
+              {isAdminOrManager && (
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-bold text-blue-600 uppercase">Chi nhánh phụ trách</label>
+                  <select name="branchId" value={formData.branchId || ""} onChange={handleChange} className="w-full px-3 py-2 border border-blue-200 bg-blue-50 rounded-lg outline-none cursor-pointer text-[12px]">
+                    <option value="">-- Chọn chi nhánh --</option>
+                    {branches?.map((b) => (<option key={b.id} value={b.id}>{b.name}</option>))}
+                  </select>
+                </div>
+              )}
+
+              <div className="space-y-1 pt-2 border-t border-slate-200">
+                <label className="block text-[11px] font-bold text-slate-500 uppercase">
+                  Người phụ trách
                 </label>
-                <input
-                  type="text"
-                  name="mainPhone"
-                  value={formData.mainPhone}
-                  onChange={handleChange}
-                  onKeyDown={handleEnterToNext}
-                  className={`w-full px-4 py-2 bg-slate-50 border ${errors.mainPhone ? "border-red-500" : "border-slate-200"} rounded-lg focus:ring-2 outline-none`}
-                />
-                {errors.mainPhone && (
-                  <p className="text-red-500 text-[10px] absolute mt-0.5">
-                    {errors.mainPhone}
-                  </p>
+                {isAdminOrManager ? (
+                  <select name="assignedUserId" value={formData.assignedUserId || ""} onChange={handleChange} className={`w-full px-3 py-2 border rounded-lg outline-none text-[12px] font-bold bg-white transition-all ${errors.assignedUserId ? 'border-red-500 bg-red-50' : 'border-slate-300 focus:border-blue-500'}`}>
+                    <option value="">-- Chọn nhân viên --</option>
+                    {availableUsers.map(u => (
+                      <option key={u.id} value={u.id}>{u.fullName}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white text-[12px] font-semibold text-slate-600">
+                    Gán tự động: Chính bạn
+                  </div>
                 )}
+                {errors.assignedUserId && <p className="text-red-500 text-[10px] mt-0.5">{errors.assignedUserId}</p>}
               </div>
-              <div className="col-span-1 relative">
-                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
-                  Email chính
-                </label>
-                <input
-                  type="text"
-                  name="emailOfficial"
-                  value={formData.emailOfficial}
-                  onChange={handleChange}
-                  onKeyDown={handleEnterToNext}
-                  className={`w-full px-4 py-2 bg-slate-50 border ${errors.emailOfficial ? "border-red-500" : "border-slate-200"} rounded-lg focus:ring-2 outline-none`}
-                />
-                {errors.emailOfficial && (
-                  <p className="text-red-500 text-[10px] absolute mt-0.5">
-                    {errors.emailOfficial}
-                  </p>
-                )}
-              </div>
-              <div className="col-span-2">
-                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
-                  Địa chỉ (Trụ sở/Thường trú)
-                </label>
-                <input
-                  type="text"
-                  name="addressCompany"
-                  value={formData.addressCompany}
-                  onChange={handleChange}
-                  onKeyDown={handleEnterToNext}
-                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 outline-none"
-                />
+
+              <div className="space-y-1">
+                <label className="block text-[11px] font-bold text-slate-500 uppercase">Ghi chú thêm</label>
+                <textarea name="description" rows="2" value={formData.description} onChange={handleChange} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white resize-none text-[12px] focus:border-blue-500" placeholder="Thông tin lưu ý..."></textarea>
               </div>
             </div>
 
-            <div className="grid grid-cols-4 gap-4">
-              <div className="col-span-1">
-                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
-                  Trạng thái
-                </label>
-                <select
-                  name="statusId"
-                  value={formData.statusId}
-                  onChange={handleChange}
-                  onKeyDown={handleEnterToNext}
-                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none cursor-pointer"
-                >
-                  {statuses?.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="col-span-1">
-                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
-                  Phân hạng
-                </label>
-                <select
-                  name="rankId"
-                  value={formData.rankId}
-                  onChange={handleChange}
-                  onKeyDown={handleEnterToNext}
-                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none cursor-pointer"
-                >
-                  <option value="">Chưa phân hạng</option>
-                  {ranks?.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="col-span-1">
-                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
-                  Nguồn{" "}
-                  {isEditMode && (
-                    <span className="material-symbols-outlined text-[10px] text-orange-400">
-                      lock
-                    </span>
-                  )}
-                </label>
-                <select
-                  name="sourceId"
-                  value={formData.sourceId}
-                  onChange={handleChange}
-                  disabled={isEditMode}
-                  onKeyDown={handleEnterToNext}
-                  className={`w-full px-4 py-2 border rounded-lg outline-none cursor-pointer ${isEditMode ? "bg-slate-100 text-slate-400" : "bg-slate-50"}`}
-                >
-                  <option value="">Tự nhiên</option>
-                  {sources?.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="col-span-1">
-                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
-                  Chiến dịch{" "}
-                  {isEditMode && (
-                    <span className="material-symbols-outlined text-[10px] text-orange-400">
-                      lock
-                    </span>
-                  )}
-                </label>
-                <select
-                  name="campaignId"
-                  value={formData.campaignId}
-                  onChange={handleChange}
-                  disabled={isEditMode}
-                  onKeyDown={handleEnterToNext}
-                  className={`w-full px-4 py-2 border rounded-lg outline-none cursor-pointer ${isEditMode ? "bg-slate-100 text-slate-400" : "bg-slate-50"}`}
-                >
-                  <option value="">Không có</option>
-                  {campaigns?.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+          </form>
+        </div>
 
-            <div className="col-span-4 mt-2">
-              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
-                Mô tả / Ghi chú
-              </label>
-              <textarea
-                name="description"
-                rows="2"
-                value={formData.description}
-                onChange={handleChange}
-                onKeyDown={handleEnterToNext}
-                className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none bg-slate-50 resize-none"
-                placeholder="Nhập ghi chú..."
-              ></textarea>
-            </div>
-          </div>
+        <div className="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 rounded-b-2xl shrink-0">
+          <Button variant="cancel" type="button" onClick={onClose} disabled={isSubmitting} className="bg-white border border-slate-300 text-[12px] px-6 font-bold text-slate-600 hover:bg-slate-100 hover:text-slate-800 transition-all rounded-[5px]">
+            Hủy bỏ (Esc)
+          </Button>
+          <Button variant="primary" type="submit" form="customerForm" disabled={isSubmitting} className="text-[12px] px-8 font-bold shadow-md bg-blue-700 hover:bg-blue-800 flex items-center gap-2 rounded-[5px]">
+            {isSubmitting ? <><span className="material-symbols-outlined animate-spin text-[16px]">progress_activity</span> Đang xử lý</> : <><span className="material-symbols-outlined text-[16px]">save</span> Ghi nhận</>}
+          </Button>
+        </div>
 
-          <div className="mt-8 pt-4 border-t border-slate-100 flex justify-end gap-3">
-            <Button
-              variant="cancel"
-              type="button"
-              onClick={onClose}
-              className="bg-white border"
-            >
-              Hủy bỏ (Esc)
-            </Button>
-            <Button variant="primary" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Đang xử lý..." : "Lưu thông tin"}
-            </Button>
-          </div>
-        </form>
       </div>
     </div>
   );

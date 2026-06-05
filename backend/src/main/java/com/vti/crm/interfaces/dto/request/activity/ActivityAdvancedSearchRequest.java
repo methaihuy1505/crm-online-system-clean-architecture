@@ -12,4 +12,5 @@ public class ActivityAdvancedSearchRequest {
     private Boolean isPriority;
     private Boolean isCompleted;
     private Activity.CallType callType;
+    private Integer parentId;
 }

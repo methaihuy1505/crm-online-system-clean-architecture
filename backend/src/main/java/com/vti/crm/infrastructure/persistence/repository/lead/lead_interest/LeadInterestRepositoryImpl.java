@@ -35,4 +35,9 @@ public class LeadInterestRepositoryImpl implements ILeadInterestRepository {
     public void deleteByLeadId(Integer leadId) {
         jpaRepository.deleteByLeadId(leadId);
     }
+
+    @Override
+    public List<Integer> findProductIdsByLeadId(Integer leadId) {
+        return jpaRepository.findProductIdsByLeadId(leadId);
+    }
 }

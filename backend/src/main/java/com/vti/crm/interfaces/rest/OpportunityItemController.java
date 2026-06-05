@@ -7,13 +7,14 @@ import com.vti.crm.interfaces.mapper.OpportunityItemWebMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/opportunity-items")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173")
+@PreAuthorize("hasAuthority('opportunity_items.view')")
 public class OpportunityItemController {
 
     private final CreateOpportunityItemUseCase createUseCase;
@@ -45,6 +46,7 @@ public class OpportunityItemController {
         );
     }
 
+    @PreAuthorize("hasAuthority('opportunity_items.create')")
     @PostMapping
     public ResponseEntity<OpportunityItemResponse> create(
             @RequestBody OpportunityItemRequest request) {
@@ -64,6 +66,7 @@ public class OpportunityItemController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('opportunity_items.update')")
     public ResponseEntity<OpportunityItemResponse> update(
             @PathVariable Integer id,
             @RequestBody OpportunityItemRequest request) {
@@ -84,6 +87,7 @@ public class OpportunityItemController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('opportunity_items.delete')")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         deleteUseCase.execute(id);
         return ResponseEntity.noContent().build();

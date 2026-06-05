@@ -18,12 +18,11 @@ public class DeleteCustomerUseCase {
     private final IContactRepository contactRepository;
 
     @Transactional
-    public void execute(Integer id) {
+    public void execute(Integer id,Integer currentUserId) {
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Khách hàng với ID: " + id));
 
-        // 1. Xóa mềm Khách hàng
-        customer.softDelete();
+        customer.softDelete(currentUserId);
         customerRepository.save(customer);
 
         // 2. Xóa mềm DÂY CHUYỀN toàn bộ Người liên hệ (Contact) của Khách hàng này

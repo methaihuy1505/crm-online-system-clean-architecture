@@ -34,6 +34,11 @@ public class ContactRepositoryImpl implements IContactRepository {
     }
 
     @Override
+    public List<Contact> searchByKeyword(String keyword) {
+        return jpaRepository.searchByKeyword(keyword).stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
     public List<Contact> findByCustomerId(Integer customerId) {
         return jpaRepository.findByCustomerId(customerId).stream().map(mapper::toDomain).toList();
     }

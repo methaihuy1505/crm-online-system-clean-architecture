@@ -12,12 +12,12 @@ public class DeleteLeadUseCase {
     private final ILeadRepository leadRepository;
 
     @Transactional
-    public void execute(Integer id) {
+    public void execute(Integer id, Integer updatedBy) {
         Lead existingLead = leadRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy Lead với ID: " + id));
 
-        // Gọi hành vi nghiệp vụ xóa mềm
-        existingLead.softDelete();
+        // Gọi hành vi nghiệp vụ xóa mềm và truyền ID người xóa
+        existingLead.softDelete(updatedBy);
 
         // Lưu lại xuống database
         leadRepository.save(existingLead);

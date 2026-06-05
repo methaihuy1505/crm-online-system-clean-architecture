@@ -1,3 +1,4 @@
+// Giữ nguyên các import của bạn ở trên...
 package com.vti.crm.infrastructure.persistence.repository.customer;
 
 import com.vti.crm.domain.model.Customer;
@@ -30,16 +31,22 @@ public class CustomerRepositoryImpl implements ICustomerRepository {
         return jpaRepository.findById(id).map(mapper::toDomain);
     }
 
+    // 🌟 TRIỂN KHAI HÀM TÌM KIẾM AN TOÀN
+    @Override
+    public Optional<Customer> findByIdWithFilter(Integer id, Integer filterUserId) {
+        return jpaRepository.findByIdAndAssignedUserId(id, filterUserId).map(mapper::toDomain);
+    }
+
     @Override
     public List<Customer> findAll() {
         return jpaRepository.findAll().stream().map(mapper::toDomain).toList();
     }
 
-    // Cập nhật tham số List<Integer>
     @Override
-    public Page<Customer> findCustomers(String keyword, List<Integer> statusIds, List<Integer> rankIds, Boolean isOrganization, List<Integer> sourceIds, List<Integer> campaignIds, Pageable pageable) {
+    public Page<Customer> findCustomers(String keyword, List<Integer> statusIds, List<Integer> rankIds, Boolean isOrganization, List<Integer> sourceIds, List<Integer> campaignIds, Pageable pageable, Integer filterUserId) {
+        // 🌟 TRUYỀN THÊM filterUserId
         Page<CustomerDbEntity> entityPage = jpaRepository.searchCustomers(
-                keyword, statusIds, rankIds, isOrganization, sourceIds, campaignIds, pageable
+                keyword, statusIds, rankIds, isOrganization, sourceIds, campaignIds, filterUserId, pageable
         );
         return entityPage.map(mapper::toDomain);
     }

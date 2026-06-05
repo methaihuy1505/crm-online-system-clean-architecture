@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../lib/api";
 import Button from "../../../components/ui/Button";
 
 const CustomerDetailPanel = ({
@@ -16,8 +16,8 @@ const CustomerDetailPanel = ({
   // Fetch TOÀN BỘ Liên hệ của Customer này thay vì chỉ lấy người Primary
   useEffect(() => {
     if (isOpen && customer?.id) {
-      axios
-        .get(`http://localhost:8080/api/v1/contacts/customer/${customer.id}`)
+      api
+        .get(`/contacts/customer/${customer.id}`)
         .then((res) => {
           // Sắp xếp người liên hệ chính (isPrimary) lên đầu tiên
           const sortedContacts = res.data.sort(
@@ -32,7 +32,7 @@ const CustomerDetailPanel = ({
   const handleDeleteContact = async (id, name) => {
     if (window.confirm(`Xóa liên hệ "${name}"?`)) {
       try {
-        await axios.delete(`http://localhost:8080/api/v1/contacts/${id}`);
+        await api.delete(`/contacts/${id}`);
         setContacts((prev) => prev.filter((c) => c.id !== id));
       } catch (err) {
         console.error(err);

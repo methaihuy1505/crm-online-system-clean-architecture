@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../lib/api";
 import Button from "../../components/ui/Button";
-
+import toast from "react-hot-toast";
 const CampaignFormModal = ({ isOpen, onClose, onSave, currentCampaign }) => {
   const [formData, setFormData] = useState({
     name: "",
@@ -78,14 +78,16 @@ const CampaignFormModal = ({ isOpen, onClose, onSave, currentCampaign }) => {
         endDate: formData.endDate || null,
       };
       if (currentCampaign?.id)
-        await axios.put(
-          `http://localhost:8080/api/v1/campaigns/${currentCampaign.id}`,
+        await api.put(
+          `/campaigns/${currentCampaign.id}`,
           payload,
         );
-      else await axios.post("http://localhost:8080/api/v1/campaigns", payload);
+      else await api.post("/campaigns", payload);
       onSave();
       onClose();
     } catch (error) {
+      const errorMessage = error.response?.data?.message || "Lỗi lưu dữ liệu!";
+      toast.error(errorMessage);
       console.error("Lỗi lưu dữ liệu!", error);
     } finally {
       setIsSaving(false);

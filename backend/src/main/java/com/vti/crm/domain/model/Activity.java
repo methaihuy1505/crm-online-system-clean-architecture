@@ -87,23 +87,52 @@ public class Activity {
         this.createdAt = LocalDateTime.now();
     }
     // 2. Hàm dùng khi CẬP NHẬT (State Mutation)
+    // 2. Hàm dùng khi CẬP NHẬT (State Mutation)
     public void updateFrom(Activity newData) {
-        this.validate();
-        // không đổi loại hoạt động
+        // 1. Kiểm tra Rule bất biến: Không đổi loại hoạt động
         if (newData.getActivityType() != null && this.activityType != newData.getActivityType()) {
             throw new IllegalArgumentException("Không được phép thay đổi Loại hoạt động sau khi đã tạo!");
         }
+
+        // 2. THỰC HIỆN GÁN DỮ LIỆU MỚI VÀO ENTITY CŨ
+        // ---> ĐÂY LÀ CHỖ ĐÃ FIX: Bổ sung 4 trường bị thiếu <---
+        this.taskId = newData.getTaskId();
+        this.parentId = newData.getParentId() != null ? newData.getParentId() : this.parentId;
+        this.parentType = newData.getParentType() != null ? newData.getParentType() : this.parentType;
+        this.contactId = newData.getContactId();
+
+        // Các trường cũ bạn đã viết
+        this.subject = newData.getSubject() != null ? newData.getSubject() : this.subject;
+        this.description = newData.getDescription();
+        this.callType = newData.getCallType();
+        this.callResult = newData.getCallResult();
+        this.startDate = newData.getStartDate();
+        this.endDate = newData.getEndDate();
+        this.location = newData.getLocation();
+        this.duration = newData.getDuration();
+        this.activityDate = newData.getActivityDate() != null ? newData.getActivityDate() : this.activityDate;
+        this.isPriority = newData.getIsPriority() != null ? newData.getIsPriority() : this.isPriority;
+        this.nextFollowUpDate = newData.getNextFollowUpDate();
+        this.isCompleted = newData.getIsCompleted() != null ? newData.getIsCompleted() : this.isCompleted;
+
+        // Cập nhật Audit Log
+        this.updatedBy = newData.getUpdatedBy();
+        this.updatedAt = LocalDateTime.now();
+
+        // 3. VALIDATE LẠI TOÀN BỘ ENTITY SAU KHI ĐÃ CẬP NHẬT TRẠNG THÁI MỚI
+        this.validate();
+
         //CALL
         if(this.activityType.equals(ActivityType.CALL))
         {
-            if(this.activityDate==null)
+            if(this.activityDate == null)
                 throw new IllegalArgumentException("Ngày hoạt động không được để trống");
-            if(this.callType==null)
+            if(this.callType == null)
                 throw new IllegalArgumentException("Loại cuộc gọi không được để trống");
-            if(this.callResult==null)
+            if(this.callResult == null)
                 throw new IllegalArgumentException("Kết quả cuộc gọi không được để trống");
             if (this.duration == null || this.duration < 0 )
-                throw new IllegalArgumentException("Thời gian không hợp lệ,phải lớn hơn 0)");
+                throw new IllegalArgumentException("Thời gian không hợp lệ, phải lớn hơn 0");
         }
         //MEETING
         else if(this.activityType.equals(ActivityType.MEETING))
@@ -134,23 +163,6 @@ public class Activity {
             if(this.activityDate == null)
                 throw new IllegalArgumentException("Ngày hoạt động không được để trống");
         }
-        // Cập nhật các trường được phép
-        this.subject = newData.getSubject() != null ? newData.getSubject() : this.subject;
-        this.description = newData.getDescription();
-        this.callType = newData.getCallType();
-        this.callResult = newData.getCallResult();
-        this.startDate = newData.getStartDate();
-        this.endDate = newData.getEndDate();
-        this.location = newData.getLocation();
-        this.duration = newData.getDuration();
-        this.activityDate = newData.getActivityDate() != null ? newData.getActivityDate() : this.activityDate;
-        this.isPriority = newData.getIsPriority() != null ? newData.getIsPriority() : this.isPriority;
-        this.nextFollowUpDate = newData.getNextFollowUpDate();
-        this.isCompleted =newData.getIsCompleted();
-        // Cập nhật người sửa và giờ sửa
-        this.updatedBy = newData.getUpdatedBy();
-        this.updatedAt = LocalDateTime.now();
-
     }
     private void validate() {
         //check valid chung

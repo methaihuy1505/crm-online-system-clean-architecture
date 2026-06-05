@@ -6,6 +6,9 @@ import com.vti.crm.domain.repository.IOpportunityStageRepository;
 import com.vti.crm.domain.repository.IOpportunityStatusRepository;
 import com.vti.crm.domain.repository.ILostReasonRepository;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class OpportunityDomainService {
@@ -25,9 +28,22 @@ public class OpportunityDomainService {
         this.lostReasonRepository  = lostReasonRepository;
     }
 
-    public Opportunity create(String opportunityCode, String name, Integer customerId,
-                              Integer stageId, Integer statusId, Integer lostReasonId,
-                              Double depositAmount, Integer probability, String description) {
+    public Opportunity create(String opportunityCode,
+                              String name,
+                              Integer customerId,
+                              Integer campaignId,
+                              Integer stageId,
+                              Integer statusId,
+                              Integer lostReasonId,
+                              Double depositAmount,
+                              Integer probability,
+                              String description,
+                              LocalDateTime nextFollowUpDate,
+                              LocalDate expectedCloseDate,
+                              Integer createdBy,
+                              Integer assignedTo
+
+    ) {
         validateDuplicateCode(opportunityCode);
         validateStageExists(stageId);
         validateStatusExists(statusId);
@@ -38,12 +54,17 @@ public class OpportunityDomainService {
                 .name(name)
                 .customerId(customerId)
                 .stage(stageId)
+                .campaignId(campaignId)
                 .status(statusId)
                 .lostReason(lostReasonId)
                 .totalAmount(0.0)
                 .depositAmount(depositAmount)
                 .probability(probability)
                 .description(description)
+                .expectedCloseDate(expectedCloseDate)
+                .nextFollowUpDate(nextFollowUpDate)
+                .createdBy(createdBy)
+                .assignedTo(assignedTo)
                 .build();
 
         opportunity.recalculateTotal();
@@ -62,22 +83,31 @@ public class OpportunityDomainService {
     }
 
     public Opportunity update(Integer id, String name, Integer customerId,
+                              Integer campaignId,
                               Integer stageId, Integer statusId, Integer lostReasonId,
-                              Double depositAmount, Integer probability, String description) {
+                              Double depositAmount, Integer probability, String description,
+                              LocalDateTime nextFollowUpDate,
+                              String currencyCode,
+                              LocalDate expectedCloseDate,
+                              LocalDate actualCloseDate,
+                              Integer assignedTo,
+                              Integer updatedBy) {
         validateStageExists(stageId);
         validateStatusExists(statusId);
         validateLostReasonExists(lostReasonId);
 
         Opportunity opportunity = findById(id);
-        opportunity.update(name, customerId, stageId, statusId,
-                lostReasonId, depositAmount, probability, description);
+        opportunity.update(name, customerId,campaignId, stageId, statusId,
+                lostReasonId, depositAmount, probability, description,nextFollowUpDate,
+                currencyCode,expectedCloseDate,actualCloseDate,assignedTo,updatedBy);
         opportunity.calculateRemaining();
         return opportunityRepository.save(opportunity);
     }
 
-    public void delete(Integer id) {
+    public void delete(Integer id,Integer deleteBy) {
         Opportunity opportunity = findById(id);
-        opportunityRepository.delete(opportunity);
+        opportunity.delete(deleteBy);
+        opportunityRepository.save(opportunity);
     }
 
     // ============ PRIVATE — Business Rules ============

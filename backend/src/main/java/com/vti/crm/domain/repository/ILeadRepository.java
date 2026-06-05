@@ -13,5 +13,5 @@ public interface ILeadRepository {
     List<Lead> findByCampaignId(Integer campaignId);
 
     Page<Lead> searchLeads(String keyword, List<Integer> statusIds, List<Integer> sourceIds, List<Integer> campaignIds,
-                           Integer provinceId, Integer branchId, Pageable pageable);
+                           Integer provinceId, Integer branchId,Integer assignedToFilter, Pageable pageable);
 }

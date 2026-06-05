@@ -2,6 +2,9 @@ package com.vti.crm.domain.service;
 
 import com.vti.crm.domain.model.ProductCategory;
 import com.vti.crm.domain.repository.IProductCategoryRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.util.List;
 
 public class ProductCategoryDomainService {
@@ -10,6 +13,11 @@ public class ProductCategoryDomainService {
 
     public ProductCategoryDomainService(IProductCategoryRepository productCategoryRepository) {
         this.productCategoryRepository = productCategoryRepository;
+    }
+    public Page<ProductCategory> searchCategories(String keyword, Pageable pageable) {
+        // Nếu keyword null, gán thành chuỗi rỗng để tìm tất cả
+        String safeKeyword = (keyword == null) ? "" : keyword.trim();
+        return productCategoryRepository.searchCategories(safeKeyword, pageable);
     }
 
     public ProductCategory create(String name, String description) {

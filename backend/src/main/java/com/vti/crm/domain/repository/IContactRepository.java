@@ -10,4 +10,5 @@ public interface IContactRepository {
     List<Contact> findByCustomerId(Integer customerId);
     List<Contact> findPrimaryContactsByCustomerId(Integer customerId);
     List<Contact> findAll();
+    List<Contact> searchByKeyword(String keyword);
 }

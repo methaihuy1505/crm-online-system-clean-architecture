@@ -7,7 +7,28 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface ProductInfraMapper {
 
-    ProductDbEntity toDbEntity(Product domainEntity);
+    default ProductDbEntity toDbEntity(Product domain) {
+        if (domain == null) return null;
+        ProductDbEntity e = new ProductDbEntity();
+        e.setId(domain.getId());
+        e.setProductCode(domain.getProductCode());
+        e.setName(domain.getName());
+        e.setCategoryID(domain.getCategoryID());  // ← đây là fix chính
+        e.setUomID(domain.getUomID());            // ← đây là fix chính
+        e.setProductType(domain.getProductType());
+        e.setBasePrice(domain.getBasePrice());
+        e.setVatRate(domain.getVatRate());
+        e.setDepositOverride(domain.getDepositOverride());
+        e.setImageUrl(domain.getImageUrl());
+        e.setDescription(domain.getDescription());
+        e.setCreatedAt(domain.getCreatedAt());
+        e.setUpdatedAt(domain.getUpdatedAt());
+        e.setCreatedByID(domain.getCreatedByID());
+        e.setUpdatedByID(domain.getUpdatedByID());
+        e.setIsDeleted(domain.getIsDeleted());
+        return e;
+    }
+
 
     default Product toDomainEntity(ProductDbEntity dbEntity) {
         if (dbEntity == null) return null;

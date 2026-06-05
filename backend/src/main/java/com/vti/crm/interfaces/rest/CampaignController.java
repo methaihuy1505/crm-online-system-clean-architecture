@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -44,6 +45,7 @@ public class CampaignController {
     }
 
     @GetMapping("/statistics")
+    @PreAuthorize("hasAuthority('campaigns.statistics')")
     public ResponseEntity<CampaignStatsResponse> getCampaignStatistics() {
         return ResponseEntity.ok(campaignStatsUseCase.execute());
     }
@@ -54,6 +56,7 @@ public class CampaignController {
     }
 
     @GetMapping("/options")
+    @PreAuthorize("hasAuthority('campaigns.options')")
     public ResponseEntity<List<CampaignResponse>> getCampaignOptions(
             @RequestParam(required = false, defaultValue = "100") int limit
     ) {
@@ -65,6 +68,7 @@ public class CampaignController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('campaigns.create')")
     public ResponseEntity<CampaignResponse> createCampaign(@RequestBody CampaignRequest request) {
         return new ResponseEntity<>(
                 webMapper.toResponse(createCampaignUseCase.execute(request)),
@@ -73,6 +77,7 @@ public class CampaignController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('campaigns.update')")
     public ResponseEntity<CampaignResponse> updateCampaign(
             @PathVariable Integer id,
             @RequestBody CampaignRequest request) {
@@ -80,6 +85,7 @@ public class CampaignController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('campaigns.delete')")
     public ResponseEntity<Void> deleteCampaign(@PathVariable Integer id) {
         deleteCampaignUseCase.execute(id);
         return ResponseEntity.noContent().build();

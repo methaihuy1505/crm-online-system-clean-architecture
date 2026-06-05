@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import toast, { Toaster } from "react-hot-toast";
+import React, { useState, useEffect, useRef } from "react";
+import api from "../../lib/api";
+import toast from "react-hot-toast";
 
 import CampaignHeader from "./components/CampaignHeader";
 import CampaignFilter from "./components/CampaignFilter";
@@ -8,21 +8,34 @@ import CampaignTable from "./components/CampaignTable";
 import CampaignFormModal from "./CampaignFormModal";
 import CampaignDetailPanel from "./components/CampaignDetailPanel";
 
+// IMPORT HOOK PHÂN QUYỀN
+import { usePermission } from "../../hooks/usePermission";
+
 const CampaignPage = () => {
+  // --- GỌI HOOK KIỂM TRA QUYỀN ---
+  const { hasPermission } = usePermission();
+  const canView = hasPermission("campaigns.view");
+  const canCreate = hasPermission("campaigns.create");
+  const canUpdate = hasPermission("campaigns.update");
+  const canDelete = hasPermission("campaigns.delete");
+
   const [campaigns, setCampaigns] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalElements, setTotalElements] = useState(0);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState(null);
-  const [selectedCampaignForDetail, setSelectedCampaignForDetail] =
-    useState(null);
+  const [selectedCampaignForDetail, setSelectedCampaignForDetail] = useState(null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [isFilterSidebarOpen, setIsFilterSidebarOpen] = useState(false);
+  
   const [selectedRow, setSelectedRow] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const tableContainerRef = useRef(null);
 
   const initialFilters = {
     keyword: "",
@@ -32,23 +45,51 @@ const CampaignPage = () => {
   };
   const [filters, setFilters] = useState(initialFilters);
 
+  // Reset lại selection khi dữ liệu đổi
+  useEffect(() => {
+    setSelectedIndex(-1);
+    setSelectedRow(null);
+  }, [campaigns]);
+
+  // --- CHẶN PHÍM TẮT DỰA VÀO QUYỀN ---
   useEffect(() => {
     const handleKeyDown = (e) => {
+      if (["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement?.tagName)) return;
+      if (isModalOpen || isFilterSidebarOpen || isPanelOpen) return;
+
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          setSelectedIndex((prev) => {
+            const next = prev < campaigns.length - 1 ? prev + 1 : prev;
+            if (campaigns[next]) setSelectedRow(campaigns[next]);
+            return next;
+          });
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          setSelectedIndex((prev) => {
+            const next = prev > 0 ? prev - 1 : 0;
+            if (campaigns[next]) setSelectedRow(campaigns[next]);
+            return next;
+          });
+          break;
+      }
+
       if (e.altKey) {
-        if (e.code === "KeyN" || e.key.toLowerCase() === "n") {
+        if ((e.code === "KeyN" || e.key.toLowerCase() === "n") && canCreate) {
           e.preventDefault();
           handleOpenAdd();
         }
-        if (e.code === "KeyE" || e.key.toLowerCase() === "e") {
+        if ((e.code === "KeyE" || e.key.toLowerCase() === "e") && canUpdate) {
           e.preventDefault();
           if (selectedRow) handleOpenEdit(selectedRow);
         }
-        if (e.code === "KeyD" || e.key.toLowerCase() === "d") {
+        if ((e.code === "KeyD" || e.key.toLowerCase() === "d") && canDelete) {
           e.preventDefault();
-          if (selectedRow)
-            handleDeleteCampaign(selectedRow.id, selectedRow.name);
+          if (selectedRow) handleDeleteCampaign(selectedRow.id, selectedRow.name);
         }
-        if (e.code === "KeyV" || e.key.toLowerCase() === "v") {
+        if ((e.code === "KeyV" || e.key.toLowerCase() === "v") && canView) {
           e.preventDefault();
           if (selectedRow) handleOpenDetail(selectedRow.id);
         }
@@ -56,7 +97,31 @@ const CampaignPage = () => {
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [selectedRow]);
+  }, [campaigns, selectedRow, isModalOpen, isFilterSidebarOpen, isPanelOpen, canCreate, canUpdate, canDelete, canView]);
+
+  // Auto-scroll khi dùng mũi tên
+  useEffect(() => {
+    if (selectedIndex === -1 || !tableContainerRef.current) return;
+    const activeRow = tableContainerRef.current.querySelector(
+      `tr[data-index="${selectedIndex}"]`
+    );
+    if (activeRow) {
+      const container = tableContainerRef.current;
+      const rowTop = activeRow.offsetTop;
+      const rowBottom = rowTop + activeRow.offsetHeight;
+      const containerTop = container.scrollTop;
+      const containerBottom = containerTop + container.clientHeight;
+
+      if (rowTop < containerTop) {
+        container.scrollTo({ top: rowTop, behavior: "smooth" });
+      } else if (rowBottom > containerBottom) {
+        container.scrollTo({
+          top: rowBottom - container.clientHeight,
+          behavior: "smooth",
+        });
+      }
+    }
+  }, [selectedIndex]);
 
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
@@ -68,21 +133,22 @@ const CampaignPage = () => {
   const fetchCampaigns = async () => {
     setIsLoading(true);
     try {
-      const res = await axios.get("http://localhost:8080/api/v1/campaigns", {
+      const res = await api.get("/campaigns", {
         params: {
           page: currentPage - 1,
           size: pageSize,
           keyword: filters.keyword || null,
-          statuses:
-            filters.statuses.length > 0 ? filters.statuses.join(",") : null,
+          statuses: filters.statuses.length > 0 ? filters.statuses.join(",") : null,
           fromDate: filters.fromDate || null,
           toDate: filters.toDate || null,
         },
       });
       setCampaigns(res.data.content || res.data);
       setTotalPages(res.data.totalPages || 1);
+      setTotalElements(res.data.totalElements || 0);
     } catch (error) {
-      toast.error("Lỗi tải danh sách chiến dịch!");
+      const errorMessage = error.response?.data?.message || "Lỗi tải danh sách chiến dịch!";
+      toast.error(errorMessage);
       console.error("Lỗi tải danh sách chiến dịch!", error);
     } finally {
       setIsLoading(false);
@@ -91,13 +157,12 @@ const CampaignPage = () => {
 
   const handleOpenDetail = async (id) => {
     try {
-      const res = await axios.get(
-        `http://localhost:8080/api/v1/campaigns/${id}`,
-      );
+      const res = await api.get(`/campaigns/${id}`);
       setSelectedCampaignForDetail(res.data);
       setIsPanelOpen(true);
     } catch (error) {
-      toast.error("Không thể tải chi tiết chiến dịch!");
+      const errorMessage = error.response?.data?.message || "Không thể tải chi tiết chiến dịch!";
+      toast.error(errorMessage);
       console.error("Lỗi khi tải chi tiết chiến dịch!", error);
     }
   };
@@ -114,13 +179,14 @@ const CampaignPage = () => {
   const handleDeleteCampaign = async (id, name) => {
     if (window.confirm(`Xóa chiến dịch "${name}"?`)) {
       try {
-        await axios.delete(`http://localhost:8080/api/v1/campaigns/${id}`);
+        await api.delete(`/campaigns/${id}`);
         setSelectedRow(null);
         toast.success(`Đã xóa ${name}`);
         fetchCampaigns();
       } catch (error) {
-        toast.error("Xóa thất bại!");
-        console.error("Lỗi khi xóa chiến dịch!", error);
+        const errorMessage = error.response?.data?.message || "Xóa thất bại!";
+        toast.error(errorMessage);
+        console.error("Lỗi khi xóa chiến dịch:", error);
       }
     }
   };
@@ -177,7 +243,7 @@ const CampaignPage = () => {
 
     if (activeTags.length === 0) return null;
     return (
-      <div className="flex gap-2 mb-4 items-center flex-wrap">
+      <div className="flex gap-2 mb-4 items-center flex-wrap shrink-0">
         <span className="text-sm font-semibold text-slate-500">Đang lọc:</span>
         {activeTags.map((tag) => (
           <div
@@ -208,21 +274,11 @@ const CampaignPage = () => {
   };
 
   return (
-    <div className="space-y-6 relative flex-1">
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 3000,
-          style: {
-            borderRadius: "12px",
-            background: "#1e293b",
-            color: "#fff",
-            fontSize: "14px",
-            fontWeight: "bold",
-          },
-        }}
-      />
-      <CampaignHeader onOpenAdd={handleOpenAdd} />
+    <div className="flex flex-col h-[calc(100vh-2rem)] space-y-4 relative overflow-hidden">
+      <div className="shrink-0">
+        {/* TRUYỀN QUYỀN XUỐNG HEADER */}
+        <CampaignHeader onOpenAdd={handleOpenAdd} canCreate={canCreate} />
+      </div>
       {renderActiveFilterTags()}
 
       <CampaignTable
@@ -233,12 +289,21 @@ const CampaignPage = () => {
         onOpenDetail={handleOpenDetail}
         currentPage={currentPage}
         totalPages={totalPages}
+        totalElements={totalElements}
         setCurrentPage={setCurrentPage}
         pageSize={pageSize}
         setPageSize={setPageSize}
-        onRowClick={setSelectedRow}
+        onRowClick={(campaign, index) => {
+          setSelectedRow(campaign);
+          setSelectedIndex(index);
+        }}
+        tableContainerRef={tableContainerRef}
         selectedRow={selectedRow}
         onOpenFilter={() => setIsFilterSidebarOpen(true)}
+        /* TRUYỀN QUYỀN XUỐNG TABLE */
+        canView={canView}
+        canUpdate={canUpdate}
+        canDelete={canDelete}
       />
 
       <CampaignFilter
@@ -254,6 +319,8 @@ const CampaignPage = () => {
         onClose={() => setIsPanelOpen(false)}
         campaign={selectedCampaignForDetail}
         onEdit={handleOpenEdit}
+        /* TRUYỀN QUYỀN XUỐNG PANEL ĐỂ ẨN NÚT EDIT */
+        canUpdate={canUpdate}
       />
       <CampaignFormModal
         isOpen={isModalOpen}

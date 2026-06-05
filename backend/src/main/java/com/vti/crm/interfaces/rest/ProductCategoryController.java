@@ -6,7 +6,11 @@ import com.vti.crm.interfaces.dto.response.product.ProductCategoryResponse;
 import com.vti.crm.interfaces.mapper.ProductCategoryWebMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -24,6 +28,7 @@ public class ProductCategoryController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAuthority('metadata.manage')")
     public ProductCategoryResponse create(
             @Valid @RequestBody ProductCategoryRequest request) {
         return webMapper.toResponse(
@@ -37,14 +42,18 @@ public class ProductCategoryController {
     }
 
     @GetMapping
-    public List<ProductCategoryResponse> getAll() {
-        return getAllUseCase.execute()
-                .stream()
-                .map(webMapper::toResponse)
-                .toList();
+    public Page<ProductCategoryResponse> getAll(
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        return getAllUseCase.execute(search, pageable)
+                .map(webMapper::toResponse);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('metadata.manage')")
     public ProductCategoryResponse update(
             @PathVariable Integer id,
             @Valid @RequestBody ProductCategoryRequest request) {
@@ -55,6 +64,7 @@ public class ProductCategoryController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAuthority('metadata.manage')")
     public void delete(@PathVariable Integer id) {
         deleteUseCase.execute(id);
     }

@@ -7,6 +7,7 @@ import com.vti.crm.interfaces.mapper.OpportunityStageWebMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,6 +24,7 @@ public class OpportunityStageController {
     private final OpportunityStageWebMapper webMapper;
 
     @PostMapping
+    @PreAuthorize("hasAuthority('metadata.manage')")
     public ResponseEntity<OpportunityStageResponse> create(
             @RequestBody OpportunityStageRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
@@ -43,9 +45,13 @@ public class OpportunityStageController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('metadata.manage')")
     public ResponseEntity<OpportunityStageResponse> update(
             @PathVariable Integer id,
             @RequestBody OpportunityStageRequest request) {
+        System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++"+request.getName());
+        System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++"+request.getProbabilityDefault());
+        System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++"+request.getIsClosed());
         return ResponseEntity.ok(
                 webMapper.toResponse(
                         updateUseCase.execute(
@@ -60,6 +66,7 @@ public class OpportunityStageController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('metadata.manage')")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         deleteUseCase.execute(id);
         return ResponseEntity.noContent().build();

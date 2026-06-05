@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ICustomerRepository {
-    // Sửa tham số sang List<Integer>
     Page<Customer> findCustomers(
             String keyword,
             List<Integer> statusIds,
@@ -16,11 +15,15 @@ public interface ICustomerRepository {
             Boolean isOrganization,
             List<Integer> sourceIds,
             List<Integer> campaignIds,
-            Pageable pageable
+            Pageable pageable,
+            Integer filterUserId // 🌟 THÊM DÒNG NÀY
     );
 
     Customer save(Customer customer);
     Optional<Customer> findById(Integer id);
+
+    Optional<Customer> findByIdWithFilter(Integer id, Integer filterUserId);
+
     List<Customer> findAll();
     List<Customer> findByCampaignId(Integer campaignId);
 }

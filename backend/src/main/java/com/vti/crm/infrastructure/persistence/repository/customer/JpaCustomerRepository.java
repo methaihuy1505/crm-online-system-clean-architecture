@@ -9,18 +9,20 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface JpaCustomerRepository extends JpaRepository<CustomerDbEntity, Integer> {
 
-    // NÂNG CẤP: Dùng List<Integer> và toán tử IN để lọc nhiều giá trị
     @Query("SELECT c FROM CustomerDbEntity c WHERE " +
             "(:keyword IS NULL OR c.name LIKE CONCAT('%', :keyword, '%') OR c.customerCode LIKE CONCAT('%', :keyword, '%') OR c.mainPhone LIKE CONCAT('%', :keyword, '%') OR c.taxCode LIKE CONCAT('%', :keyword, '%')) AND " +
             "(:statusIds IS NULL OR c.status.id IN :statusIds) AND " +
             "(:rankIds IS NULL OR c.rank.id IN :rankIds) AND " +
             "(:isOrganization IS NULL OR c.isOrganization = :isOrganization) AND " +
             "(:sourceIds IS NULL OR c.sourceId IN :sourceIds) AND " +
-            "(:campaignIds IS NULL OR c.campaignId IN :campaignIds)")
+            "(:campaignIds IS NULL OR c.campaignId IN :campaignIds) AND " +
+            "(:filterUserId IS NULL OR c.assignedUserId = :filterUserId) " +
+            "ORDER BY c.id DESC")
     Page<CustomerDbEntity> searchCustomers(
             @Param("keyword") String keyword,
             @Param("statusIds") List<Integer> statusIds,
@@ -28,8 +30,12 @@ public interface JpaCustomerRepository extends JpaRepository<CustomerDbEntity, I
             @Param("isOrganization") Boolean isOrganization,
             @Param("sourceIds") List<Integer> sourceIds,
             @Param("campaignIds") List<Integer> campaignIds,
+            @Param("filterUserId") Integer filterUserId,
             Pageable pageable
     );
+
+    @Query("SELECT c FROM CustomerDbEntity c WHERE c.id = :id AND (:filterUserId IS NULL OR c.assignedUserId = :filterUserId)")
+    Optional<CustomerDbEntity> findByIdAndAssignedUserId(@Param("id") Integer id, @Param("filterUserId") Integer filterUserId);
 
     List<CustomerDbEntity> findByCampaignId(Integer campaignId);
 }

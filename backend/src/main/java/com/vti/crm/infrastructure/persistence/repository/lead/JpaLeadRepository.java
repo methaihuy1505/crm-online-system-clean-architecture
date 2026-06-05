@@ -22,8 +22,10 @@ public interface JpaLeadRepository extends JpaRepository<LeadDbEntity, Integer> 
             "(:statusIds IS NULL OR l.status.id IN :statusIds) AND " +
             "(:sourceIds IS NULL OR l.source.id IN :sourceIds) AND " +
             "(:campaignIds IS NULL OR l.campaign.id IN :campaignIds) AND " +
-            "(:provinceId IS NULL OR l.provinceId = :provinceId) AND " +
-            "(:branchId IS NULL OR l.branchId = :branchId)")
+            "(:provinceId IS NULL OR l.province.id = :provinceId) AND " +
+            "(:branchId IS NULL OR l.branch.id = :branchId) AND " +
+            "(:assignedTo IS NULL OR l.assignedToUser.id = :assignedTo) " +
+            "ORDER BY l.id DESC")
     Page<LeadDbEntity> searchLeads(
             @Param("keyword") String keyword,
             @Param("statusIds") List<Integer> statusIds,
@@ -31,6 +33,7 @@ public interface JpaLeadRepository extends JpaRepository<LeadDbEntity, Integer> 
             @Param("campaignIds") List<Integer> campaignIds,
             @Param("provinceId") Integer provinceId,
             @Param("branchId") Integer branchId,
+            @Param("assignedTo") Integer assignedTo,
             Pageable pageable
     );
 

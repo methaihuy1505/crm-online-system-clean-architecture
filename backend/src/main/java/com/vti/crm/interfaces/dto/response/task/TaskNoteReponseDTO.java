@@ -15,4 +15,5 @@ public class TaskNoteReponseDTO {
     private LocalDateTime createdAt;
     private LocalDateTime deletedAt;
     private LocalDateTime updateAt;
+    private String createdByName;
 }

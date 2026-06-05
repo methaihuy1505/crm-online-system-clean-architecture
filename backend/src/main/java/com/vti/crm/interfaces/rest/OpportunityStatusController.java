@@ -5,6 +5,7 @@ import com.vti.crm.interfaces.dto.request.opportunity.OpportunityStatusRequest;
 import com.vti.crm.interfaces.dto.response.opportunity.OpportunityStatusResponse;
 import com.vti.crm.interfaces.mapper.OpportunityStatusWebMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -35,6 +36,7 @@ public class OpportunityStatusController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('metadata.manage')")
     public OpportunityStatusResponse create(@RequestBody OpportunityStatusRequest request) {
         return webMapper.toResponse(
                 createUseCase.execute(
@@ -46,6 +48,7 @@ public class OpportunityStatusController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('metadata.manage')")
     public OpportunityStatusResponse update(
             @PathVariable Integer id,
             @RequestBody OpportunityStatusRequest request) {
@@ -59,6 +62,7 @@ public class OpportunityStatusController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('metadata.manage')")
     public void delete(@PathVariable Integer id) {
         deleteUseCase.execute(id);
     }

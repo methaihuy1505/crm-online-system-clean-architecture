@@ -1,6 +1,8 @@
 package com.vti.crm.infrastructure.persistence.repository.product.product_category;
 
 import com.vti.crm.infrastructure.persistence.entity.ProductCategoryDbEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -29,4 +31,6 @@ public interface JpaProductCategoryRepository extends JpaRepository<ProductCateg
     @Transactional
     @Query("UPDATE ProductCategoryDbEntity pc SET pc.isDeleted = true WHERE pc.id = :id")
     void softDeleteById(Integer id);
+
+    Page<ProductCategoryDbEntity> findByNameContainingIgnoreCaseAndIsDeletedFalse(String name, Pageable pageable);
 }

@@ -114,8 +114,10 @@ public class Product {
         this.imageUrl         = imageUrl;
         this.description     = description;
         this.updatedAt       = LocalDateTime.now();
-//        this.updatedByID     = updatedByID;
-        this.updatedByID     =1;
+        this.updatedByID     = updatedByID;
+        this.categoryID      = categoryID;
+        this.uomID           = uomID;
+
     }
 
     public void delete() { this.isDeleted = true; }

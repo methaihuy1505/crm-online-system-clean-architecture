@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import axios from "axios";
-
-const api = axios.create({ baseURL: "http://localhost:8080/api/v1" });
-
+import api from "../../../lib/api";
+import toast from "react-hot-toast";
 const inputCls = (hasError) =>
   `w-full bg-surface-container-low border-none rounded-lg px-3 py-2 text-sm transition-all outline-none focus:bg-white ${
     hasError
@@ -84,7 +82,10 @@ export default function StageInput({ open, onClose, onSaved }) {
       });
       setErrors({});
     } catch (err) {
-      console.error(err);
+      const errorMessage = err.response?.data?.message || "Lỗi khi tạo giai đoạn thất bại!";
+      toast.error(errorMessage);
+      console.error("Lỗi khi tạo giai đoạn thất bại:", err);
+      
     } finally {
       setSaving(false);
     }

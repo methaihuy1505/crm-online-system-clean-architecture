@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
-
-const api = axios.create({ baseURL: "http://localhost:8080/api/v1" });
-
+import api from "../../../lib/api";
+import toast from "react-hot-toast";
+import { X } from "lucide-react";
 const fmt = (v) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(
     v || 0,
@@ -47,6 +46,7 @@ export default function OpportunityItemModal({
     quantity: 1,
     unitPrice: 0,
     discountRate: 0,
+    lineItemNumber: 0,
     vatRate: 10,
     note: "",
   });
@@ -57,17 +57,19 @@ export default function OpportunityItemModal({
     if (editItem) return; // Nếu đang sửa thì không tìm kiếm lại
 
     if (searchProduct.trim().length > 1) {
-      const delayDebounce = setTimeout(() => {
-        api
-          .get(`/products?search=${searchProduct}`)
-          .then((res) => {
-            // SỬA TẠI ĐÂY: Log của bạn cho thấy data là một mảng trực tiếp, không nằm trong .content
-            const data = Array.isArray(res.data)
-              ? res.data
-              : res.data?.content || [];
-            setProducts(data);
-          })
-          .catch((err) => console.error(err));
+      const delayDebounce = setTimeout(async () => {
+        try {
+          // 🌟 SỬA TẠI ĐÂY: Gọi đúng API /products/search và truyền param keyword
+          const res = await api.get('/products/search', {
+            params: { keyword: searchProduct.trim() }
+          });
+          
+          // Dữ liệu trả về từ API /search là một mảng trực tiếp
+          const data = Array.isArray(res.data) ? res.data : res.data?.content || [];
+          setProducts(data);
+        } catch (err) {
+          console.error("Lỗi khi tìm kiếm vật tư:", err);
+        }
       }, 300); // Đợi gõ xong 300ms mới gọi API
 
       return () => clearTimeout(delayDebounce);
@@ -89,6 +91,7 @@ export default function OpportunityItemModal({
         quantity: editItem.quantity,
         unitPrice: editItem.unitPrice,
         discountRate: editItem.discountRate,
+        lineItemNumber: editItem.lineItemNumber,
         vatRate: editItem.vatRate,
         note: editItem.note || "",
       });
@@ -100,6 +103,7 @@ export default function OpportunityItemModal({
         quantity: 1,
         unitPrice: 0,
         discountRate: 0,
+        lineItemNumber: 0,
         vatRate: 10,
         note: "",
       });
@@ -136,6 +140,10 @@ export default function OpportunityItemModal({
     if (Number(form.discountRate) < 0 || Number(form.discountRate) > 100)
       errs.discountRate = "Tỉ lệ chiết khấu từ 0 - 100%.";
     setErrors(errs);
+    if (Number(form.vatRate) < 0 || Number(form.vatRate) > 10)
+      errs.vatRate = "Tỉ lệ Vat từ 0 - 10%.";
+    setErrors(errs);
+
     return Object.keys(errs).length === 0;
   };
 
@@ -152,8 +160,12 @@ export default function OpportunityItemModal({
       onSuccess();
       onClose();
     } catch (err) {
-      console.error(err);
-      setErrors({ global: "Có lỗi xảy ra trong quá trình xử lý lưu." });
+      const errorMessage =
+        err.response?.data?.message ||
+        "Có lỗi xảy ra trong quá trình xử lý lưu.";
+      toast.error(errorMessage);
+      console.error("Lỗi khi lưu mặt hàng:", err);
+      setErrors({ global: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -179,9 +191,9 @@ export default function OpportunityItemModal({
           </h3>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:bg-slate-200"
+            className="p-1 rounded-lg text-slate-400 hover:bg-slate-200 transition-colors"
           >
-            <span className="material-symbols-outlined block">close</span>
+            <X size={20} />
           </button>
         </div>
 
@@ -278,10 +290,10 @@ export default function OpportunityItemModal({
             </Field>
 
             {/* Tỷ lệ Thuế VAT */}
-            <Field label="Thuế VAT (%)">
+            <Field label="Thuế VAT (%)" error={errors.vatRate}>
               <input
                 type="number"
-                className={inputCls(false)}
+                className={inputCls(errors.vatRate)}
                 value={form.vatRate}
                 onChange={(e) =>
                   setForm({ ...form, vatRate: Number(e.target.value) })

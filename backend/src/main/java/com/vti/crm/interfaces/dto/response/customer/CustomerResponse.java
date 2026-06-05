@@ -35,11 +35,21 @@ public class CustomerResponse {
     private String rankName;
 
     private Integer sourceId;
+    private String sourceName;
+
     private Integer campaignId;
-    private Integer primaryContactId;
+    private String campaignName;
+
     private Integer branchId;
+    private String branchName;
+
     private Integer provinceId;
+    private String provinceName;
+
     private Integer assignedUserId;
+    private String assignedUserName;
+
+    private Integer primaryContactId;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../../lib/api";
+import toast from "react-hot-toast";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 
-const api = axios.create({ baseURL: "http://localhost:8080/api/v1" });
+
 
 const inputCls = (hasError) =>
   `w-full bg-surface-container-low border-none rounded-lg px-3 py-2 text-sm transition-all outline-none focus:bg-white ${
@@ -30,7 +31,7 @@ export default function StageEdit({ open, stageId, onClose, onSaved }) {
     name: "",
     code: "",
     probabilityDefault: "",
-    stageType: "OPEN",
+    isClosed: true,
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
@@ -50,11 +51,16 @@ export default function StageEdit({ open, stageId, onClose, onSaved }) {
               res.data.probabilityDefault !== undefined
                 ? res.data.probabilityDefault
                 : "",
-            stageType: res.data.stageType || "OPEN",
+            isClosed:
+              res.data.isClosed !== undefined ? res.data.isClosed : true,
           });
           setErrors({});
         })
-        .catch((err) => console.error(err))
+        .catch((err) => {
+          const errorMessage = err.response?.data?.message || "Lỗi khi tải dữ liệu giai đoạn!";
+          toast.error(errorMessage);
+          console.error("Lỗi khi tải dữ liệu giai đoạn:", err);
+        })
         .finally(() => setLoading(false));
     }
   }, [open, stageId]);
@@ -89,11 +95,14 @@ export default function StageEdit({ open, stageId, onClose, onSaved }) {
         name: trimmedName,
         code: trimmedCode,
         probabilityDefault: parseInt(form.probabilityDefault, 10),
+        isClosed: form.isClosed,
       });
       onSaved();
       onClose();
     } catch (err) {
-      console.error(err);
+      const errorMessage = err.response?.data?.message || "Lỗi khi cập nhật giai đoạn!";
+      toast.error(errorMessage);
+      console.error("Lỗi khi cập nhật giai đoạn:", err);
     } finally {
       setSaving(false);
     }
@@ -105,7 +114,9 @@ export default function StageEdit({ open, stageId, onClose, onSaved }) {
       onSaved();
       onClose();
     } catch (err) {
-      console.error(err);
+      const errorMessage = err.response?.data?.message || "Lỗi khi xóa giai đoạn!";
+      toast.error(errorMessage);
+      console.error("Lỗi khi xóa giai đoạn:", err);
     }
   };
 
@@ -173,14 +184,12 @@ export default function StageEdit({ open, stageId, onClose, onSaved }) {
             </Field>
             <Field label="Loại quy trình">
               <select
-                value={form.stageType}
-                onChange={(e) =>
-                  setForm({ ...form, stageType: e.target.value })
-                }
+                value={form.isClosed}
+                onChange={(e) => setForm({ ...form, isClosed: e.target.value })}
                 className={inputCls(false)}
               >
-                <option value="OPEN">Đang xử lý (OPEN)</option>
-                <option value="CLOSED">Kết thúc quy trình (CLOSED)</option>
+                <option value="false">Đang xử lý (OPEN)</option>
+                <option value="true">Kết thúc quy trình (CLOSED)</option>
               </select>
             </Field>
           </div>

@@ -2,30 +2,36 @@ package com.vti.crm.interfaces.dto.response.opportunity;
 
 import lombok.*;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class OpportunityResponse {
-
-    private Integer id;
-    private String opportunityCode;
-    private String name;
-    private Integer customerId;
-
-    private Integer stageId;
-    private String stageName;
-
-    private Integer statusId;
-    private String statusName;
-
-    private Integer lostReasonId;
-    private String lostReasonName;
-
-    private Double totalAmount;
-    private Double depositAmount;
-    private Double remainingAmount;
-    private Integer probability;
-
+    private Integer       id;
+    private String        opportunityCode;
+    private String        name;
+    private Integer       customerId;
+    private Integer       campaignId;          // thêm
+    private Integer       stageId;
+    private String        stageName;
+    private Integer       statusId;
+    private String        statusName;
+    private Integer       lostReasonId;
+    private String        lostReasonName;
+    private LocalDateTime nextFollowUpDate;    // thêm
+    private Double    totalAmount;
+    private Double    depositAmount;
+    private Double    remainingAmount;
+    private String        currencyCode;        // thêm
+    private Integer       probability;
+    private LocalDate expectedCloseDate;   // thêm
+    private LocalDate actualCloseDate;     // thêm
+    private String        description;
+    private Integer       assignedTo;          // thêm
+    private Integer       createdBy;           // thêm
+    private Integer       updatedBy;           // thêm
+    private LocalDateTime createdAt;           // thêm
+    private LocalDateTime updatedAt;           // thêm
+    private LocalDateTime deletedAt;           // thêm
 }
